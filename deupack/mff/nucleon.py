@@ -6,7 +6,7 @@
 
 def cN(k):
     ''' Zero if summed over parton flavors. '''
-    return np.zeros(k.shape)
+    return k*0
 
 def SN(k):
     ''' Dipole form, assuming axial vector meson dominance,
@@ -31,4 +31,4 @@ def SN_q(k):
     return SN(k)
 
 def SN_g(k):
-    return np.zeros(k.shape)
+    return k*0
