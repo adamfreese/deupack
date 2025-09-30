@@ -1,0 +1,19 @@
+# Editor backup files
+*.swp
+*.swo
+.*.swo
+.*.swp
+*~
+
+# Python build/run files
+*.pyc
+*__pycache__
+build/
+dist/
+setuptools
+python/tiktaalik.egg-info/
+tiktaalik.egg-info/
+_skbuild/
+
+# Numpy output
+*.npy

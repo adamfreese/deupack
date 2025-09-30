@@ -1,0 +1,25 @@
+[project]
+name = "deupack"
+version = "0.0.1"
+description = "Python package to calculate structure of the deuteron"
+authors = [
+  {name = "Adam Freese", email = "afreese@jlab.org"}
+]
+maintainers = [
+  {name = "Adam Freese", email = "afreese@jlab.org"}
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+dependencies = [
+  "numpy",
+  "scipy",
+  "pandas"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.urls]
+Homepage = "https://github.com/adamfreese/deupack.git"
+Repository = "https://github.com/adamfreese/deupack.git"
