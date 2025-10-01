@@ -155,13 +155,15 @@ def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
 
 def _cU_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     kfm = k/hbar
-    A_piece = AN(k)/(2*kfm*(mN/hbar)**2) * jn(1,kfm*r/2)*(
-            u1(r)*u2(r) + w1(r)*w2(r)
-            - u(r)*u3(r) - w(r)*w3(r)
+    A1_piece = AN(k)/(2*kfm*(mN/hbar)**2) * jn(1,kfm*r/2)*(
+            2*u1(r)*u2(r) + 2*w1(r)*w2(r)
             - 12*w(r)**2/r**3
             )
+    A02_piece = AN(k)/(12*(mN/hbar)**2)*(jn(0,kfm*r/2)-2*jn(2,kfm*r/2))*(
+            u(r)*u2(r) + w(r)*w2(r)
+            )
     c_piece = 0.5*cN(k)*jn(0,kfm*r/2)*(u(r)**2 + w(r)**2)
-    intd = A_piece + c_piece
+    intd = A1_piece + A02_piece + c_piece
     return intd
 
 def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
