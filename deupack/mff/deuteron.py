@@ -168,33 +168,35 @@ def _cU_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
 
 def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     kfm = k/hbar
-    A_piece = 3*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
-            np.sqrt(2)*(
-                u1(r)*w2(r) + w1(r)*u2(r)
-                - u(r)*w3(r) - w(r)*u3(r)
-                )
-            + w(r)*w3(r) - w1(r)*w2(r)
+    A3_piece = 3*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
+            np.sqrt(2)*(2*u1(r)*w2(r) + 2*w1(r)*u2(r))
+            - 2*w1(r)*w2(r)
             + 2*np.sqrt(2)*( u(r)*w2(r) - w(r)*u2(r) )/r
             - 6*np.sqrt(2)*( u(r)*w1(r) - w(r)*u1(r) )/r**2
             - 12*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**3
             )
+    A24_piece = 3*AN(k)/(14*kfm**2)*(3*jn(2,kfm*r/2)-4*jn(4,kfm*r/2))*(
+                np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r))
+                - w(r)*w2(r)
+                )
     c_piece = 3*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
-    intd = A_piece + c_piece
+    intd = A3_piece + A24_piece + c_piece
     return intd
 
 def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
     kfm = k/hbar
-    intd = 3*AN(k)/(mN**2*k**2)*hbar**4 * jn(2,kfm*r/2)*(
-            (
-                2*np.sqrt(2)*( w(r)*u3(r) - u1(r)*w2(r) )
-                - w(r)*w3(r) + w1(r)*w2(r)
-                ) / r
-            + 2*np.sqrt(2)*( u(r)*w2(r) - w(r)*u2(r) ) / r**2
+    A2_term = jn(2,kfm*r/2)*(
+            2*(w1(r)*w2(r) - np.sqrt(2)*(w1(r)*u2(r) + u1(r)*w2(r))) / r
+            + (2*np.sqrt(2)*u(r) - w(r))*w2(r) / r**2
             + 12*np.sqrt(2)*w(r)*u1(r) / r**3
             - 12*( np.sqrt(2)*u(r)*w(r) + w(r)**2 ) / r**4
             )
+    A13_term = kfm*(2*jn(1,kfm*r/2) - 3*jn(3,kfm*r/2))/10*(
+            w2(r) - 2*np.sqrt(2)*u2(r)
+            ) * w(r) / r
+    intd = 3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_term + A13_term)
     return intd
 
 def _J_integrand(r, k, u, w, AN, JN):
