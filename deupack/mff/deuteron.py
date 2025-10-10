@@ -36,63 +36,63 @@ def AT(k, u=_u, w=_w, AN=_AN):
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _AT(k, u=_u, w=_w, AN=_AN)
+    return _AT(k, u=u, w=w, AN=AN)
 
 def DU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN):
     ''' The mechanical form factor DU.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _DU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN)
+    return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
 def DT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, DN=_DN):
     ''' The mechanical form factor DT1.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _DT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, DN=_DN)
+    return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, DN=DN)
 
 def DT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN):
     ''' The mechanical form factor DT2.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _DT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN)
+    return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
 def cU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN):
     ''' The mechanical form factor cbarU.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _cU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN)
+    return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
 def cT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN):
     ''' The mechanical form factor cbarT1.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _cT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN)
+    return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
 def cT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN):
     ''' The mechanical form factor cbarT2.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _cT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN)
+    return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN)
 
 def J(k, u=_u, w=_w, AN=_AN, JN=_JN):
     ''' The mechanical form factor J.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _J(k, u=_u, w=_w, AN=_AN, JN=_JN)
+    return _J(k, u=u, w=w, AN=AN, JN=JN)
 
 def S(k, u=_u, w=_w, SN=_SN):
     ''' The mechanical form factor S.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _S(k, u=_u, w=_w, SN=_SN)
+    return _S(k, u=u, w=w, SN=SN)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Under-the-hood implementation details for the MFFs:
@@ -109,7 +109,7 @@ def _AT_integrand(r, k, u, w, AN):
     kfm = k/hbar
     intd = AN(k) * jn(2, kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
-            ) * 3*mN**2/k**2
+            ) * 6*mN**2/k**2
     return intd
 
 def _DU_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
@@ -127,13 +127,13 @@ def _DU_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
 
 def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, DN):
     kfm = k/hbar
-    A_piece = 24 * (mN/k)**2 / kfm**2 *AN(k) * jn(4,kfm*r/2)*(
+    A_piece = 48 * (mN/k)**2 / kfm**2 *AN(k) * jn(4,kfm*r/2)*(
             np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r) - 2*u1(r)*w1(r))
             - w(r)*w2(r) + w1(r)**2
             + ( np.sqrt(2)*(3*w(r)*u1(r)-5*u(r)*w1(r)) + w(r)*w1(r) )/r
             + 6*( np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**2
             )
-    D_piece = 12*mN**2/k**2 * DN(k) * jn(2,kfm*r/2)*(
+    D_piece = 24*mN**2/k**2 * DN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
     intd = A_piece + D_piece
@@ -142,10 +142,7 @@ def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, DN):
 def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
     kfm = k/hbar
     A_piece = 24/kfm**3 *AN(k) * jn(3,kfm*r/2)*(
-            (
-                (2*np.sqrt(2)*u2(r)-w2(r))*w(r)
-                - (2*np.sqrt(2)*u1(r)-w1(r))*w1(r)
-                ) / r
+            ( (2*np.sqrt(2)*u2(r)-w2(r))*w(r) - (2*np.sqrt(2)*u1(r)-w1(r))*w1(r)) / r
             + ( 2*np.sqrt(2)*u(r)+5*w(r) )*w1(r)/r**2
             - 18*w(r)**2/r**3
             )
@@ -168,18 +165,18 @@ def _cU_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
 
 def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     kfm = k/hbar
-    A3_piece = 3*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
+    A3_piece = 6*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
             np.sqrt(2)*(2*u1(r)*w2(r) + 2*w1(r)*u2(r))
             - 2*w1(r)*w2(r)
             + 2*np.sqrt(2)*( u(r)*w2(r) - w(r)*u2(r) )/r
             - 6*np.sqrt(2)*( u(r)*w1(r) - w(r)*u1(r) )/r**2
             - 12*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**3
             )
-    A24_piece = 3*AN(k)/(14*kfm**2)*(3*jn(2,kfm*r/2)-4*jn(4,kfm*r/2))*(
+    A24_piece = 6*AN(k)/(14*kfm**2)*(3*jn(2,kfm*r/2)-4*jn(4,kfm*r/2))*(
                 np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r))
                 - w(r)*w2(r)
                 )
-    c_piece = 3*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
+    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
     intd = A3_piece + A24_piece + c_piece
