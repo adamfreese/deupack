@@ -45,12 +45,12 @@ def DU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN):
     '''
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, DN=_DN):
+def DT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN):
     ''' The mechanical form factor DT1.
     Assumes k is in GeV.
     By default uses the AV18 wave function.
     '''
-    return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, DN=DN)
+    return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
 def DT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN):
     ''' The mechanical form factor DT2.
@@ -125,18 +125,19 @@ def _DU_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
     intd = A_piece + J_piece + D_piece
     return intd
 
-def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, DN):
+def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
     kfm = k/hbar
     A_piece = 48 * (mN/k)**2 / kfm**2 *AN(k) * jn(4,kfm*r/2)*(
             np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r) - 2*u1(r)*w1(r))
             - w(r)*w2(r) + w1(r)**2
             + ( np.sqrt(2)*(3*w(r)*u1(r)-5*u(r)*w1(r)) + w(r)*w1(r) )/r
-            + 6*( np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**2
+            + 6*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**2
             )
+    J_piece = 288*(mN/k)**2 * JN(k) * jn(3,kfm*r/2)* w(r)**2/(kfm*r)
     D_piece = 24*mN**2/k**2 * DN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
-    intd = A_piece + D_piece
+    intd = A_piece + J_piece + D_piece
     return intd
 
 def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
@@ -237,10 +238,10 @@ def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN):
                         workers=8)[0]
     return integral * 2
 
-def _DT1(k, u, w, u1, w1, u2, w2, AN, DN):
+def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DT1_integrand, 0, np.inf,
-                        args=(k, u, w, u1, w1, u2, w2, AN, DN),
+                        args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
