@@ -133,7 +133,9 @@ def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
             + ( np.sqrt(2)*(3*w(r)*u1(r)-5*u(r)*w1(r)) + w(r)*w1(r) )/r
             + 6*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**2
             )
-    J_piece = 288*(mN/k)**2 * JN(k) * jn(3,kfm*r/2)* w(r)**2/(kfm*r)
+    J_piece = 96*(mN/k)**2/kfm * JN(k) * jn(3,kfm*r/2) * (
+            np.sqrt(2)*(u(r)*w1(r)-w(r)*u1(r)) - (2*np.sqrt(2)*u(r)*w(r)-w(r)**2)/r
+            )
     D_piece = 24*mN**2/k**2 * DN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
@@ -142,12 +144,17 @@ def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
 
 def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
     kfm = k/hbar
-    A_piece = 24/kfm**3 *AN(k) * jn(3,kfm*r/2)*(
+    A_piece = 24/kfm**3 * AN(k) * jn(3,kfm*r/2)*(
             ( (2*np.sqrt(2)*u2(r)-w2(r))*w(r) - (2*np.sqrt(2)*u1(r)-w1(r))*w1(r)) / r
             + ( 2*np.sqrt(2)*u(r)+5*w(r) )*w1(r)/r**2
             - 18*w(r)**2/r**3
             )
-    J_piece = 36/(5*kfm) * JN(k) * jn(1,kfm*r/2) * w(r)**2/r
+    J_piece = 12/kfm**2 * JN(k) * jn(2,kfm*r/2)*(
+            np.sqrt(2)*(u(r)*w2(r) - w(r)*u2(r))
+            - 4*(np.sqrt(2)*u1(r) + w1(r))*w(r)/r
+            -(2*np.sqrt(2)*u(r)*w(r) - w(r)**2)/r**2
+            + 3*w(r)**2/r**2
+            )
     intd = A_piece + J_piece
     return intd
 
