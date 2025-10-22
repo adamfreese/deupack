@@ -11,7 +11,7 @@ mpl.rc('text.latex', preamble=r"\usepackage{bm,amsmath,amssymb,amsfonts,mathrsfs
 
 def plot_one_mff(name, logscale=False):
     wimdf = dp.mff.wim.make_wimffs()
-    hzdf = dp.mff.hezahed.make_hzmffs()
+    hzdf = dp.mff.hz.make_hzmffs()
     Delta2 = wimdf['Delta2']
     if(name=='AU'):
         F_our = dp.mff.AU(np.sqrt(Delta2))
