@@ -1,0 +1,18 @@
+# These are parameters that can be used to get analytic form of paris wavefunction
+# read https://in2p3.hal.science/in2p3-00017487/document for more information
+#Used the recursive relation listed in paper to get last few parameters (did this is my C++ code)
+#Edited by Alan Sosa
+C_J            D_J        
+0.886881     0.0231352
+-0.347171     -0.856046
+-3.05024     5.60682
+56.2078     -69.4629
+-749.573     416.311
+5336.53     -1254.66
+-22706.9     1238.78
+60434.5      3373.92
+-102921     -13041.2
+112234        19512.5
+-75925.2     -15634.3
+29059.7     6623.11
+-4815.74     -1169.82
