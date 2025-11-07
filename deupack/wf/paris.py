@@ -20,6 +20,7 @@ def u(r):
     s=0.0
     for i in range(0, len(C_J)):
         s+= C_J[i]*np.exp(-m_j[i]*r)
+        # print("C_J= ",C_J)
     return s
 
 
@@ -48,51 +49,50 @@ def u3(r):
 
 def w(r):
     d = 0.0
-    # More conservative small r handling
-    r_ = np.maximum(r, 1e-10)  # Prevent division by zero while maintaining precision
+    r_ = np.maximum(r, 0.005)  # Prevent division by zero while maintaining precision
     
     for i in range(0, len(C_J)):
         kappa = m_j[i]
         kr = kappa * r_
         # Use numpy.divide for better handling of small numbers
-        d += D_J[i] * np.exp(-kappa*r) * (1. + np.divide(3., kr) + np.divide(3., kr**2))
+        d += D_J[i] * np.exp(-kappa*r) * (1. + 3./kr + 3./ kr**2)
     return d
 
 def w1(r):
     d1 = 0.0
-    r_ = np.maximum(r, 1e-10)
+    r_ = np.maximum(r, 0.005)
     
     for i in range(0, len(C_J)):
         kappa = m_j[i]
         kr = kappa * r_
         d1 -= D_J[i] * kappa * np.exp(-kappa*r) * (
-            1. + np.divide(3., kr) + np.divide(6., kr**2) + np.divide(6., kr**3)
+            1. + 3./kr + 6./ kr**2 + 6./ kr**3
         )
     return d1
 
 def w2(r):
     d2 = 0.0
-    r_ = np.maximum(r, 1e-10)
+    r_ = np.maximum(r, 0.005)
     
     for i in range(0, len(C_J)):
         kappa = m_j[i]
         kr = kappa * r_
         d2 += D_J[i] * kappa**2 * np.exp(-kappa*r) * (
-            1. + np.divide(3., kr) + np.divide(9., kr**2) + 
-            np.divide(18., kr**3) + np.divide(18., kr**4)
+            1. + 3./kr + 9./ kr**2 + 
+            18./ kr**3 + 18./ kr**4
         )
     return d2
 
 def w3(r):
     d3 = 0.0
-    r_ = np.maximum(r, 1e-10)
+    r_ = np.maximum(r, 0.005)
     
     for i in range(0, len(C_J)):
         kappa = m_j[i]
         kr = kappa * r_
         d3 -= D_J[i] * kappa**3 * np.exp(-kappa*r) * (
-            1. + np.divide(3., kr) + np.divide(12., kr**2) + 
-            np.divide(36., kr**3) + np.divide(72., kr**4) + np.divide(72., kr**5)
+            1. + 3./kr + 12./ kr**2 + 
+            36./ kr**3 + 72./ kr**4 + 72./ kr**5
         )
     return d3
 

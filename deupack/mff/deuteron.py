@@ -231,70 +231,70 @@ def _S_integrand(r, k, u, w, SN):
 #    at multiple k values. It's also parallelizable.
 
 def _AU(k, u, w, AN):
-    integral = quad_vec(_AU_integrand, 0.15, np.inf,
+    integral = quad_vec(_AU_integrand, 0.05, np.inf,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
 def _AT(k, u, w, AN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_AT_integrand, 0.15, np.inf,
+    integral = quad_vec(_AT_integrand, 0.05, np.inf,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
 def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DU_integrand, 0.15, np.inf,
+    integral = quad_vec(_DU_integrand, 0.05, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
 def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT1_integrand, 0.15, np.inf,
+    integral = quad_vec(_DT1_integrand, 0.05, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
 def _DT2(k, u, w, u1, w1, u2, w2, AN, JN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT2_integrand, 0.15, np.inf,
+    integral = quad_vec(_DT2_integrand, 0.05, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN),
                         workers=8)[0]
     return integral * 2
 
 def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cU_integrand, 0.15, np.inf,
+    integral = quad_vec(_cU_integrand, 0.05, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
 def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT1_integrand, 0.15, np.inf,
+    integral = quad_vec(_cT1_integrand, 0.05, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
 def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT2_integrand, 0.15, np.inf,
+    integral = quad_vec(_cT2_integrand, 0.05, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
                         workers=8)[0]
     return integral * 2
 
 def _J(k, u, w, AN, JN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_J_integrand, 0.15, np.inf,
+    integral = quad_vec(_J_integrand, 0.05, np.inf,
                         args=(k, u, w, AN, JN),
                         workers=8)[0]
     return integral * 2
 
 def _S(k, u, w, SN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_S_integrand, 0.15, np.inf,
+    integral = quad_vec(_S_integrand, 0.05, np.inf,
                         args=(k, u, w, SN),
                         workers=8)[0]
     return integral * 2
