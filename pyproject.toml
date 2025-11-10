@@ -3,7 +3,8 @@ name = "deupack"
 version = "0.0.1"
 description = "Python package to calculate structure of the deuteron"
 authors = [
-  {name = "Adam Freese", email = "afreese@jlab.org"}
+  {name = "Adam Freese", email = "afreese@jlab.org"},
+  {name = "Alan Sosa"}
 ]
 maintainers = [
   {name = "Adam Freese", email = "afreese@jlab.org"}

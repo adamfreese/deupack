@@ -1,8 +1,9 @@
 # deuteron.py
 # Created 2025.09.30 by Adam Freese
+# contributions from both Adam Freese and Alan Sosa
 #
 # This file contains formulas for form factors as given in the work by
-# me, Alan Sosa, and Wim Cosyn.
+# Wim Cosyn, Adam Freese and Alan Sosa.
 
 import numpy as np
 
@@ -17,81 +18,54 @@ from .nucleonhps import AN as _AN, JN as _JN, DN as _DN
 # For the form factors not in HPS, use some simple guesses
 from .nucleon import SN as _SN, cN as _cN
 
-# Default deuteron wave function: AV18
-from ..wf.av18 import u as _u, u1 as _u1, u2 as _u2, u3 as _u3
-from ..wf.av18 import w as _w, w1 as _w1, w2 as _w2, w3 as _w3
+# Import wave function chooser
+from ..wf.chooser import choose_wf
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The user interfaces for the form factors
+# Add optional wf parameter (last arg) that overrides u/w function arguments if provided.
 
-def AU(k, u=_u, w=_w, AN=_AN):
+def AU(k, AN=_AN, wf='av18'):
     ''' The mechanical form factor AU.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
+    Pass wf='av18' or wf='paris' (or wf=av18_mod) to select wavefunction.
     '''
+    u, w, *_ = choose_wf(wf)
     return _AU(k, u=u, w=w, AN=AN)
 
-def AT(k, u=_u, w=_w, AN=_AN):
-    ''' The mechanical form factor AT.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def AT(k, AN=_AN, wf='av18'):
+    u, w, *_ = choose_wf(wf)
     return _AT(k, u=u, w=w, AN=AN)
 
-def DU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN):
-    ''' The mechanical form factor DU.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def DU(k, AN=_AN, JN=_JN, DN=_DN, wf='av18'):
+    u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN):
-    ''' The mechanical form factor DT1.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def DT1(k, AN=_AN, JN=_JN, DN=_DN, wf='av18'):
+    u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN):
-    ''' The mechanical form factor DT2.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def DT2(k, AN=_AN, JN=_JN, wf='av18'):
+    u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
-def cU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN):
-    ''' The mechanical form factor cbarU.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def cU(k, AN=_AN, cN=_cN, wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
-def cT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN):
-    ''' The mechanical form factor cbarT1.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def cT1(k, AN=_AN, cN=_cN, wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
-def cT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN):
-    ''' The mechanical form factor cbarT2.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def cT2(k, AN=_AN, wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN)
 
-def J(k, u=_u, w=_w, AN=_AN, JN=_JN):
-    ''' The mechanical form factor J.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def J(k, AN=_AN, JN=_JN, wf='av18'):
+    u, w, *_ = choose_wf(wf)
     return _J(k, u=u, w=w, AN=AN, JN=JN)
 
-def S(k, u=_u, w=_w, SN=_SN):
-    ''' The mechanical form factor S.
-    Assumes k is in GeV.
-    By default uses the AV18 wave function.
-    '''
+def S(k, SN=_SN, wf='av18'):
+    u, w, *_ = choose_wf(wf)
     return _S(k, u=u, w=w, SN=SN)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
