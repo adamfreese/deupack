@@ -1,8 +1,9 @@
 # deuteron.py
 # Created 2025.09.30 by Adam Freese
+# contributions from both Adam Freese and Alan Sosa
 #
 # This file contains formulas for form factors as given in the work by
-# me, Alan Sosa, and Wim Cosyn.
+# Wim Cosyn, Adam Freese and Alan Sosa.
 
 import numpy as np
 
@@ -17,87 +18,55 @@ from .nucleonhps import AN as _AN, JN as _JN, DN as _DN
 # For the form factors not in HPS, use some simple guesses
 from .nucleon import SN as _SN, cN as _cN
 
-
-# import wavefunction modules (keep existing default function aliases below)
-from ..wf import av18 as av18_mod
-from ..wf import paris as paris_mod
-
-# Default deuteron wave function: AV18 (keep existing default aliases for backward compat)
-from ..wf.av18 import u as _u, u1 as _u1, u2 as _u2, u3 as _u3
-from ..wf.av18 import w as _w, w1 as _w1, w2 as _w2, w3 as _w3
-
-# Add mapping for convenient selection
-WAVEFUNCTIONS = {
-    'av18': (av18_mod.u, av18_mod.w, av18_mod.u1, av18_mod.w1,
-             av18_mod.u2, av18_mod.w2, av18_mod.u3, av18_mod.w3),
-    'paris': (paris_mod.u, paris_mod.w, paris_mod.u1, paris_mod.w1,
-              paris_mod.u2, paris_mod.w2, paris_mod.u3, paris_mod.w3),
-}
-
-def _choose_wf(wf, u, w, u1, w1, u2, w2, u3, w3):
-    """Return a tuple (u,w,u1,w1,u2,w2,u3,w3) according to wf.
-    wf can be None (use provided u/w...), a string 'av18'/'paris', or a module-like object.
-    """
-    if wf is None:
-        return (u, w, u1, w1, u2, w2, u3, w3)
-    if isinstance(wf, str):
-        key = wf.lower()
-        if key in WAVEFUNCTIONS:
-            return WAVEFUNCTIONS[key]
-        raise ValueError(f"Unknown wf '{wf}', valid: {list(WAVEFUNCTIONS.keys())}")
-    # module-like object with attributes u,w,u1,...
-    for attr in ('u','w','u1','w1','u2','w2','u3','w3'):
-        if not hasattr(wf, attr):
-            raise ValueError("wf module must have attributes: u,w,u1,w1,u2,w2,u3,w3")
-    return (wf.u, wf.w, wf.u1, wf.w1, wf.u2, wf.w2, wf.u3, wf.w3)
+# Import wave function chooser
+from ..wf.chooser import choose_wf
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The user interfaces for the form factors
 # Add optional wf parameter (last arg) that overrides u/w function arguments if provided.
 
-def AU(k, u=_u, w=_w, AN=_AN, wf=None):
+def AU(k, AN=_AN, wf='av18'):
     ''' The mechanical form factor AU.
     Pass wf='av18' or wf='paris' (or wf=av18_mod) to select wavefunction.
     '''
-    u, w, *_ = _choose_wf(wf, u, w, _u1, _w1, _u2, _w2, _u3, _w3)
+    u, w, *_ = choose_wf(wf)
     return _AU(k, u=u, w=w, AN=AN)
 
-def AT(k, u=_u, w=_w, AN=_AN, wf=None):
-    u, w, *_ = _choose_wf(wf, u, w, _u1, _w1, _u2, _w2, _u3, _w3)
+def AT(k, AN=_AN, wf='av18'):
+    u, w, *_ = choose_wf(wf)
     return _AT(k, u=u, w=w, AN=AN)
 
-def DU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN, wf=None):
-    u, w, u1, w1, u2, w2, _, _ = _choose_wf(wf, u, w, u1, w1, u2, w2, _u3, _w3)
+def DU(k, AN=_AN, JN=_JN, DN=_DN, wf='av18'):
+    u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, DN=_DN, wf=None):
-    u, w, u1, w1, u2, w2, _, _ = _choose_wf(wf, u, w, u1, w1, u2, w2, _u3, _w3)
+def DT1(k, AN=_AN, JN=_JN, DN=_DN, wf='av18'):
+    u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, AN=_AN, JN=_JN, wf=None):
-    u, w, u1, w1, u2, w2, _, _ = _choose_wf(wf, u, w, u1, w1, u2, w2, _u3, _w3)
+def DT2(k, AN=_AN, JN=_JN, wf='av18'):
+    u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
-def cU(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN, wf=None):
-    u, w, u1, w1, u2, w2, u3, w3 = _choose_wf(wf, u, w, u1, w1, u2, w2, u3, w3)
+def cU(k, AN=_AN, cN=_cN, wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
-def cT1(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, cN=_cN, wf=None):
-    u, w, u1, w1, u2, w2, u3, w3 = _choose_wf(wf, u, w, u1, w1, u2, w2, u3, w3)
+def cT1(k, AN=_AN, cN=_cN, wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
-def cT2(k, u=_u, w=_w, u1=_u1, w1=_w1, u2=_u2, w2=_w2, u3=_u3, w3=_w3, AN=_AN, wf=None):
-    u, w, u1, w1, u2, w2, u3, w3 = _choose_wf(wf, u, w, u1, w1, u2, w2, u3, w3)
+def cT2(k, AN=_AN, wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN)
 
-def J(k, u=_u, w=_w, AN=_AN, JN=_JN, wf=None):
-    u, w, *_ = _choose_wf(wf, u, w, _u1, _w1, _u2, _w2, _u3, _w3)
+def J(k, AN=_AN, JN=_JN, wf='av18'):
+    u, w, *_ = choose_wf(wf)
     return _J(k, u=u, w=w, AN=AN, JN=JN)
 
-def S(k, u=_u, w=_w, SN=_SN, wf=None):
-    u, w, *_ = _choose_wf(wf, u, w, _u1, _w1, _u2, _w2, _u3, _w3)
+def S(k, SN=_SN, wf='av18'):
+    u, w, *_ = choose_wf(wf)
     return _S(k, u=u, w=w, SN=SN)
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Under-the-hood implementation details for the MFFs:
@@ -231,70 +200,70 @@ def _S_integrand(r, k, u, w, SN):
 #    at multiple k values. It's also parallelizable.
 
 def _AU(k, u, w, AN):
-    integral = quad_vec(_AU_integrand, 0.05, np.inf,
+    integral = quad_vec(_AU_integrand, 0, np.inf,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
 def _AT(k, u, w, AN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_AT_integrand, 0.05, np.inf,
+    integral = quad_vec(_AT_integrand, 0, np.inf,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
 def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DU_integrand, 0.05, np.inf,
+    integral = quad_vec(_DU_integrand, 0, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
 def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT1_integrand, 0.05, np.inf,
+    integral = quad_vec(_DT1_integrand, 0, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
 def _DT2(k, u, w, u1, w1, u2, w2, AN, JN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT2_integrand, 0.05, np.inf,
+    integral = quad_vec(_DT2_integrand, 0, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN),
                         workers=8)[0]
     return integral * 2
 
 def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cU_integrand, 0.05, np.inf,
+    integral = quad_vec(_cU_integrand, 0, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
 def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT1_integrand, 0.05, np.inf,
+    integral = quad_vec(_cT1_integrand, 0, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
 def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT2_integrand, 0.05, np.inf,
+    integral = quad_vec(_cT2_integrand, 0, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
                         workers=8)[0]
     return integral * 2
 
 def _J(k, u, w, AN, JN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_J_integrand, 0.05, np.inf,
+    integral = quad_vec(_J_integrand, 0, np.inf,
                         args=(k, u, w, AN, JN),
                         workers=8)[0]
     return integral * 2
 
 def _S(k, u, w, SN):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_S_integrand, 0.05, np.inf,
+    integral = quad_vec(_S_integrand, 0, np.inf,
                         args=(k, u, w, SN),
                         workers=8)[0]
     return integral * 2
