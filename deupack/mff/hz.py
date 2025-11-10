@@ -36,18 +36,14 @@ def make_hzmffs():
         'DT1'    : DT1,
         'DT2'    : DT2
         })
-    #return new_df
-    # Cull?
-    culled_df = new_df[new_df['Delta2'] >= 1e-2]
-    return culled_df
-
+    return new_df
 
 def read_mffs():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/hz'
-    df_A = pd.read_csv(path / "data_A.txt", header=None, sep='\s+')
-    df_J = pd.read_csv(path / "data_J.txt", header=None, sep='\s+')
-    df_Q = pd.read_csv(path / "data_Q.txt", header=None, sep='\s+')
+    df_A =  pd.read_csv(path / "data_A.txt",  header=None, sep='\s+')
+    df_J =  pd.read_csv(path / "data_J.txt",  header=None, sep='\s+')
+    df_Q =  pd.read_csv(path / "data_Q.txt",  header=None, sep='\s+')
     df_D0 = pd.read_csv(path / "data_D0.txt", header=None, sep='\s+')
     df_D2 = pd.read_csv(path / "data_D2.txt", header=None, sep='\s+')
     df_D3 = pd.read_csv(path / "data_D3.txt", header=None, sep='\s+')

@@ -41,10 +41,7 @@ def make_wimffs():
         'DT1'    : DT1,
         'DT2'    : DT2
         })
-    #return new_df
-    # Cull any Delta2 below 1e-4, because that seems unstable
-    culled_df = new_df[new_df['Delta2'] > 1e-2]
-    return culled_df
+    return new_df
 
 def read_emt_data():
     ''' Read EMT data from the table Wim provided. '''
