@@ -33,10 +33,9 @@ def plot_our_mffs():
     plot_one_wf(ax_cU,  'cU')
     plot_one_wf(ax_cT1, 'cT1')
     plot_one_wf(ax_cT2, 'cT2')
-    l = ax_AU.legend(prop = { 'size' : 24 }, loc=3)
+    l = ax_AU.legend(prop = { 'size' : 27 }, loc=3)
     fig.patch.set_alpha(0)
     fig.savefig('wf_comparisons.pdf')
-    fig.savefig('derp.pdf')
     return
 
 def plot_grouo_comparisons():
@@ -54,7 +53,7 @@ def plot_grouo_comparisons():
     plot_one_group(ax_DU,  'DU')
     plot_one_group(ax_DT1, 'DT1')
     plot_one_group(ax_DT2, 'DT2')
-    l = ax_AU.legend(prop = { 'size' : 24 }, loc=3)
+    l = ax_AU.legend(prop = { 'size' : 27 }, loc=3)
     fig.patch.set_alpha(0)
     fig.savefig('group_comparisons.pdf')
     return
@@ -132,8 +131,8 @@ def plot_one_group(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
     F = select_mff(name, dl2)
     # Plot
-    ax.plot(dl2,    F,    '-',  linewidth=2, color='xkcd:hunter green', label=r'Ours')
-    ax.plot(dl2_wc, F_wc, '--', linewidth=2, color='xkcd:dark lavender',label=r'Freese and Cosyn')
+    ax.plot(dl2,    F,    '-',  linewidth=2, color='xkcd:true green', label=r'Ours')
+    ax.plot(dl2_wc, F_wc, '--', linewidth=2, color='xkcd:rich purple',label=r'Freese and Cosyn')
     ax.plot(dl2_hz, F_hz, '-.', linewidth=2, color='xkcd:cobalt', label=r'He and Zahed')
     ax.plot(dl2_jp, F_jp, ':',  linewidth=2, color='xkcd:coral',  label=r'Panteleva \textsl{et al.}')
     # Line at zero to help guide the eye
