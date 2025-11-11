@@ -12,8 +12,8 @@ py.rcParams["axes.formatter.use_mathtext"] = True
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Routines to make specific plots
 
-def plot_our_mffs():
-    nrows,ncols=3,3
+def plot_wf_comparisons():
+    nrows,ncols=2,5
     fig = py.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax_AU  = py.subplot(nrows,ncols,1)
     ax_AT  = py.subplot(nrows,ncols,2)
@@ -24,6 +24,7 @@ def plot_our_mffs():
     ax_cU  = py.subplot(nrows,ncols,7)
     ax_cT1 = py.subplot(nrows,ncols,8)
     ax_cT2 = py.subplot(nrows,ncols,9)
+    ax_S   = py.subplot(nrows,ncols,10)
     plot_one_wf(ax_AU,  'AU')
     plot_one_wf(ax_AT,  'AT')
     plot_one_wf(ax_J,   'J')
@@ -33,6 +34,7 @@ def plot_our_mffs():
     plot_one_wf(ax_cU,  'cU')
     plot_one_wf(ax_cT1, 'cT1')
     plot_one_wf(ax_cT2, 'cT2')
+    plot_one_wf(ax_S,   'S')
     l = ax_AU.legend(prop = { 'size' : 27 }, loc=3)
     fig.patch.set_alpha(0)
     fig.savefig('wf_comparisons.pdf')
@@ -70,7 +72,8 @@ namelabel = {
         'DT2' : r'$D_{T2}(\varDelta^2)$',
         'cU'  : r'$\bar{c}_U(\varDelta^2)$',
         'cT1' : r'$\bar{c}_{T1}(\varDelta^2)$',
-        'cT2' : r'$\bar{c}_{T2}(\varDelta^2)$'
+        'cT2' : r'$\bar{c}_{T2}(\varDelta^2)$',
+        'S'   : r'$S(\varDelta^2)$'
         }
 
 def select_mff(name, dl2, wf='av18'):
@@ -94,6 +97,8 @@ def select_mff(name, dl2, wf='av18'):
         F = mff.cT1(np.sqrt(dl2), wf=wf)
     elif(name=='cT2'):
         F = mff.cT2(np.sqrt(dl2), wf=wf)
+    elif(name=='S'):
+        F = mff.S(np.sqrt(dl2), wf=wf)
     else:
         F = dl2 * 0
     return F

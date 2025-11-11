@@ -1,1 +1,1 @@
-from . import paper1
+from .devplots import *
