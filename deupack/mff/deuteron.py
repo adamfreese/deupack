@@ -11,6 +11,7 @@ from scipy.special import spherical_jn as jn
 from scipy.integrate import quad_vec
 
 from ..constants import mN, hbar
+from ..utils import regulate_zero
 
 # Default nucleon form factors: Hackett, Pefkou & Shanahan (HPS)
 from .nucleonhps import AN as _AN, JN as _JN, DN as _DN
@@ -50,7 +51,12 @@ def DT2(k, AN=_AN, JN=_JN, wf='av18'):
 
 def cU(k, AN=_AN, cN=_cN, wf='av18'):
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
-    return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
+    # Need to change rmin from 0 to 1e-2 for the Paris wf,
+    # because of an instability at small r
+    rmin = 0
+    if(wf=='paris'):
+        rmin = 1e-2
+    return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
 def cT1(k, AN=_AN, cN=_cN, wf='av18'):
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
@@ -58,7 +64,12 @@ def cT1(k, AN=_AN, cN=_cN, wf='av18'):
 
 def cT2(k, AN=_AN, wf='av18'):
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
-    return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN)
+    # Need to change rmin from 0 to 1e-2 for the Paris wf,
+    # because of an instability at small r
+    rmin = 0
+    if(wf=='paris'):
+        rmin = 1e-2
+    return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, rmin=rmin)
 
 def J(k, AN=_AN, JN=_JN, wf='av18'):
     u, w, *_ = choose_wf(wf)
@@ -199,86 +210,71 @@ def _S_integrand(r, k, u, w, SN):
 #    quad_vec achieves good speed for parallel calculation of form factors
 #    at multiple k values. It's also parallelizable.
 
-def _AU(k, u, w, AN):
-    integral = quad_vec(_AU_integrand, 0, np.inf,
+def _AU(k, u, w, AN, rmin=0, rmax=np.inf):
+    integral = quad_vec(_AU_integrand, rmin, rmax,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
-def _AT(k, u, w, AN):
+def _AT(k, u, w, AN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_AT_integrand, 0, np.inf,
+    integral = quad_vec(_AT_integrand, rmin, rmax,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
-def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN):
+def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DU_integrand, 0, np.inf,
+    integral = quad_vec(_DU_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
-def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN):
+def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT1_integrand, 0, np.inf,
+    integral = quad_vec(_DT1_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
-def _DT2(k, u, w, u1, w1, u2, w2, AN, JN):
+def _DT2(k, u, w, u1, w1, u2, w2, AN, JN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT2_integrand, 0, np.inf,
+    integral = quad_vec(_DT2_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN),
                         workers=8)[0]
     return integral * 2
 
-def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
+def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cU_integrand, 0, np.inf,
+    integral = quad_vec(_cU_integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
-def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
+def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT1_integrand, 0, np.inf,
+    integral = quad_vec(_cT1_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
-def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN):
+def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT2_integrand, 0, np.inf,
+    integral = quad_vec(_cT2_integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
                         workers=8)[0]
     return integral * 2
 
-def _J(k, u, w, AN, JN):
+def _J(k, u, w, AN, JN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_J_integrand, 0, np.inf,
+    integral = quad_vec(_J_integrand, rmin, rmax,
                         args=(k, u, w, AN, JN),
                         workers=8)[0]
     return integral * 2
 
-def _S(k, u, w, SN):
+def _S(k, u, w, SN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_S_integrand, 0, np.inf,
+    integral = quad_vec(_S_integrand, rmin, rmax,
                         args=(k, u, w, SN),
                         workers=8)[0]
     return integral * 2
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Misc utilities
-
-def regulate_zero(X):
-    ''' Takes a scalar or an array, and if it is or contains 0,
-    the 0 is shifted.
-    '''
-    epsilon = 1e-6
-    if(np.isscalar(X)):
-        if(X==0):
-            X += epsilon
-    else:
-        X[X==0] = epsilon
-    return X
