@@ -12,9 +12,10 @@ maintainers = [
 readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [
+  "matplotlib",
   "numpy",
-  "scipy",
-  "pandas"
+  "pandas",
+  "scipy"
 ]
 
 [build-system]
