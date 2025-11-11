@@ -3,7 +3,7 @@
 #
 # Methods to choose the wave function, and return the appropriate functions.
 
-# import wavefunction modules (keep existing default function aliases below)
+# import wavefunction modules
 from . import av18 as av18_mod
 from . import paris as paris_mod
 
