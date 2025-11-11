@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-
 # Global variables (set when make_wf is run)
 
 # These will be filled with numpy arrays
@@ -15,81 +14,56 @@ C_J=None
 D_J=None
 m_j=None
 
-
 def u(r):
-    s=0.0
-    for i in range(0, len(C_J)):
-        s+= C_J[i]*np.exp(-m_j[i]*r)
-        # print("C_J= ",C_J)
+    s = C_J * np.exp(-m_j*r)
+    s = np.sum(s)
     return s
 
-
-
 def u1(r):
-    s1=0.0
-    for i in range(0, len(C_J)):
-        kappa=m_j[i]
-        s1-=C_J[i]*kappa * np.exp(-kappa*r)
-    return s1 
+    s1 = -C_J*m_j * np.exp(-m_j*r)
+    s1 = np.sum(s1)
+    return s1
 
 def u2(r):
-    s2=0.0
-    for i in range(0, len(C_J)):
-        kappa=m_j[i]
-        s2 += C_J[i]*kappa**2 * np.exp(-kappa*r)
+    s2 = C_J*m_j**2 * np.exp(-m_j*r)
+    s2 = np.sum(s2)
     return s2
 
-
 def u3(r):
-    s3=0.0
-    for i in range(0, len(C_J)):
-        kappa=m_j[i]
-        s3 -= C_J[i]*kappa**3 * np.exp(-kappa*r)
+    s3 = -C_J*m_j**3 * np.exp(-m_j*r)
+    s3 = np.sum(s3)
     return s3
 
 def w(r):
-    d = 0.0
-    
-    for i in range(0, len(C_J)):
-        kappa = m_j[i]
-        kr = kappa * r
-        # Use numpy.divide for better handling of small numbers
-        d += D_J[i] * np.exp(-kappa*r) * (1. + 3./kr + 3./ kr**2)
+    kr = m_j * r
+    d = D_J * np.exp(-kr) * (1. + 3./kr + 3./ kr**2)
+    d = np.sum(d)
     return d
 
 def w1(r):
-    d1 = 0.0
-    
-    for i in range(0, len(C_J)):
-        kappa = m_j[i]
-        kr = kappa * r
-        d1 -= D_J[i] * kappa * np.exp(-kappa*r) * (
+    kr = m_j * r
+    d1 = -D_J*m_j * np.exp(-kr) * (
             1. + 3./kr + 6./ kr**2 + 6./ kr**3
         )
+    d1 = np.sum(d1)
     return d1
 
 def w2(r):
-    d2 = 0.0
-    
-    for i in range(0, len(C_J)):
-        kappa = m_j[i]
-        kr = kappa * r
-        d2 += D_J[i] * kappa**2 * np.exp(-kappa*r) * (
+    kr = m_j * r
+    d2 = D_J * m_j**2 * np.exp(-kr) * (
             1. + 3./kr + 9./ kr**2 + 
             18./ kr**3 + 18./ kr**4
         )
+    d2 = np.sum(d2)
     return d2
 
 def w3(r):
-    d3 = 0.0
-    
-    for i in range(0, len(C_J)):
-        kappa = m_j[i]
-        kr = kappa * r
-        d3 -= D_J[i] * kappa**3 * np.exp(-kappa*r) * (
+    kr = m_j * r
+    d3 = -D_J * m_j**3 * np.exp(-kr) * (
             1. + 3./kr + 12./ kr**2 + 
             36./ kr**3 + 72./ kr**4 + 72./ kr**5
         )
+    d3 = np.sum(d3)
     return d3
 
 
@@ -123,7 +97,8 @@ def get_params():
 
 
     alpha = 0.23162461
-    n_mj = 15
+    #n_mj = 15
+    n_mj = len(C_J)
     m_j = alpha + np.arange(n_mj)  
 
     return 
