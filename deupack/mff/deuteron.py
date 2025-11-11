@@ -11,46 +11,69 @@ from scipy.special import spherical_jn as jn
 from scipy.integrate import quad_vec
 
 from ..constants import mN, hbar
-from ..utils import regulate_zero
-
-# Default nucleon form factors: Hackett, Pefkou & Shanahan (HPS)
-from .nucleonhps import AN as _AN, JN as _JN, DN as _DN
-
-# For the form factors not in HPS, use some simple guesses
-from .nucleon import SN as _SN, cN as _cN
 
 # Import wave function chooser
 from ..wf.chooser import choose_wf
+
+# Import nucleon form factor chooser
+from .nucleon.chooser import choose_nff
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The user interfaces for the form factors
 # Add optional wf parameter (last arg) that overrides u/w function arguments if provided.
 
-def AU(k, AN=_AN, wf='av18'):
+def AU(k, wf='av18', nff='mit'):
     ''' The mechanical form factor AU.
+
+    k should be a float or numpy array of momentum transfer values in GeV.
+    k=0 will automatically be pushed to 1e-6 to avoid division by zero.
+
     Pass wf='av18' or wf='paris' (or wf=av18_mod) to select wavefunction.
+
+    Pass nff='mit' or nff='hz' to select nucleon form factors.
     '''
     u, w, *_ = choose_wf(wf)
+    AN, *_ = choose_nff(nff)
     return _AU(k, u=u, w=w, AN=AN)
 
-def AT(k, AN=_AN, wf='av18'):
+def AT(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor AT.
+    See docstring of AU for more info.
+    '''
     u, w, *_ = choose_wf(wf)
+    AN, *_ = choose_nff(nff)
     return _AT(k, u=u, w=w, AN=AN)
 
-def DU(k, AN=_AN, JN=_JN, DN=_DN, wf='av18'):
+def DU(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor DU.
+    See docstring of AU for more info.
+    '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
+    AN, JN, DN, *_ = choose_nff(nff)
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT1(k, AN=_AN, JN=_JN, DN=_DN, wf='av18'):
+def DT1(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor DT1.
+    See docstring of AU for more info.
+    '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
+    AN, JN, DN, *_ = choose_nff(nff)
     return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT2(k, AN=_AN, JN=_JN, wf='av18'):
+def DT2(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor DT2.
+    See docstring of AU for more info.
+    '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
+    AN, JN, *_ = choose_nff(nff)
     return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
-def cU(k, AN=_AN, cN=_cN, wf='av18'):
+def cU(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor cU.
+    See docstring of AU for more info.
+    '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
+    AN, _, _, cN, _ = choose_nff(nff)
     # Need to change rmin from 0 to 1e-2 for the Paris wf,
     # because of an instability at small r
     rmin = 0
@@ -58,25 +81,41 @@ def cU(k, AN=_AN, cN=_cN, wf='av18'):
         rmin = 1e-2
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
-def cT1(k, AN=_AN, cN=_cN, wf='av18'):
+def cT1(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor cT1.
+    See docstring of AU for more info.
+    '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
+    AN, _, _, cN, _ = choose_nff(nff)
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
-def cT2(k, AN=_AN, wf='av18'):
+def cT2(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor cT2.
+    See docstring of AU for more info.
+    '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     # Need to change rmin from 0 to 1e-2 for the Paris wf,
     # because of an instability at small r
+    AN, *_ = choose_nff(nff)
     rmin = 0
     if(wf=='paris'):
         rmin = 1e-2
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, rmin=rmin)
 
-def J(k, AN=_AN, JN=_JN, wf='av18'):
+def J(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor J.
+    See docstring of AU for more info.
+    '''
     u, w, *_ = choose_wf(wf)
+    AN, JN, *_ = choose_nff(nff)
     return _J(k, u=u, w=w, AN=AN, JN=JN)
 
-def S(k, SN=_SN, wf='av18'):
+def S(k, wf='av18', nff='mit'):
+    ''' The mechanical form factor S.
+    See docstring of AU for more info.
+    '''
     u, w, *_ = choose_wf(wf)
+    _, _, _, _, SN = choose_nff(nff)
     return _S(k, u=u, w=w, SN=SN)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -278,3 +317,18 @@ def _S(k, u, w, SN, rmin=0, rmax=np.inf):
                         args=(k, u, w, SN),
                         workers=8)[0]
     return integral * 2
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Misc utilities
+
+def regulate_zero(X):
+    ''' Takes a scalar or an array, and if it is or contains 0,
+    the 0 is shifted.
+    '''
+    epsilon = 1e-6
+    if(np.isscalar(X)):
+        if(X==0):
+            X += epsilon
+    else:
+        X[X==0] = epsilon
+    return X

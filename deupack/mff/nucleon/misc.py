@@ -1,4 +1,4 @@
-# nucleon.py
+# misc.py
 # Created 2025.09.30 by Adam Freese
 #
 # This file contains simple estimates for the nucleon mechanical form factors
@@ -42,19 +42,3 @@ def DN_fc(k):
     mf2b = 1.525
     msig = 0.475
     return D0 / (1 + (k/mf2a)**2) / (1 + (k/mf2b)**2) / (1 + (k/msig)**2)
-
-def DN_hz(k):
-    ''' The nucleon DN used by He and Zahed '''
-    return DN_hz_q(k) + DN_hz_g(k)
-
-def DN_hz_q(k):
-    ''' The nucleon DN used by He and Zahed, quark part '''
-    D0 = -1.30
-    Lambda = 0.81
-    return D0 / (1 + (k/Lambda)**2)**2
-
-def DN_hz_g(k):
-    ''' The nucleon DN used by He and Zahed, gluon part '''
-    D0 = -1.275
-    Lambda = 0.963
-    return D0 / (1 + (k/Lambda)**2)**2

@@ -1,13 +1,13 @@
-# nucleonhps.py
+# hps.py
 # Created 2025.09.30 by Adam Freese
 #
 # This file contains formulas for the mechanical form factors of a nucelon,
 # as calculated by:
 #   Daniel C. Hackett, Dimitra A. Pefkou, and Phiala E. Shanahan
 #   Physical Review Letters 132 (2024) 241904
-# which I will refer to as HPS after the authors.
+# which I will refer to as MIT after the authors' institution.
 #
-# HPS actually give two parametric fits to their lattice data:
+# MIT actually give two parametric fits to their lattice data:
 # (1) a dipole fit, and (2) a z-expansion.
 # Both fits achieve qualitatively similar results and similar chi2/dof.
 # For simplicity, I use their dipole forms here.
@@ -16,9 +16,9 @@
 # I adjust the alpha parameters for Ag and Jg to achieve this.
 # On the other hand, I use the central fit values for Aq and Jq.
 # Since D(0) is not constrained by any conservation laws,
-# I use the central values reported by HPS for both Dq(0) and Dg(0)
+# I use the central values reported by MIT for both Dq(0) and Dg(0)
 #
-# Parameters of HPS are given in Table III of their supplemental material.
+# Parameters of MIT are given in Table III of their supplemental material.
 
 def AN(k):
     ''' Form factor AN. Assumes k is in GeV. '''
