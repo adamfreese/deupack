@@ -1,7 +1,11 @@
 # hz.py
 # Created 2025.11.11 by Adam Freese (moved code from misc.py)
 #
-# This contains He and Zahed's Dq(t) and Dg(t) form factors
+# This file contains formulas for the D form factor of a nucelon,
+# as used by
+#   Fangcheng He and Ismail Zahed
+#   Physical Review C109 (2024) 045209
+#   He:2023ogg
 
 def DN(k):
     ''' The nucleon DN used by He and Zahed '''

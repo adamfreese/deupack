@@ -4,6 +4,11 @@
 # This module reads in Wim's data file for his EMT calculations,
 # from a light cone convolution model, and converts them to
 # the MFFs defined in our more recent non-relativistic work.
+#
+# The form factors this module looks at are from:
+#   Adam Freese and Wim Cosyn
+#   Physical Review D 106 (2022) 114013
+#   Freese:2022yur
 
 import numpy as np
 import pandas as pd

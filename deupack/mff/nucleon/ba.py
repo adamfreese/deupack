@@ -1,8 +1,7 @@
 # ba.py
 # Created 2025.11.11 by Adam Freese
 #
-# This contains nucleon MFFs based on the work:
-#   Gravitational form factors and mechanical properties of the nucleon in a meson dominance approach
+# This contains nucleon MFFs from:
 #   Wojciech Broniowski and Enrique Ruiz Arriola
 #   Physical Review D 112 (2025) 054028
 #   Broniowski:2025ctl

@@ -3,6 +3,11 @@
 #
 # This module reads in Julia's data files for her GFF calculations,
 # and converts them to the MFFs in Cosyn/Freese/Sosa.
+#
+# The form factors this module looks at are from:
+#   J.Yu. Panteleeva, E. Epelbaum, A.M. Gasparyan, J. Gegelia
+#   Acta Phys Polon B56 (2025) 3-A19
+#   Panteleeva:2024abz
 
 import numpy as np
 import pandas as pd

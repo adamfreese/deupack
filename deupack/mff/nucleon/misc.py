@@ -11,6 +11,10 @@ def cN(k):
 def SN(k):
     ''' Dipole form, assuming axial vector meson dominance,
     and using the JAM value for total quark spin.
+    The s0 value is from:
+        C. Cocuzza et al.
+        Physical REview D 106 (2022) L031502
+        Cocuzza:2022jye
     '''
     ma1 = 1.23  # PDG
     s0  = 0.204 # JAM22; Cocuzza et al., PRD 106 (2022) L031502
@@ -19,7 +23,11 @@ def SN(k):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def cN_q(k):
-    ''' Dipole form, using parameters from Lorcé, Moutarde and Trawiński. '''
+    ''' Dipole form, using parameters from:
+        Lorcé, Moutarde and Trawiński
+        European Physical Journal C 79 (2019) 89
+        Lorce:2018egm
+    '''
     c0 = -0.11 # EPJC 79 (2019) 89
     L  =  0.91 # EPJC 79 (2019) 89
     return c0 / (1 + (k/L)**2)**2
@@ -32,13 +40,3 @@ def SN_q(k):
 
 def SN_g(k):
     return k*0
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def DN_fc(k):
-    ''' The nucleon DN used by Freese and Cosyn. '''
-    D0 = -2
-    mf2a = 1.320
-    mf2b = 1.525
-    msig = 0.475
-    return D0 / (1 + (k/mf2a)**2) / (1 + (k/mf2b)**2) / (1 + (k/msig)**2)

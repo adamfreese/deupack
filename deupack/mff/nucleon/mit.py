@@ -1,10 +1,11 @@
-# hps.py
+# mit.py
 # Created 2025.09.30 by Adam Freese
 #
 # This file contains formulas for the mechanical form factors of a nucelon,
 # as calculated by:
 #   Daniel C. Hackett, Dimitra A. Pefkou, and Phiala E. Shanahan
 #   Physical Review Letters 132 (2024) 241904
+#   Hackett:2023rif
 # which I will refer to as MIT after the authors' institution.
 #
 # MIT actually give two parametric fits to their lattice data:
