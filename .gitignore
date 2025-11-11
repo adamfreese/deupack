@@ -17,3 +17,6 @@ _skbuild/
 
 # Numpy output
 *.npy
+
+# Personal workspace
+/workspace
