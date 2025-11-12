@@ -25,18 +25,20 @@ def make_wimffs():
     df = read_emt_data()
     t = df['t']
     A11 = df['A_++']
-    A00 = df['A_++']
+    A00 = df['A_00']
     Amp = df['A_-+']
     J11 = df['J_++']
     D11 = df['tD_++'] / t
+    D00 = df['tD_00'] / t
     Dmp = df['tD_-+'] / t
     #
     AU = A11 + Amp/3
     AT = 4*Md**2/t*Amp
     J = J11
-    DT1 = 4*Md**2/t*Dmp
-    DT2 = (2*A11 - 4*J11) + 4*Md**2/t*(A11 - A00)
-    DU = D11 + Dmp/3 + DT2/3
+    DU = 2/3*D11 + (D00 + t/(4*Md**2)*(Dmp-D11))/(1+t/(4*Md**2))/3
+    # The following two are contaminated by G7, and thus not quite right
+    DT1 = 4*Md**2/t*Dmp  # G7 contamination
+    DT2 = (2*A11 - 4*J11) + 4*Md**2/t*(A11 - A00) # G7 contamination in A00
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,
