@@ -192,7 +192,7 @@ def plot_one_group(ax, name):
     ax.set_ylabel(namelabel[name])
     ax.set_xscale('log')
     if(name=='DT1'):
-        ax.set_ylim((-560,56))
+        ax.set_ylim((-560,560))
     ax.set_xlim((1e-6,10))
     return
 

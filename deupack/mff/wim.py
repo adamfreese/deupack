@@ -18,7 +18,7 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_wimffs(): 
+def make_wimffs(remove_G7=False): 
     ''' Convert the data Wim provided into the MFFs used in our
     more recent, non-relativistic work.
     '''
@@ -31,14 +31,20 @@ def make_wimffs():
     D11 = df['tD_++'] / t
     D00 = df['tD_00'] / t
     Dmp = df['tD_-+'] / t
-    #
+    # Form factors without any G7 contamination
     AU = A11 + Amp/3
     AT = 4*Md**2/t*Amp
     J = J11
     DU = 2/3*D11 + (D00 + t/(4*Md**2)*(Dmp-D11))/(1+t/(4*Md**2))/3
-    # The following two are contaminated by G7, and thus not quite right
-    DT1 = 4*Md**2/t*Dmp  # G7 contamination
-    DT2 = (2*A11 - 4*J11) + 4*Md**2/t*(A11 - A00) # G7 contamination in A00
+    # Form factors with potential G7 contamination
+    # The method of calculating and removing G7 is questionable,
+    # so it's turned off by default
+    if(remove_G7):
+        G7 =- np.sqrt(-2/t)/Md*(df['tD_0+']+df['tD_+0'])
+    else:
+        G7 = 0
+    DT1 = 4*Md**2/t**2*( df['tD_-+'] + Md**2*G7)
+    DT2 = (2*A11 - 4*J11) + 4*Md**2/t*(A11 - A00 + G7/2)
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,
