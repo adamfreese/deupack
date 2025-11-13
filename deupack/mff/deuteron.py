@@ -89,7 +89,7 @@ def cT1(k, wf='av18', nff='mit'):
     AN, _, _, cN, _ = choose_nff(nff)
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN)
 
-def cT2(k, wf='av18', nff='mit', formula= 'cT2'):
+def cT2(k, wf='av18', nff='mit', formula='cT2'):
     ''' The mechanical form factor cT2.
     See docstring of AU for more info.
     '''
@@ -101,7 +101,6 @@ def cT2(k, wf='av18', nff='mit', formula= 'cT2'):
     if(wf=='paris'):
         rmin =  1e-2
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, rmin=rmin,formula=formula)
-
 
 def J(k, wf='av18', nff='mit'):
     ''' The mechanical form factor J.
@@ -231,43 +230,53 @@ def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
 
 def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
     kfm = k/hbar
-    A0_term = jn(0,kfm*r/2)*(-7*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
-                             -7*r*w(r)*(-np.sqrt(2)*r*u2(r)+7*np.sqrt(2)*u1(r)+r*w2(r)-w1(r))
-                             +7*np.sqrt(2)*r*u(r)*(r*w2(r)+5*w1(r))+49*np.sqrt(2)*u(r)*w(r)+161./2.*w(r)**2)
-    
-    A2_term = jn(2,kfm*r/2)*(5*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
-                             +5*r*w(r)*(-np.sqrt(2)*r*u2(r)+4*np.sqrt(2)*u1(r)+r*w2(r)-w1(r))
-                             -5*np.sqrt(2)*r*u(r)*(r*w2(r)+2*w1(r))+10*np.sqrt(2)*u(r)*w(r)+100*w(r)**2)
-    
-    A4_term = jn(4,kfm*r/2)*(12*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
-                             -144*np.sqrt(2)*u(r)*w(r)+72*w(r)**2
-                             -12*r*w(r)*(np.sqrt(2)*r*u2(r)+3*np.sqrt(2)*u1(r)-r*w2(r)+w1(r))
-                             +12*np.sqrt(2)*r*u(r)*(5*w1(r)-r*w2(r)))
+    A0_term = jn(0,kfm*r/2)*(
+            -7*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
+            -7*r*w(r)*(-np.sqrt(2)*r*u2(r)+7*np.sqrt(2)*u1(r)+r*w2(r)-w1(r))
+            +7*np.sqrt(2)*r*u(r)*(r*w2(r)+5*w1(r))+49*np.sqrt(2)*u(r)*w(r)+161./2.*w(r)**2
+            )
+    A2_term = jn(2,kfm*r/2)*(
+            5*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
+            +5*r*w(r)*(-np.sqrt(2)*r*u2(r)+4*np.sqrt(2)*u1(r)+r*w2(r)-w1(r))
+            -5*np.sqrt(2)*r*u(r)*(r*w2(r)+2*w1(r))+10*np.sqrt(2)*u(r)*w(r)+100*w(r)**2
+            )
+    A4_term = jn(4,kfm*r/2)*(
+            12*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
+            -144*np.sqrt(2)*u(r)*w(r)+72*w(r)**2
+            -12*r*w(r)*(np.sqrt(2)*r*u2(r)+3*np.sqrt(2)*u1(r)-r*w2(r)+w1(r))
+            +12*np.sqrt(2)*r*u(r)*(5*w1(r)-r*w2(r))
+            )
     intd = -AN(k)/(140*mN**2*r**2)*hbar**2 * (A0_term + A2_term+A4_term)
     return intd
 
-
 def _cT2_integrandAlan3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
     kfm = k/hbar
-    A2_term = 10.*jn(2,kfm*r/2)/(kfm*r)*(r**3*w1(r)*(np.sqrt(2.)*u2(r)-w2(r))+r**3*np.sqrt(2.)*u1(r)*w2(r)
-                                         +12*w(r)**2-r**3*np.sqrt(2)*u(r)*w3(r)+6*r*np.sqrt(2)*u(r)*w1(r)
-                                         -r*w(r)*(6*np.sqrt(2)*u1(r)+np.sqrt(2)*r**2*u3(r)-r**2*w3(r)))
-    A13_term = (2*jn(3,kfm*r/2) - 3*jn(1,kfm*r/2))*np.sqrt(2)*r**2*(
-            u(r)*w2(r) - w(r)*u2(r))+(jn(1,kfm*r/2) - 4*jn(3,kfm*r/2))*(6*np.sqrt(2)*u(r)*w(r))
+    A2_term = 10.*jn(2,kfm*r/2)/(kfm*r)*(
+            r**3*w1(r)*(np.sqrt(2.)*u2(r)-w2(r))+r**3*np.sqrt(2.)*u1(r)*w2(r)
+            +12*w(r)**2-r**3*np.sqrt(2)*u(r)*w3(r)+6*r*np.sqrt(2)*u(r)*w1(r)
+            -r*w(r)*(6*np.sqrt(2)*u1(r)+np.sqrt(2)*r**2*u3(r)-r**2*w3(r))
+            )
+    A13_term = (
+                ( 2*jn(3,kfm*r/2) - 3*jn(1,kfm*r/2))*np.sqrt(2)*r**2*(
+                    u(r)*w2(r) - w(r)*u2(r)
+                    )
+                + (jn(1,kfm*r/2) - 4*jn(3,kfm*r/2))*(
+                    6*np.sqrt(2)*u(r)*w(r)
+                    )
+                )
     intd = -3*AN(k)/(10.0*mN**2*k*r**3)*hbar**3 * (A2_term + A13_term)
     return intd
 
-
-
 def _cT2_integrandAdam3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
     kfm = k/hbar
-    A2_term = jn(2,kfm*r/2)*(2*np.sqrt(2)*((w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
-                             +(2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r)))/r**2
-                             +12*np.sqrt(2)*w(r)*u1(r)/r**3
-                             -12*(np.sqrt(2)*u(r)*w(r)+w(r)**2)/r**4)
+    A2_term = jn(2,kfm*r/2)*(
+            (2*np.sqrt(2)*(w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
+            +(2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r)))/r**2
+            +12*np.sqrt(2)*w(r)*u1(r)/r**3
+            -12*(np.sqrt(2)*u(r)*w(r)+w(r)**2)/r**4
+            )
     intd =  3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_term)
     return intd
-
 
 def _J_integrand(r, k, u, w, AN, JN):
     kfm = k/hbar
@@ -339,7 +348,6 @@ def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
     return integral * 2
 
 
-
 def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, rmin=0, rmax=np.inf,formula='cT2'):
     k = regulate_zero(k) # avoid division by zero
     if(formula=='cT2'):
@@ -359,10 +367,8 @@ def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, rmin=0, rmax=np.inf,formula='cT2')
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
                         workers=8)[0]
     else:
-        print("Not valid input")
+        raise ValueError("{} is not a valid formula key.".format(formula))
     return integral * 2
-
-
 
 def _J(k, u, w, AN, JN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero

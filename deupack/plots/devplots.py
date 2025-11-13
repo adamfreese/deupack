@@ -222,3 +222,30 @@ def plot_DN():
     fig.patch.set_alpha(0)
     fig.savefig('DN.pdf')
     return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Formula comparison for cT2
+
+def plot_cT2():
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    cT2_Adam  = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2')
+    cT2_Alan  = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan')
+    cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
+    cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    #
+    nrows,ncols=1,1
+    fig = py.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax = py.subplot(nrows,ncols,1)
+    #
+    ax.plot(dl2, cT2_Adam,  '-',  linewidth=2, color='xkcd:true green', label=r'Adam')
+    ax.plot(dl2, cT2_Alan,  '--', linewidth=2, color='xkcd:rich purple',label=r'Alan')
+    ax.plot(dl2, cT2_Adam3, '-.', linewidth=2, color='xkcd:cobalt',     label=r'Adam3')
+    ax.plot(dl2, cT2_Alan3, ':',  linewidth=2, color='xkcd:coral',      label=r'Alan3')
+    #
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    ax.set_ylabel(r'$\bar{c}_{T2}(\varDelta^2)$')
+    l = ax.legend(prop = { 'size' : 27 }, loc=4)
+    fig.patch.set_alpha(0)
+    fig.savefig('cT2.pdf')
+    return
+
