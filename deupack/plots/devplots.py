@@ -14,7 +14,7 @@ py.rcParams["axes.formatter.use_mathtext"] = True
 # Routines to make specific plots
 
 def plot_nff_comparisons():
-    nrows,ncols=2,3
+    nrows,ncols=2,5
     fig = py.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax_AU  = py.subplot(nrows,ncols,1)
     ax_AT  = py.subplot(nrows,ncols,2)
@@ -22,20 +22,20 @@ def plot_nff_comparisons():
     ax_DU  = py.subplot(nrows,ncols,4)
     ax_DT1 = py.subplot(nrows,ncols,5)
     ax_DT2 = py.subplot(nrows,ncols,6)
-    #ax_cU  = py.subplot(nrows,ncols,7)
-    #ax_cT1 = py.subplot(nrows,ncols,8)
-    #ax_cT2 = py.subplot(nrows,ncols,9)
-    #ax_S   = py.subplot(nrows,ncols,10)
+    ax_cU  = py.subplot(nrows,ncols,7)
+    ax_cT1 = py.subplot(nrows,ncols,8)
+    ax_cT2 = py.subplot(nrows,ncols,9)
+    ax_S   = py.subplot(nrows,ncols,10)
     plot_one_nff(ax_AU,  'AU')
     plot_one_nff(ax_AT,  'AT')
     plot_one_nff(ax_J,   'J')
     plot_one_nff(ax_DU,  'DU')
     plot_one_nff(ax_DT1, 'DT1')
     plot_one_nff(ax_DT2, 'DT2')
-    #plot_one_nff(ax_cU,  'cU')
-    #plot_one_nff(ax_cT1, 'cT1')
-    #plot_one_nff(ax_cT2, 'cT2')
-    #plot_one_nff(ax_S,   'S')
+    plot_one_nff(ax_cU,  'cU')
+    plot_one_nff(ax_cT1,  'cT1')
+    plot_one_nff(ax_cT2,  'cT2')
+    plot_one_nff(ax_S,  'S')
     l = ax_AU.legend(prop = { 'size' : 27 }, loc=3)
     fig.patch.set_alpha(0)
     fig.savefig('nff_comparisons.pdf')
@@ -69,7 +69,7 @@ def plot_wf_comparisons():
     fig.savefig('wf_comparisons.pdf')
     return
 
-def plot_grouo_comparisons():
+def plot_group_comparisons():
     nrows,ncols=2,3
     fig = py.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax_AU  = py.subplot(nrows,ncols,1)
@@ -138,10 +138,12 @@ def plot_one_nff(ax, name):
     F_mit = select_mff(name, dl2, nff='mit')
     F_hz  = select_mff(name, dl2, nff='hz')
     F_ba  = select_mff(name, dl2, nff='ba')
+    F_point  = select_mff(name, dl2, nff='point')
     # Plot
     ax.plot(dl2, F_mit, '-',  linewidth=2, color='xkcd:true green',  label=r'MIT')
     ax.plot(dl2, F_hz,  '--', linewidth=2, color='xkcd:rich purple', label=r'He and Zahed')
     ax.plot(dl2, F_ba,  '-.', linewidth=2, color='xkcd:cobalt',      label=r'Broniowski and Ruiz Arriola')
+    ax.plot(dl2, F_point,  '--', linewidth=2, color='xkcd:red',      label=r'Point')
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
