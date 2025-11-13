@@ -398,3 +398,22 @@ def regulate_zero(X):
     else:
         X[X==0] = epsilon
     return X
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Temporary stuff for internal cross-checks
+
+def _DT2_zero_integrand(r, u, w, u1, w1, u2, w2):
+    return (
+            3*w(r)**2
+            + 4*r**2*(
+                np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r)) - w(r)*w2(r)
+                )
+            + 12*np.sqrt(2)*r*u(r)*w1(r)
+            ) / 35
+
+def DT2_zero(wf='av18'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
+    integral = quad_vec(_DT2_zero_integrand, 0, np.inf,
+                        args=(u, w, u1, w1, u2, w2),
+                        workers=8)[0]
+    return integral
