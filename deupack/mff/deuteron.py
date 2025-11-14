@@ -402,6 +402,23 @@ def regulate_zero(X):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Temporary stuff for internal cross-checks
 
+def _DT1_zero_integrand(r, u, w, u1, w1, u2, w2):
+    term1 = np.sqrt(2)*r**3*( 24*u(r)*w1(r) - 24*w(r)*u1(r) )
+    term2 = r**4*(4*np.sqrt(2)*u(r)*w2(r) + 4*np.sqrt(2)*w(r)*u2(r) - 4*w(r)*w2(r))
+    term3 = 12*np.sqrt(2)*r**2*u(r)*w(r)
+    return (mN/hbar)**2*(term1+term2+term3) / 315
+
+def DT1_zero(wf='av18', nff='mit'):
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
+    _, _, DN, *_ = choose_nff(nff)
+    DN0 = 2*DN(0)
+    Qd = AT(0, wf=wf, nff=nff)
+    integral = quad_vec(_DT1_zero_integrand, 0, np.inf,
+                        args=(u, w, u1, w1, u2, w2),
+                        workers=8)[0]
+    result = (2*DN0 - 5/7)*Qd + integral
+    return result
+
 def _DT2_zero_integrand(r, u, w, u1, w1, u2, w2):
     return (
             3*w(r)**2

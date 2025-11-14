@@ -193,6 +193,8 @@ def plot_one_group(ax, name):
     ax.set_xscale('log')
     if(name=='DT1'):
         ax.set_ylim((-560,560))
+        ax.plot(dl2, dl2*0 + mff.DT1_zero(nff='hz'), linewidth=1, color='black')
+        print(mff.DT1_zero(nff='hz'))
     if(name=='DT2'):
         ax.set_ylim((-2.6,2.6))
         ax.plot(dl2, dl2*0 + mff.DT2_zero(), linewidth=1, color='black')
