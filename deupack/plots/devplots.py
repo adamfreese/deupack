@@ -255,3 +255,23 @@ def plot_cT2():
     fig.savefig('cT2.pdf')
     return
 
+def plot_J():
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    J_form1 = mff.J(np.sqrt(dl2), nff='point', formula='form1')
+    J_form2 = mff.J(np.sqrt(dl2), nff='point', formula='form2')
+    #
+    nrows,ncols=1,1
+    fig = py.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax = py.subplot(nrows,ncols,1)
+    #
+    ax.plot(dl2, J_form1,  '-',  linewidth=2, color='xkcd:true green', label=r'Form 1')
+    ax.plot(dl2, J_form2,  '--', linewidth=2, color='xkcd:rich purple',label=r'Form 2')
+    #
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    ax.set_ylabel(r'$J(\varDelta^2)$')
+    ax.set_xscale('log')
+    l = ax.legend(prop = { 'size' : 27 }, loc=1)
+    fig.patch.set_alpha(0)
+    fig.savefig('J.pdf')
+    return
+

@@ -100,15 +100,15 @@ def cT2(k, wf='av18', nff='mit', formula='cT2'):
     rmin = 0
     if(wf=='paris'):
         rmin =  1e-2
-    return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, rmin=rmin,formula=formula)
+    return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, rmin=rmin, formula=formula)
 
-def J(k, wf='av18', nff='mit'):
+def J(k, wf='av18', nff='mit', formula='form1'):
     ''' The mechanical form factor J.
     See docstring of AU for more info.
     '''
-    u, w, *_ = choose_wf(wf)
+    u, w, u1, w1, *_ = choose_wf(wf)
     AN, JN, *_ = choose_nff(nff)
-    return _J(k, u=u, w=w, AN=AN, JN=JN)
+    return _J(k, u=u, w=w, u1=u1, w1=w1, AN=AN, JN=JN, formula=formula)
 
 def S(k, wf='av18', nff='mit'):
     ''' The mechanical form factor S.
@@ -278,12 +278,22 @@ def _cT2_integrandAdam3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
     intd =  3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_term)
     return intd
 
-def _J_integrand(r, k, u, w, AN, JN):
+def _J_integrand(r, k, u, w, u1, w1, AN, JN):
     kfm = k/hbar
     A_piece = 9/2*AN(k)/kfm * jn(1,kfm*r/2) * w(r)**2/r
     J0_piece = JN(k)*jn(0,kfm*r/2)*(u(r)**2 - w(r)**2/2)
     J2_piece = JN(k)*jn(2,kfm*r/2)*(w(r)**2 + np.sqrt(2)*u(r)*w(r))/2
     intd = A_piece + J0_piece + J2_piece
+    return intd
+
+def _J_integrand_alt(r, k, u, w, u1, w1, AN, JN):
+    kfm = k/hbar
+    A_piece = 9/2*AN(k)/kfm * jn(1,kfm*r/2) * w(r)**2/r
+    J_piece = JN(k)*jn(1,kfm*r/2)/kfm*(
+            4*w(r)*w1(r) - 4*u(r)*u1(r) + np.sqrt(2)*(u(r)*w1(r)+u1(r)*w(r))
+            + (4*u(r)**2 - w(r)**2 + np.sqrt(2)*u(r)*w(r))/r
+            )
+    intd = A_piece + J_piece
     return intd
 
 def _S_integrand(r, k, u, w, SN):
@@ -348,32 +358,33 @@ def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
     return integral * 2
 
 
-def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, rmin=0, rmax=np.inf,formula='cT2'):
+def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, rmin=0, rmax=np.inf, formula='cT2'):
     k = regulate_zero(k) # avoid division by zero
     if(formula=='cT2'):
-        integral = quad_vec(_cT2_integrand, rmin, np.inf,
-                        args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
-                        workers=8)[0]
+        integrand = _cT2_integrand
     elif(formula=='cT2Adam3'):
-        integral = quad_vec(_cT2_integrandAdam3, rmin, np.inf,
-                        args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
-                        workers=8)[0]
+        integrand = _cT2_integrandAdam3
     elif(formula=='cT2Alan3'):
-        integral = quad_vec(_cT2_integrandAlan3, rmin, np.inf,
-                        args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
-                        workers=8)[0]
+        integrand = _cT2_integrandAlan3
     elif(formula=='cT2Alan'):
-        integral = quad_vec(_cT2_integrandAlan, rmin, np.inf,
-                        args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
-                        workers=8)[0]
+        integrand = _cT2_integrandAlan
     else:
         raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
+                        args=(k, u, w, u1, w1, u2, w2, u3, w3, AN),
+                        workers=8)[0]
     return integral * 2
 
-def _J(k, u, w, AN, JN, rmin=0, rmax=np.inf):
+def _J(k, u, w, u1, w1, AN, JN, rmin=0, rmax=np.inf, formula='form1'):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_J_integrand, rmin, rmax,
-                        args=(k, u, w, AN, JN),
+    if(formula=='form1'):
+        integrand = _J_integrand
+    elif(formula=='form2'):
+        integrand = _J_integrand_alt
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, rmax,
+                        args=(k, u, w, u1, w1, AN, JN),
                         workers=8)[0]
     return integral * 2
 
