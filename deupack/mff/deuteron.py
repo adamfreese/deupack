@@ -261,7 +261,7 @@ def _cT2_integrandAlan3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
 
 def _cT2_integrandAdam3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN):
     kfm = k/hbar
-    A2_term = jn(2,kfm*r/2)*(2*np.sqrt(2)*((w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
+    A2_term = jn(2,kfm*r/2)*((2*np.sqrt(2)*(w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
                              +(2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r)))/r**2
                              +12*np.sqrt(2)*w(r)*u1(r)/r**3
                              -12*(np.sqrt(2)*u(r)*w(r)+w(r)**2)/r**4)
