@@ -9,6 +9,7 @@ from . import hz as hz_mod
 from . import misc as misc_mod
 from . import mit as mit_mod
 from . import point as point_mod
+from . import mab as mab_mod
 
 # Add mapping for convenient selection
 NUCLEONFFS = {
@@ -23,6 +24,9 @@ NUCLEONFFS = {
             ),
         'point' : (
             point_mod.AN, point_mod.JN, point_mod.DN, misc_mod.cN, point_mod.SN
+            ),
+        'mab' : (
+            mab_mod.AN, mab_mod.JN, mab_mod.DN, misc_mod.cN, misc_mod.SN
             )
         }
 
