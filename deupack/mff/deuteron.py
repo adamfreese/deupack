@@ -28,9 +28,9 @@ def AU(k, wf='av18', nff='mit'):
     k should be a float or numpy array of momentum transfer values in GeV.
     k=0 will automatically be pushed to 1e-6 to avoid division by zero.
 
-    Pass wf='av18' or wf='paris' (or wf=av18_mod) to select wavefunction.
+    Pass wf='av18' or wf='paris' to select wavefunction.
 
-    Pass nff='mit' or nff='hz' to select nucleon form factors.
+    Pass nff='ba', 'mab', 'hz' or 'mit' to select nucleon form factors.
     '''
     u, w, *_ = choose_wf(wf)
     AN, *_ = choose_nff(nff)

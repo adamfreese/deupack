@@ -122,6 +122,28 @@ class Density:
 
     # 3D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    def mass_3D_U(self, x, y, z):
+        ''' Three-dimensional mass density of the deuteron.
+        Unpolarized contribution.
+        '''
+        x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+        b = np.sqrt(x_**2 + y_**2 + z_**2)
+        return self.mass_1D_U(b)
+
+    def mass_3D_T(self, x, y, z):
+        ''' Three-dimensional mass density of the deuteron.
+        Tensor-polarized contribution.
+        '''
+        x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+        b = np.sqrt(x_**2 + y_**2 + z_**2)
+        scalar = self.mass_1D_T(b)
+        e = make_zhat(x,y,z)
+        Y2 = make_Y2(x,y,z)
+        harmonics = np.einsum('zxyi,zxyj,zxyij->zxy', e, e, Y2)
+        return harmonics * scalar
+
+
+
     # TODO
 
     # Internal metthods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,6 +171,132 @@ class Density:
         self.J   = CubicSpline(k, J)
         self.S   = CubicSpline(k, S)
         return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Functions to make harmonic tensors
+
+def make_rhat(x, y, z):
+    # TODO: docstring
+    eps = 1e-9 # to regulate division by zero
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + eps)
+    rhat = np.zeros(x_.shape+(3,))
+    rhat[...,0] = z_/r_
+    rhat[...,1] = x_/r_
+    rhat[...,2] = y_/r_
+    return rhat
+
+def make_zhat(x, y, z):
+    # TODO: docstring
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    zhat = np.zeros(x_.shape+(3,))
+    zhat[...,0] = 1
+    return zhat
+
+def make_kronecker(x, y, z):
+    # TODO: docstring
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    kronecker = np.zeros(x_.shape+(3,3))
+    kronecker[...,0,0] = 1
+    kronecker[...,1,1] = 1
+    kronecker[...,2,2] = 1
+    return kronecker
+
+def make_Y0(x, y, z):
+    # TODO: docstring
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    Y0 = np.ones(x_.shape)
+    return Y0
+
+def make_Y1(x, y, z):
+    # TODO: docstring
+    return make_rhat(x, y, z)
+
+def make_Y2(x, y, z):
+    # TODO: docstring
+    r = make_rhat(x,y,z)
+    d = make_kronecker(x,y,z)
+    rr = np.einsum('zxyi,zxyj->zxyij', r, r)
+    return rr - d/3
+
+def make_Y3(x, y, z):
+    # TODO: docstring
+    r = make_rhat(x,y,z)
+    d = make_kronecker(x,y,z)
+    rrr = np.einsum('zxyi,zxyj,zxyk->zxyijk', r, r, r)
+    dr1 = np.einsum('zxyij,zxyk->zxyijk', d, r)
+    dr2 = np.einsum('zxyki,zxyj->zxyijk', d, r)
+    dr3 = np.einsum('zxyjk,zxyi->zxyijk', d, r)
+    # Test to make sure these are distinct permutations ... passed!
+    #print( (dr1 - dr2).max(), (dr1 - dr2).min())
+    #print( (dr2 - dr3).max(), (dr2 - dr3).min())
+    #print( (dr3 - dr1).max(), (dr3 - dr1).min())
+    return rrr - (dr1+dr2+dr3)/3
+
+def make_Y4(x, y, z):
+    # TODO: docstring
+    r = make_rhat(x,y,z)
+    d = make_kronecker(x,y,z)
+    rrrr = np.einsum('zxyi,zxyj,zxyk,zxyl->zxyijkl', r, r, r, r)
+    drr1 = np.einsum('zxyij,zxyk,zxyl->zxyijkl', d, r, r)
+    drr2 = np.einsum('zxykl,zxyi,zxyj->zxyijkl', d, r, r)
+    drr3 = np.einsum('zxyik,zxyj,zxyl->zxyijkl', d, r, r)
+    drr4 = np.einsum('zxyjk,zxyi,zxyl->zxyijkl', d, r, r)
+    drr5 = np.einsum('zxyil,zxyj,zxyk->zxyijkl', d, r, r)
+    drr6 = np.einsum('zxyjl,zxyi,zxyk->zxyijkl', d, r, r)
+    # Test to make sure these are distinct permutations ... passed!
+    #print( (drr1 - drr2).max(), (drr1 - drr2).min())
+    #print( (drr1 - drr3).max(), (drr1 - drr3).min())
+    #print( (drr1 - drr4).max(), (drr1 - drr4).min())
+    #print( (drr1 - drr5).max(), (drr1 - drr5).min())
+    #print( (drr1 - drr6).max(), (drr1 - drr6).min())
+    #print( (drr2 - drr3).max(), (drr2 - drr3).min())
+    #print( (drr2 - drr4).max(), (drr2 - drr4).min())
+    #print( (drr2 - drr5).max(), (drr2 - drr5).min())
+    #print( (drr2 - drr6).max(), (drr2 - drr6).min())
+    #print( (drr3 - drr4).max(), (drr3 - drr4).min())
+    #print( (drr3 - drr5).max(), (drr3 - drr5).min())
+    #print( (drr3 - drr6).max(), (drr3 - drr6).min())
+    #print( (drr4 - drr5).max(), (drr4 - drr5).min())
+    #print( (drr4 - drr6).max(), (drr4 - drr6).min())
+    #print( (drr5 - drr6).max(), (drr5 - drr6).min())
+    dd1 = np.einsum('zxyij,zxykl->zxyijkl', d, d)
+    dd2 = np.einsum('zxyik,zxyjl->zxyijkl', d, d)
+    dd3 = np.einsum('zxyil,zxykj->zxyijkl', d, d)
+    # Test to make sure these are distinct permutations ... passed!
+    #print( (dd1 - dd2).max(), (dd1 - dd2).min())
+    #print( (dd2 - dd3).max(), (dd2 - dd3).min())
+    #print( (dd3 - dd1).max(), (dd3 - dd1).min())
+    return (
+            rrrr
+            - (drr1 + drr2 + drr3 + drr4 + drr5 + drr6)/7
+            + (dd1 + dd2 + dd3)/35
+            )
+
+# Peculiar tensors appearing in tensor-polarized stresses
+
+def make_X2(x, y, z):
+    # TODO: docstring
+    Y2 = make_Y2(x, y, z)
+    dl = make_kronecker(x, y, z)
+    ijab = np.einsum('zxyij,zxyab->zxyijab', Y2, dl)
+    abij = np.einsum('zxyab,zxyij->zxyijab', Y2, dl)
+    aibj = np.einsum('zxyai,zxybj->zxyijab', Y2, dl)
+    ajbi = np.einsum('zxyaj,zxybi->zxyijab', Y2, dl)
+    bjai = np.einsum('zxybj,zxyai->zxyijab', Y2, dl)
+    biaj = np.einsum('zxybi,zxyaj->zxyijab', Y2, dl)
+    term1 = -(ijab + abij + aibj + ajbi + bjai + abiaj)/7
+    term2 = -(ijab + abij)/3
+    return term1 + term2
+
+def make_X0(x, y, z):
+    dl = make_kronecker(x, y, z)
+    ijab = np.einsum('zxyij,zxyab->zxyijab', dl, dl)
+    aibj = np.einsum('zxyai,zxybj->zxyijab', dl, dl)
+    ajbi = np.einsum('zxyaj,zxybi->zxyijab', dl, dl)
+    term1 = -(ijab + aibj + ajbi)/15
+    term2 = -ijab/9
+    return term1 + term2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Integrand functions

@@ -10,6 +10,8 @@ import pandas as pd
 from pathlib import Path
 from scipy.interpolate import CubicSpline
 
+#from numba import jit # experimental
+
 from ..constants import kappa
 from ..constants import hbar, alphaQED, mu_p, mu_n
 from ..constants import mN, mp, mn, mr, Ed, mpi, mpi_0, mpi_p
@@ -276,6 +278,9 @@ def W(r):
     ''' Woods-Saxon function; see Eq. (22) of the AV18 paper. '''
     r0 = 0.5 # fm; see Table II
     a  = 0.2 # fm; see Table II
+    # For insanely large r, just return 0. Avoids an overflow warning.
+    if(r > 100):
+        return 0
     return 1/(1+np.exp((r-r0)/a))
 
 def V_short_form(r, I, P, Q, R):

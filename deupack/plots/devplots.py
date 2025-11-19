@@ -3,6 +3,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as py
 
 from .. import mff
+from ..density import Density
 from ..mff.nucleon.chooser import choose_nff
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
@@ -271,5 +272,51 @@ def plot_J():
     l = ax.legend(prop = { 'size' : 27 }, loc=1)
     fig.patch.set_alpha(0)
     fig.savefig('J.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Pixel plot to test densities
+
+def density_test():
+    print("Flag A")
+    D = Density()
+    print("Flag B")
+    b = np.linspace(-2, 2, 201)
+    # Slice at y=0
+    MU_y0 = D.mass_3D_U(b,0,b)[:,0,:]
+    MT_y0 = D.mass_3D_T(b,0,b)[:,0,:]
+    M0_y0 = MU_y0 + 2/3*MT_y0
+    M1_y0 = MU_y0 - 1/3*MT_y0
+    # Slice at z=0
+    MU_z0 = D.mass_3D_U(b,b,0)[:,:,0]
+    MT_z0 = D.mass_3D_T(b,b,0)[:,:,0]
+    M0_z0 = MU_z0 + 2/3*MT_z0
+    M1_z0 = MU_z0 - 1/3*MT_z0
+    #
+    vmax = MU_y0.max() + MT_y0.max()
+    #
+    nrows,ncols=2,2
+    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
+    ax1 = py.subplot(nrows,ncols,1, aspect='equal')
+    ax2 = py.subplot(nrows,ncols,2, aspect='equal')
+    ax3 = py.subplot(nrows,ncols,3, aspect='equal')
+    ax4 = py.subplot(nrows,ncols,4, aspect='equal')
+    c1 = ax1.pcolormesh(b, b, M0_z0.T, vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
+    c2 = ax2.pcolormesh(b, b, M1_z0.T, vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
+    c3 = ax3.pcolormesh(b, b, M0_y0  , vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
+    c4 = ax4.pcolormesh(b, b, M1_y0  , vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
+    for ax in [ax1, ax2]:
+        ax.set_xlabel(r'$x$ (fm)')
+        ax.set_ylabel(r'$y$ (fm)')
+    for ax in [ax3, ax4]:
+        ax.set_xlabel(r'$z$ (fm)')
+        ax.set_ylabel(r'$x$ (fm)')
+    ax1.set_title('$s= 0$, top view')
+    ax2.set_title('$s=+1$, top view')
+    ax3.set_title('$s= 0$, side view')
+    ax4.set_title('$s=+1$, side view')
+    #
+    fig.patch.set_alpha(0)
+    fig.savefig('mass.pdf')
     return
 
