@@ -3,6 +3,11 @@
 #
 # This module reads in Fangcheng's data file for his GFF calculations,
 # and converts them to the MFFs in Cosyn/Freese/Sosa.
+#
+# The form factors this module looks at are from:
+#   Fancheng He and Ismail Zahed
+#   Physical REview C 110 (2024) 014312
+#   He:2024vzz
 
 import numpy as np
 import pandas as pd
@@ -25,7 +30,7 @@ def make_hzmffs():
     AU = A
     AT = -Q
     DU = D0
-    DT2 = 2*D2
+    DT2 = -D2
     DT1 = 2*Md**2/t * D3
     new_df = pd.DataFrame({
         'Delta2' : -t,

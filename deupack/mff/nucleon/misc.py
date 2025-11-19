@@ -1,4 +1,4 @@
-# nucleon.py
+# misc.py
 # Created 2025.09.30 by Adam Freese
 #
 # This file contains simple estimates for the nucleon mechanical form factors
@@ -11,6 +11,10 @@ def cN(k):
 def SN(k):
     ''' Dipole form, assuming axial vector meson dominance,
     and using the JAM value for total quark spin.
+    The s0 value is from:
+        C. Cocuzza et al.
+        Physical REview D 106 (2022) L031502
+        Cocuzza:2022jye
     '''
     ma1 = 1.23  # PDG
     s0  = 0.204 # JAM22; Cocuzza et al., PRD 106 (2022) L031502
@@ -19,7 +23,11 @@ def SN(k):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def cN_q(k):
-    ''' Dipole form, using parameters from Lorcé, Moutarde and Trawiński. '''
+    ''' Dipole form, using parameters from:
+        Lorcé, Moutarde and Trawiński
+        European Physical Journal C 79 (2019) 89
+        Lorce:2018egm
+    '''
     c0 = -0.11 # EPJC 79 (2019) 89
     L  =  0.91 # EPJC 79 (2019) 89
     return c0 / (1 + (k/L)**2)**2
@@ -32,29 +40,3 @@ def SN_q(k):
 
 def SN_g(k):
     return k*0
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def DN_fc(k):
-    ''' The nucleon DN used by Freese and Cosyn. '''
-    D0 = -2
-    mf2a = 1.320
-    mf2b = 1.525
-    msig = 0.475
-    return D0 / (1 + (k/mf2a)**2) / (1 + (k/mf2b)**2) / (1 + (k/msig)**2)
-
-def DN_hz(k):
-    ''' The nucleon DN used by He and Zahed '''
-    return DN_hz_q(k) + DN_hz_g(k)
-
-def DN_hz_q(k):
-    ''' The nucleon DN used by He and Zahed, quark part '''
-    D0 = -1.30
-    Lambda = 0.81
-    return D0 / (1 + (k/Lambda)**2)**2
-
-def DN_hz_g(k):
-    ''' The nucleon DN used by He and Zahed, gluon part '''
-    D0 = -1.275
-    Lambda = 0.963
-    return D0 / (1 + (k/Lambda)**2)**2

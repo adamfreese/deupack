@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from scipy.interpolate import CubicSpline
-from scipy.integrate import odeint
 
 from ..constants import kappa
 from ..constants import hbar, alphaQED, mu_p, mu_n

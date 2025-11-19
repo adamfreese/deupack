@@ -4,6 +4,11 @@
 # This module reads in Wim's data file for his EMT calculations,
 # from a light cone convolution model, and converts them to
 # the MFFs defined in our more recent non-relativistic work.
+#
+# The form factors this module looks at are from:
+#   Adam Freese and Wim Cosyn
+#   Physical Review D 106 (2022) 114013
+#   Freese:2022yur
 
 import numpy as np
 import pandas as pd
@@ -13,25 +18,33 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_wimffs(): 
+def make_wimffs(remove_G7=False): 
     ''' Convert the data Wim provided into the MFFs used in our
     more recent, non-relativistic work.
     '''
     df = read_emt_data()
     t = df['t']
     A11 = df['A_++']
-    A00 = df['A_++']
+    A00 = df['A_00']
     Amp = df['A_-+']
     J11 = df['J_++']
     D11 = df['tD_++'] / t
+    D00 = df['tD_00'] / t
     Dmp = df['tD_-+'] / t
-    #
+    # Form factors without any G7 contamination
     AU = A11 + Amp/3
     AT = 4*Md**2/t*Amp
     J = J11
-    DT1 = 4*Md**2/t*Dmp
-    DT2 = (2*A11 - 4*J11) + 4*Md**2/t*(A11 - A00)
-    DU = D11 + Dmp/3 + DT2/3
+    DU = 2/3*D11 + (D00 + t/(4*Md**2)*(Dmp-D11))/(1+t/(4*Md**2))/3
+    # Form factors with potential G7 contamination
+    # The method of calculating and removing G7 is questionable,
+    # so it's turned off by default
+    if(remove_G7):
+        G7 =- np.sqrt(-2/t)/Md*(df['tD_0+']+df['tD_+0'])
+    else:
+        G7 = 0
+    DT1 = 4*Md**2/t**2*( df['tD_-+'] + Md**2*G7)
+    DT2 = -(A11 - 2*J11) - 2*Md**2/t*(A11 - A00 + G7/2)
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,
