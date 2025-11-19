@@ -201,7 +201,7 @@ def _pisoT2_integrand(k, b, DT2, cT2):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
-    form = -k**2/(24*mN)*DT2(k) + 2*mN*cT2(k) # TODO: consider DT2 change
+    form = k**2/(12*mN)*DT2(k) + 2*mN*cT2(k)
     return common * unique * bessel * form
 
 def _paniU_integrand(k, b, DU):
@@ -223,7 +223,7 @@ def _paniT2_integrand(k, b, DT2):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
-    form = -k**2/(16*mN)*DT2(k) # TODO: consider DT2 change
+    form = k**2/(8*mN)*DT2(k)
     return common * unique * bessel * form
 
 # T1 stress integrals for direct use (no differentiation)

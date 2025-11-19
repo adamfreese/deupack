@@ -168,12 +168,12 @@ def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
 
 def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
     kfm = k/hbar
-    A_piece = 24/kfm**3 * AN(k) * jn(3,kfm*r/2)*(
+    A_piece = -12/kfm**3 * AN(k) * jn(3,kfm*r/2)*(
             ( (2*np.sqrt(2)*u2(r)-w2(r))*w(r) - (2*np.sqrt(2)*u1(r)-w1(r))*w1(r)) / r
             + ( 2*np.sqrt(2)*u(r)+5*w(r) )*w1(r)/r**2
             - 18*w(r)**2/r**3
             )
-    J_piece = 12/kfm**2 * JN(k) * jn(2,kfm*r/2)*(
+    J_piece = -6/kfm**2 * JN(k) * jn(2,kfm*r/2)*(
             np.sqrt(2)*(u(r)*w2(r) - w(r)*u2(r))
             - 4*(np.sqrt(2)*u1(r) + w1(r))*w(r)/r
             -(2*np.sqrt(2)*u(r)*w(r) - w(r)**2)/r**2
@@ -431,13 +431,13 @@ def DT1_zero(wf='av18', nff='mit'):
     return result
 
 def _DT2_zero_integrand(r, u, w, u1, w1, u2, w2):
-    return (
+    return -(
             3*w(r)**2
             + 4*r**2*(
                 np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r)) - w(r)*w2(r)
                 )
             + 12*np.sqrt(2)*r*u(r)*w1(r)
-            ) / 35
+            ) / 70
 
 def DT2_zero(wf='av18'):
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)

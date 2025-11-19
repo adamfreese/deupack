@@ -31,7 +31,7 @@ def make_peggmffs():
     AT = -2*E2
     DU = -4*D0
     DT1 = 8*D3
-    DT2 = 4*D2
+    DT2 = -2*D2
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,
