@@ -4,10 +4,13 @@
 # This file computes mechanical densities for the deuteron.
 
 import numpy as np
+import pandas as pd
 
 from scipy.special import spherical_jn as jn
 from scipy.integrate import quad_vec
 from scipy.interpolate import CubicSpline
+
+from pathlib import Path
 
 from .constants import mN, hbar
 from .mff import deuteron as mff
@@ -17,24 +20,32 @@ from .mff import deuteron as mff
 
 class Density:
     ''' A class for the calculation of deuteorn densities.
+
     This is implemented as a class so that lookup tables for mechanical form
     factors can be cached, and so that the user can create different objects
     with different MFFs in their cache.
     '''
 
     def __init__(self,
-                 nff='ba',
                  wf='av18',
+                 nff='ba',
                  nk=100,
                  kmin=1e-6, # GeV
                  kmax=10,   # GeV
                  ):
-        self.nff  = nff
-        self.wf   = wf
-        self.nk   = nk
-        self.kmin = kmin
-        self.kmax = kmax
-        self._init_mff_table()
+        # attempt to find a cached lookup talbe on disk
+        filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(wf, nff, nk, kmin, kmax)
+        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+        if(path.is_file()):
+            self._load_mff_table(path)
+        else:
+            # if not found, make one
+            self.wf   = wf
+            self.nff  = nff
+            self.nk   = nk
+            self.kmin = kmin
+            self.kmax = kmax
+            self._init_mff_table(save_table=True)
         return
 
     # 1D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -299,7 +310,7 @@ class Density:
 
     # Internal metthods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def _init_mff_table(self):
+    def _init_mff_table(self, save_table=False):
         k   = np.geomspace(self.kmin, self.kmax, self.nk)
         AU  = mff.AU( k, wf=self.wf, nff=self.nff)
         AT  = mff.AT( k, wf=self.wf, nff=self.nff)
@@ -311,6 +322,52 @@ class Density:
         cT2 = mff.cT2(k, wf=self.wf, nff=self.nff)
         J   = mff.J(  k, wf=self.wf, nff=self.nff)
         S   = mff.S(  k, wf=self.wf, nff=self.nff)
+        if(save_table):
+            df = pd.DataFrame(data={
+                'k'   : k,
+                'AU'  : AU,
+                'AT'  : AT,
+                'DU'  : DU,
+                'DT1' : DT1,
+                'DT2' : DT2,
+                'cU'  : cU,
+                'cT1' : cT1,
+                'cT2' : cT2,
+                'J'   : J,
+                'S'   : S
+                })
+            filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
+                    self.wf, self.nff, self.nk, self.kmin, self.kmax
+                    )
+            path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+            df.to_csv(path, index=None)
+        self.AU  = CubicSpline(k, AU)
+        self.AT  = CubicSpline(k, AT)
+        self.DU  = CubicSpline(k, DU)
+        self.DT1 = CubicSpline(k, DT1)
+        self.DT2 = CubicSpline(k, DT2)
+        self.cU  = CubicSpline(k, cU)
+        self.cT1 = CubicSpline(k, cT1)
+        self.cT2 = CubicSpline(k, cT2)
+        self.J   = CubicSpline(k, J)
+        self.S   = CubicSpline(k, S)
+        return
+
+    def _load_mff_table(self, filename):
+        df = pd.read_csv(filename)
+        k = df['k'].to_numpy()
+        self.kmax = k.max()
+        self.kmin = k.min()
+        AU  = df['AU'].to_numpy()
+        AT  = df['AT'].to_numpy()
+        DU  = df['DU'].to_numpy()
+        DT1 = df['DT1'].to_numpy()
+        DT2 = df['DT2'].to_numpy()
+        cU  = df['cU'].to_numpy()
+        cT1 = df['cT1'].to_numpy()
+        cT2 = df['cT2'].to_numpy()
+        J   = df['J'].to_numpy()
+        S   = df['S'].to_numpy()
         self.AU  = CubicSpline(k, AU)
         self.AT  = CubicSpline(k, AT)
         self.DU  = CubicSpline(k, DU)
