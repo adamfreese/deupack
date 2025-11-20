@@ -275,142 +275,81 @@ def plot_J():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Pixel plot to test densities
+# Density plots
 
-def density_test():
-    print("Flag A")
-    D = Density()
-    print("Flag B")
-    b = np.linspace(-2, 2, 100)
-    # Slice at y=0
-    MU_y0 = D.mass_3D_U(b,0,b)[:,0,:]
-    MT_y0 = D.mass_3D_T(b,0,b)[:,0,:]
-    M0_y0 = MU_y0 + 2/3*MT_y0
-    M1_y0 = MU_y0 - 1/3*MT_y0
-    # Slice at z=0
-    MU_z0 = D.mass_3D_U(b,b,0)[:,:,0]
-    MT_z0 = D.mass_3D_T(b,b,0)[:,:,0]
-    M0_z0 = MU_z0 + 2/3*MT_z0
-    M1_z0 = MU_z0 - 1/3*MT_z0
-    #
-    vmax = MU_y0.max() + MT_y0.max()
-    #
-    nrows,ncols=2,2
-    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
-    ax1 = py.subplot(nrows,ncols,1, aspect='equal')
-    ax2 = py.subplot(nrows,ncols,2, aspect='equal')
-    ax3 = py.subplot(nrows,ncols,3, aspect='equal')
-    ax4 = py.subplot(nrows,ncols,4, aspect='equal')
-    c1 = ax1.pcolormesh(b, b, M0_z0.T, vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
-    c2 = ax2.pcolormesh(b, b, M1_z0.T, vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
-    c3 = ax3.pcolormesh(b, b, M0_y0  , vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
-    c4 = ax4.pcolormesh(b, b, M1_y0  , vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
-    for ax in [ax1, ax2]:
-        ax.set_xlabel(r'$x$ (fm)')
-        ax.set_ylabel(r'$y$ (fm)')
-    for ax in [ax3, ax4]:
-        ax.set_xlabel(r'$z$ (fm)')
-        ax.set_ylabel(r'$x$ (fm)')
-    ax1.set_title('$s= 0$, top view')
-    ax2.set_title('$s=+1$, top view')
-    ax3.set_title('$s= 0$, side view')
-    ax4.set_title('$s=+1$, side view')
-    #
-    fig.patch.set_alpha(0)
-    fig.savefig('mass.pdf')
-    return
-
-def density_test_2():
-    print("Flag A")
-    D = Density()
-    print("Flag B")
-    b = np.linspace(-2, 2, 100)
-    # New scheme: use built-in radial pressure methods
-    prU_z0 = D.pr_3D_U(b,b,0)[:,:,0,...]
-    prU_y0 = D.pr_3D_U(b,0,b)[:,0,:,...]
-    prT_z0 = D.pr_3D_T(b,b,0)[:,:,0,...]
-    prT_y0 = D.pr_3D_T(b,0,b)[:,0,:,...]
-    # Pure states
-    pr1_z0 = prU_z0 - 1/3*prT_z0
-    pr1_y0 = prU_y0 - 1/3*prT_y0
-    pr0_z0 = prU_z0 + 2/3*prT_z0
-    pr0_y0 = prU_y0 + 2/3*prT_y0
-    print("Flag C")
-    print(pr0_y0.min(), pr0_z0.min(), pr1_y0.min(), pr1_z0.min())
-    #
-    vmax = max(abs(pr0_z0).max(), abs(pr0_y0).max(), abs(pr1_z0).max(), abs(pr1_y0).max(),)
-    #
-    nrows,ncols=2,2
-    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
-    ax1 = py.subplot(nrows,ncols,1, aspect='equal')
-    ax2 = py.subplot(nrows,ncols,2, aspect='equal')
-    ax3 = py.subplot(nrows,ncols,3, aspect='equal')
-    ax4 = py.subplot(nrows,ncols,4, aspect='equal')
-    c1 = ax1.pcolormesh(b, b, pr0_z0.T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
-    c2 = ax2.pcolormesh(b, b, pr1_z0.T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
-    c3 = ax3.pcolormesh(b, b, pr0_y0  , vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
-    c4 = ax4.pcolormesh(b, b, pr1_y0  , vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
-    for ax in [ax1, ax2]:
-        ax.set_xlabel(r'$x$ (fm)')
-        ax.set_ylabel(r'$y$ (fm)')
-    for ax in [ax3, ax4]:
-        ax.set_xlabel(r'$z$ (fm)')
-        ax.set_ylabel(r'$x$ (fm)')
-    ax1.set_title('$s= 0$, top view')
-    ax2.set_title('$s=+1$, top view')
-    ax3.set_title('$s= 0$, side view')
-    ax4.set_title('$s=+1$, side view')
-    #
-    fig.patch.set_alpha(0)
-    fig.savefig('radial_pressure.pdf')
-    return
-
-def plot_stress_slice(zero_axis='z', s=0):
-    D = Density()
-    b = np.linspace(-2, 2, 100)
+def plot_stress_slice(zero_axis='z', mj=0):
+    ''' Plot a 2D slice of the 3D stresses, with one of the three coordinate
+    axes set to zero.
+    '''
+    # Set up the arrays for the plotted axes
+    b = np.linspace(-2.12, 2.12, 200)
     if(zero_axis=='z'):
         x,y,z = b,b,0
+        xlabel = r'$x$ (fm)'
+        ylabel = r'$y$ (fm)'
     elif(zero_axis=='x'):
         x,y,z = 0,b,b
+        xlabel = r'$y$ (fm)'
+        ylabel = r'$z$ (fm)'
     elif(zero_axis=='y'):
         x,y,z = b,0,b
+        xlabel = r'$x$ (fm)'
+        ylabel = r'$z$ (fm)'
     else:
         raise ValueError("Invalid value for zero_azis: {}.".format(zero_axis))
-    TijU = D.stress_3D_U(x,y,z)
-    TijT = D.stress_3D_T(x,y,z)
-    rhat = make_rhat(x,y,z)
-    phihat = make_phihat(x,y,z)
-    zhat = make_zhat(x,y,z)
-    prU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, rhat, rhat)
-    ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, phihat, phihat)
-    pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, zhat, zhat)
-    prT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, rhat, rhat)
-    ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, phihat, phihat)
-    pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, zhat, zhat)
-    if(s==0):
+    # Obtain the densities. Squeeze everything down to 2-dimensional grids
+    D = Density()
+    TijU   = np.squeeze( D.stress_3D_U(x,y,z) )
+    TijT   = np.squeeze( D.stress_3D_T(x,y,z) )
+    rhat   = np.squeeze( make_rhat(x,y,z)     )
+    phihat = np.squeeze( make_phihat(x,y,z)   )
+    zhat   = np.squeeze( make_zhat(x,y,z)     )
+    prU = np.einsum('xyij,xyi,xyj->xy', TijU, rhat, rhat)
+    ptU = np.einsum('xyij,xyi,xyj->xy', TijU, phihat, phihat)
+    pzU = np.einsum('xyij,xyi,xyj->xy', TijU, zhat, zhat)
+    prT = np.einsum('xyij,xyi,xyj->xy', TijT, rhat, rhat)
+    ptT = np.einsum('xyij,xyi,xyj->xy', TijT, phihat, phihat)
+    pzT = np.einsum('xyij,xyi,xyj->xy', TijT, zhat, zhat)
+    if(mj==0):
         pr = prU + 2/3*prT
         pt = ptU + 2/3*ptT
         pz = pzU + 2/3*pzT
-    elif(s==1 or s==-1):
+    elif(mj==1 or mj==-1):
         pr = prU - 1/3*prT
         pt = ptU - 1/3*ptT
         pz = pzU - 1/3*pzT
     else:
-        raise ValueError("s={:d} is not a valid spin.".format(s))
+        raise ValueError("mj={:d} is not a valid spin.".format(mj))
     vmax = max( abs(pr).max(), abs(pt).max(), abs(pz).max() )
+    # Create the plot canvas
     nrows,ncols=1,3
     fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
     ax1 = py.subplot(nrows,ncols,1, aspect='equal')
     ax2 = py.subplot(nrows,ncols,2, aspect='equal')
     ax3 = py.subplot(nrows,ncols,3, aspect='equal')
-    c1 = ax1.pcolormesh(b, b, np.squeeze(pr).T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
-    c2 = ax2.pcolormesh(b, b, np.squeeze(pt).T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
-    c3 = ax3.pcolormesh(b, b, np.squeeze(pz).T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    # Plot the stresses
+    c1 = ax1.pcolormesh(b, b, pr.T, vmin=-vmax, vmax=vmax, cmap='vanimo', shading='gouraud')
+    c2 = ax2.pcolormesh(b, b, pt.T, vmin=-vmax, vmax=vmax, cmap='vanimo', shading='gouraud')
+    c3 = ax3.pcolormesh(b, b, pz.T, vmin=-vmax, vmax=vmax, cmap='vanimo', shading='gouraud')
+    # Color bar
+    cbar = fig.colorbar(c3)
+    cbar.set_label(r'Stress (GeV/fm$^3$)')
+    # Labels
     ax1.set_title('Radial stress')
     ax2.set_title('Azimuthal stress')
     ax3.set_title('$z$-direction stress')
-    #
+    for ax in [ax1,ax2,ax3]:
+        ax.set_xlabel(xlabel)
+        ax.annotate(
+                r'$m_j={:d},\, {}=0$'.format(mj,zero_axis),
+                (0.025,0.025), xycoords='axes fraction',
+                color='white'
+                )
+    ax1.set_ylabel(ylabel)
+    for ax in [ax2,ax3]:
+        ax.get_yaxis().set_ticks([])
+    # Save
     fig.patch.set_alpha(0)
-    fig.savefig('stress.pdf')
+    fig.savefig('stress_mj{:d}_{}0.pdf'.format(mj,zero_axis))
     return
 
