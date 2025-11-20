@@ -77,7 +77,7 @@ def cU(k, wf='av18', nff='mit'):
     # Need to change rmin from 0 to 1e-2 for the Paris wf,
     # because of an instability at small r
     rmin = 0
-    if(wf=='paris'):
+    if(wf=='paris' or wf=='cdbonn'):
         rmin = 1e-2
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
@@ -98,7 +98,7 @@ def cT2(k, wf='av18', nff='mit', formula='cT2'):
     # because of an instability at small r
     AN, *_ = choose_nff(nff)
     rmin = 0
-    if(wf=='paris'):
+    if(wf=='paris' or wf=='cdbonn'):
         rmin =  1e-2
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, rmin=rmin, formula=formula)
 
