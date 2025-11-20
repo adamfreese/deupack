@@ -325,18 +325,6 @@ def density_test_2():
     D = Density()
     print("Flag B")
     b = np.linspace(-2, 2, 100)
-    ## Unpolarized and tensor-polarized combos
-    #TijU_z0 = D.stress_3D_U(b,b,0)[:,:,0,...]
-    #TijU_y0 = D.stress_3D_U(b,0,b)[:,0,:,...]
-    #TijT_z0 = D.stress_3D_T(b,b,0)[:,:,0,...]
-    #TijT_y0 = D.stress_3D_T(b,0,b)[:,0,:,...]
-    ## Radial projection?
-    #r_z0 = make_rhat(b,b,0)[:,:,0,...]
-    #r_y0 = make_rhat(b,0,b)[:,0,:,...]
-    #prU_z0 = np.einsum('xyi,xyj,xyij->xy', r_z0, r_z0, TijU_z0)
-    #prU_y0 = np.einsum('xzi,xzj,xzij->xz', r_y0, r_y0, TijU_y0)
-    #prT_z0 = np.einsum('xyi,xyj,xyij->xy', r_z0, r_z0, TijT_z0)
-    #prT_y0 = np.einsum('xzi,xzj,xzij->xz', r_y0, r_y0, TijT_y0)
     # New scheme: use built-in radial pressure methods
     prU_z0 = D.pr_3D_U(b,b,0)[:,:,0,...]
     prU_y0 = D.pr_3D_U(b,0,b)[:,0,:,...]
@@ -375,5 +363,54 @@ def density_test_2():
     #
     fig.patch.set_alpha(0)
     fig.savefig('radial_pressure.pdf')
+    return
+
+def plot_stress_slice(zero_axis='z', s=0):
+    D = Density()
+    b = np.linspace(-2, 2, 100)
+    if(zero_axis=='z'):
+        x,y,z = b,b,0
+    elif(zero_axis=='x'):
+        x,y,z = 0,b,b
+    elif(zero_axis=='y'):
+        x,y,z = b,0,b
+    else:
+        raise ValueError("Invalid value for zero_azis: {}.".format(zero_axis))
+    TijU = D.stress_3D_U(x,y,z)
+    TijT = D.stress_3D_T(x,y,z)
+    rhat = make_rhat(x,y,z)
+    phihat = make_phihat(x,y,z)
+    zhat = make_zhat(x,y,z)
+    prU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, rhat, rhat)
+    ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, phihat, phihat)
+    pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, zhat, zhat)
+    prT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, rhat, rhat)
+    ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, phihat, phihat)
+    pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, zhat, zhat)
+    if(s==0):
+        pr = prU + 2/3*prT
+        pt = ptU + 2/3*ptT
+        pz = pzU + 2/3*pzT
+    elif(s==1 or s==-1):
+        pr = prU - 1/3*prT
+        pt = ptU - 1/3*ptT
+        pz = pzU - 1/3*pzT
+    else:
+        raise ValueError("s={:d} is not a valid spin.".format(s))
+    vmax = max( abs(pr).max(), abs(pt).max(), abs(pz).max() )
+    nrows,ncols=1,3
+    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
+    ax1 = py.subplot(nrows,ncols,1, aspect='equal')
+    ax2 = py.subplot(nrows,ncols,2, aspect='equal')
+    ax3 = py.subplot(nrows,ncols,3, aspect='equal')
+    c1 = ax1.pcolormesh(b, b, np.squeeze(pr).T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    c2 = ax2.pcolormesh(b, b, np.squeeze(pt).T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    c3 = ax3.pcolormesh(b, b, np.squeeze(pz).T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    ax1.set_title('Radial stress')
+    ax2.set_title('Azimuthal stress')
+    ax3.set_title('$z$-direction stress')
+    #
+    fig.patch.set_alpha(0)
+    fig.savefig('stress.pdf')
     return
 

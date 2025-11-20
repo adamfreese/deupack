@@ -161,7 +161,7 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.momentum_1D(b)
-        e = make_zhat_cross_rhat(x,y,z) # TODO
+        e = make_phihat(x,y,z)
         return e * scalar
 
     def flux_3D(self, x, y, z):
@@ -174,7 +174,7 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.flux_1D(b)
-        e = make_zhat_cross_rhat(x,y,z) # TODO
+        e = make_phihat(x,y,z)
         return e * scalar
 
     def stress_3D_U(self, x, y, z):
@@ -401,6 +401,17 @@ def make_zhat(x, y, z):
     zhat = np.zeros(x_.shape+(3,))
     zhat[...,0] = 1
     return zhat
+
+def make_phihat(x,y,z):
+    # TODO: docstring
+    eps = 1e-9 # to regulate division by zero
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + eps)
+    phihat = np.zeros(x_.shape+(3,))
+    phihat[...,0] = 0
+    phihat[...,1] = -y_/r_
+    phihat[...,2] = x_/r_
+    return phihat
 
 def make_kronecker(x, y, z):
     # TODO: docstring
