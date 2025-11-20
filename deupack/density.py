@@ -19,7 +19,7 @@ from .mff import deuteron as mff
 # Density class
 
 class Density:
-    ''' A class for the calculation of deuteorn densities.
+    ''' A class for the calculation of deuteron densities.
 
     This is implemented as a class so that lookup tables for mechanical form
     factors can be cached, and so that the user can create different objects
@@ -33,18 +33,17 @@ class Density:
                  kmin=1e-6, # GeV
                  kmax=10,   # GeV
                  ):
-        # attempt to find a cached lookup talbe on disk
-        filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(wf, nff, nk, kmin, kmax)
-        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+        self.wf   = wf
+        self.nff  = nff
+        self.nk   = nk
+        self.kmin = kmin
+        self.kmax = kmax
+        # attempt to find a cached lookup table on disk
+        path = self._cache_path()
         if(path.is_file()):
             self._load_mff_table(path)
         else:
             # if not found, make one
-            self.wf   = wf
-            self.nff  = nff
-            self.nk   = nk
-            self.kmin = kmin
-            self.kmax = kmax
             self._init_mff_table(save_table=True)
         return
 
@@ -310,6 +309,13 @@ class Density:
 
     # Internal metthods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    def _cache_path(self):
+        filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
+                self.wf, self.nff, self.nk, self.kmin, self.kmax
+                )
+        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+        return path
+
     def _init_mff_table(self, save_table=False):
         k   = np.geomspace(self.kmin, self.kmax, self.nk)
         AU  = mff.AU( k, wf=self.wf, nff=self.nff)
@@ -336,10 +342,7 @@ class Density:
                 'J'   : J,
                 'S'   : S
                 })
-            filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
-                    self.wf, self.nff, self.nk, self.kmin, self.kmax
-                    )
-            path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+            path = self._cache_path()
             df.to_csv(path, index=None)
         self.AU  = CubicSpline(k, AU)
         self.AT  = CubicSpline(k, AT)
@@ -356,8 +359,6 @@ class Density:
     def _load_mff_table(self, filename):
         df = pd.read_csv(filename)
         k = df['k'].to_numpy()
-        self.kmax = k.max()
-        self.kmin = k.min()
         AU  = df['AU'].to_numpy()
         AT  = df['AT'].to_numpy()
         DU  = df['DU'].to_numpy()
