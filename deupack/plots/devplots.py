@@ -3,7 +3,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as py
 
 from .. import mff
-from ..density import Density
+from ..density import *
 from ..mff.nucleon.chooser import choose_nff
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
@@ -281,7 +281,7 @@ def density_test():
     print("Flag A")
     D = Density()
     print("Flag B")
-    b = np.linspace(-2, 2, 201)
+    b = np.linspace(-2, 2, 100)
     # Slice at y=0
     MU_y0 = D.mass_3D_U(b,0,b)[:,0,:]
     MT_y0 = D.mass_3D_T(b,0,b)[:,0,:]
@@ -318,5 +318,62 @@ def density_test():
     #
     fig.patch.set_alpha(0)
     fig.savefig('mass.pdf')
+    return
+
+def density_test_2():
+    print("Flag A")
+    D = Density()
+    print("Flag B")
+    b = np.linspace(-2, 2, 100)
+    ## Unpolarized and tensor-polarized combos
+    #TijU_z0 = D.stress_3D_U(b,b,0)[:,:,0,...]
+    #TijU_y0 = D.stress_3D_U(b,0,b)[:,0,:,...]
+    #TijT_z0 = D.stress_3D_T(b,b,0)[:,:,0,...]
+    #TijT_y0 = D.stress_3D_T(b,0,b)[:,0,:,...]
+    ## Radial projection?
+    #r_z0 = make_rhat(b,b,0)[:,:,0,...]
+    #r_y0 = make_rhat(b,0,b)[:,0,:,...]
+    #prU_z0 = np.einsum('xyi,xyj,xyij->xy', r_z0, r_z0, TijU_z0)
+    #prU_y0 = np.einsum('xzi,xzj,xzij->xz', r_y0, r_y0, TijU_y0)
+    #prT_z0 = np.einsum('xyi,xyj,xyij->xy', r_z0, r_z0, TijT_z0)
+    #prT_y0 = np.einsum('xzi,xzj,xzij->xz', r_y0, r_y0, TijT_y0)
+    # New scheme: use built-in radial pressure methods
+    prU_z0 = D.pr_3D_U(b,b,0)[:,:,0,...]
+    prU_y0 = D.pr_3D_U(b,0,b)[:,0,:,...]
+    prT_z0 = D.pr_3D_T(b,b,0)[:,:,0,...]
+    prT_y0 = D.pr_3D_T(b,0,b)[:,0,:,...]
+    # Pure states
+    pr1_z0 = prU_z0 - 1/3*prT_z0
+    pr1_y0 = prU_y0 - 1/3*prT_y0
+    pr0_z0 = prU_z0 + 2/3*prT_z0
+    pr0_y0 = prU_y0 + 2/3*prT_y0
+    print("Flag C")
+    print(pr0_y0.min(), pr0_z0.min(), pr1_y0.min(), pr1_z0.min())
+    #
+    vmax = max(abs(pr0_z0).max(), abs(pr0_y0).max(), abs(pr1_z0).max(), abs(pr1_y0).max(),)
+    #
+    nrows,ncols=2,2
+    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
+    ax1 = py.subplot(nrows,ncols,1, aspect='equal')
+    ax2 = py.subplot(nrows,ncols,2, aspect='equal')
+    ax3 = py.subplot(nrows,ncols,3, aspect='equal')
+    ax4 = py.subplot(nrows,ncols,4, aspect='equal')
+    c1 = ax1.pcolormesh(b, b, pr0_z0.T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    c2 = ax2.pcolormesh(b, b, pr1_z0.T, vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    c3 = ax3.pcolormesh(b, b, pr0_y0  , vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    c4 = ax4.pcolormesh(b, b, pr1_y0  , vmin=-vmax, vmax=vmax, cmap='PRGn', shading='gouraud')
+    for ax in [ax1, ax2]:
+        ax.set_xlabel(r'$x$ (fm)')
+        ax.set_ylabel(r'$y$ (fm)')
+    for ax in [ax3, ax4]:
+        ax.set_xlabel(r'$z$ (fm)')
+        ax.set_ylabel(r'$x$ (fm)')
+    ax1.set_title('$s= 0$, top view')
+    ax2.set_title('$s=+1$, top view')
+    ax3.set_title('$s= 0$, side view')
+    ax4.set_title('$s=+1$, side view')
+    #
+    fig.patch.set_alpha(0)
+    fig.savefig('radial_pressure.pdf')
     return
 
