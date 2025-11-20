@@ -277,6 +277,72 @@ def plot_J():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density plots
 
+def plot_mass_slices():
+    ''' Plot four slices of the mass density.
+    These include two polarizations (mj=0 and mj=1)
+    and two zero axes (x and z).
+    '''
+    # Set things up to make the four panels
+    D = Density()
+    nrows,ncols=1,4
+    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
+    ax1 = py.subplot(nrows,ncols,1, aspect='equal')
+    ax2 = py.subplot(nrows,ncols,2, aspect='equal')
+    ax3 = py.subplot(nrows,ncols,3, aspect='equal')
+    ax4 = py.subplot(nrows,ncols,4, aspect='equal')
+    # Plot the masses
+    _ = plot_one_mass_slice(D, ax1, mj=1, zero_axis='z', ylabel=True)
+    _ = plot_one_mass_slice(D, ax2, mj=0, zero_axis='z', ylabel=False)
+    _ = plot_one_mass_slice(D, ax3, mj=1, zero_axis='x', ylabel=True)
+    c = plot_one_mass_slice(D, ax4, mj=0, zero_axis='x', ylabel=False)
+    # Save
+    fig.patch.set_alpha(0)
+    fig.savefig('mass.pdf')
+    return
+
+def plot_one_mass_slice(D, ax, zero_axis='z', mj=0, ylabel=False):
+    ''' Plot one of the four mass slices. '''
+    # Set up the arrays for the plotted axes
+    b = np.linspace(-2.12, 2.12, 400)
+    if(zero_axis=='z'):
+        x,y,z = b,b,0
+        xlabel = r'$x$ (fm)'
+        ylabel = r'$y$ (fm)'
+    elif(zero_axis=='x'):
+        x,y,z = 0,b,b
+        xlabel = r'$y$ (fm)'
+        ylabel = r'$z$ (fm)'
+    elif(zero_axis=='y'):
+        x,y,z = b,0,b
+        xlabel = r'$x$ (fm)'
+        ylabel = r'$z$ (fm)'
+    else:
+        raise ValueError("Invalid value for zero_azis: {}.".format(zero_axis))
+    # Obtain the density. Squeeze everything down to 2-dimensional grids
+    MU = np.squeeze( D.mass_3D_U(x,y,z) )
+    MT = np.squeeze( D.mass_3D_T(x,y,z) )
+    if(mj==0):
+        M = MU + 2/3*MT
+    elif(mj==1 or mj==-1):
+        M = MU - 1/3*MT
+    else:
+        raise ValueError("mj={:d} is not a valid spin.".format(mj))
+    # Plot the slice
+    vmax = MU.max() + abs(MT).max()
+    c = ax.pcolormesh(b, b, M.T, vmin=0, vmax=vmax, cmap='magma', shading='gouraud')
+    # Label and leave
+    ax.annotate(
+            r'$m_j={:d},\, {}=0$'.format(mj,zero_axis),
+            (0.025,0.025), xycoords='axes fraction',
+            color='white'
+            )
+    ax.set_xlabel(xlabel)
+    if(ylabel):
+        ax.set_ylabel(ylabel)
+    else:
+        ax.get_yaxis().set_ticks([])
+    return c
+
 def plot_stress_slice(zero_axis='z', mj=0):
     ''' Plot a 2D slice of the 3D stresses, with one of the three coordinate
     axes set to zero.
