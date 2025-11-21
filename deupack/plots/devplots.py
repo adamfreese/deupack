@@ -11,6 +11,8 @@ mpl.rc('text',usetex=True)
 mpl.rc('text.latex', preamble=r"\usepackage{bm,amsmath,amssymb,amsfonts,mathrsfs}")
 py.rcParams["axes.formatter.use_mathtext"] = True
 
+from .densityplot3d import densityplot3d
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Routines to make specific plots
 
@@ -276,6 +278,46 @@ def plot_J():
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density plots
+
+def plot_mass_3d():
+    D = Density()
+    b = np.linspace(-1.08, 1.08, 70)
+    # Add some gaussian noise to make the plot look less griddy
+    sigma = (b[1] - b[0])/16
+    x = b + np.random.normal(loc=0, scale=sigma, size=b.shape)
+    y = b + np.random.normal(loc=0, scale=sigma, size=b.shape)
+    z = b + np.random.normal(loc=0, scale=sigma, size=b.shape)
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    MU = D.mass_3D_U(x,y,z)
+    MT = D.mass_3D_T(x,y,z)
+    M0 = MU + 2/3*MT
+    M1 = MU - 1/3*MT
+    #
+    nrows,ncols=1,2
+    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
+    ax1 = py.subplot(nrows,ncols,1, projection='3d')
+    ax2 = py.subplot(nrows,ncols,2, projection='3d')
+    # Test to make sure it works
+    densityplot3d(ax1, x_, y_, z_, M0, s=1, opacity=0.69, decay=4, cmap=py.cm.viridis)
+    densityplot3d(ax2, x_, y_, z_, M1, s=1, opacity=0.69, decay=4, cmap=py.cm.viridis)
+    for ax in [ax1, ax2]:
+        for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
+            axis.set_pane_color((0,0,0,1))
+        ax.patch.set_alpha(0)
+        ax.set_xlabel('\n'+r'$x$ (fm)')
+        ax.set_ylabel('\n'+r'$y$ (fm)')
+        ax.set_zlabel('\n'+r'$z$ (fm)')
+    ax1.set_title(r'$m_j=0$')
+    ax2.set_title(r'$m_j=1$')
+    #ax1.xaxis.set_pane_color((0,0,0,1))
+    # Save as png, because pdf is insanely large
+    print("Flag A")
+    fig.patch.set_alpha(0)
+    fig.savefig('mass3D.png', dpi=150)
+    print("Flag B")
+    #fig.savefig('mass3D.pdf')
+    print("Flag C")
+    return
 
 def plot_mass_slices():
     ''' Plot four slices of the mass density.
