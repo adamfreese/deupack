@@ -13,6 +13,9 @@ py.rcParams["axes.formatter.use_mathtext"] = True
 
 from .densityplot3d import densityplot3d
 
+# Testing stuff
+import time
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Routines to make specific plots
 
@@ -279,45 +282,122 @@ def plot_J():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density plots
 
-def plot_mass_3d():
-    D = Density()
-    b = np.linspace(-1.08, 1.08, 70)
-    # Add some gaussian noise to make the plot look less griddy
-    sigma = (b[1] - b[0])/16
-    x = b + np.random.normal(loc=0, scale=sigma, size=b.shape)
-    y = b + np.random.normal(loc=0, scale=sigma, size=b.shape)
-    z = b + np.random.normal(loc=0, scale=sigma, size=b.shape)
-    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
-    MU = D.mass_3D_U(x,y,z)
-    MT = D.mass_3D_T(x,y,z)
+def plot_mass_3d(nff='ba', wf='av18'):
+    D = Density(nff=nff, wf=wf)
+    bmax = 2.12
+    nb = 180
+    #nb = 60 # smaller to test changes quickly
+    b = np.linspace(-bmax, bmax, nb)
+    MU = D.mass_3D_U(b,b,b)
+    MT = D.mass_3D_T(b,b,b)
     M0 = MU + 2/3*MT
     M1 = MU - 1/3*MT
-    #
+    # Prepare figure
     nrows,ncols=1,2
-    fig = py.figure(figsize=(ncols*8,nrows*8), layout='constrained')
-    ax1 = py.subplot(nrows,ncols,1, projection='3d')
-    ax2 = py.subplot(nrows,ncols,2, projection='3d')
-    # Test to make sure it works
-    densityplot3d(ax1, x_, y_, z_, M0, s=1, opacity=0.69, decay=4, cmap=py.cm.viridis)
-    densityplot3d(ax2, x_, y_, z_, M1, s=1, opacity=0.69, decay=4, cmap=py.cm.viridis)
+    fig = py.figure(figsize=(ncols*11,nrows*11))
+    ax1 = py.subplot(nrows,ncols,1,projection='3d')
+    ax2 = py.subplot(nrows,ncols,2,projection='3d')
     for ax in [ax1, ax2]:
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
             axis.set_pane_color((0,0,0,1))
+            axis.pane.set_edgecolor('gray')
+        ax.grid(False)
         ax.patch.set_alpha(0)
         ax.set_xlabel('\n'+r'$x$ (fm)')
         ax.set_ylabel('\n'+r'$y$ (fm)')
         ax.set_zlabel('\n'+r'$z$ (fm)')
-    ax1.set_title(r'$m_j=0$')
-    ax2.set_title(r'$m_j=1$')
-    #ax1.xaxis.set_pane_color((0,0,0,1))
+    # 3D densities
+    densityplot3d(ax1, b, b, b, M0, s=2, opacity=0.26, decay=4, projections=True, cmap=py.cm.magma)
+    densityplot3d(ax2, b, b, b, M1, s=2, opacity=0.26, decay=4, projections=True, cmap=py.cm.magma)
+    # Some labels
+    bbox = dict(facecolor='white', alpha=0.76, edgecolor='black', boxstyle='round,pad=0.5')
+    ax1.text2D(0.05, 0.95, r'$m_j=0$', transform=ax1.transAxes, bbox=bbox)
+    ax2.text2D(0.05, 0.95, r'$m_j=1$', transform=ax2.transAxes, bbox=bbox)
     # Save as png, because pdf is insanely large
-    print("Flag A")
+    fig.tight_layout()
     fig.patch.set_alpha(0)
-    fig.savefig('mass3D.png', dpi=150)
-    print("Flag B")
-    #fig.savefig('mass3D.pdf')
-    print("Flag C")
+    fig.savefig('mass3D_{}_{}.png'.format(wf,nff), dpi=150)
     return
+
+def plot_stress_3d(nff='ba', wf='av18',
+                   nb=180, # try smaller number (e.g., 60) for testing
+                   bmax=2.12):
+    # TODO: maybe locally cache the densities,
+    # since they take a long time to compute for large nb
+    t_0 = time.time()
+    D = Density(nff=nff, wf=wf)
+    b = np.linspace(-bmax, bmax, nb)
+    # Get the full stress tensor first
+    TijU   = D.stress_3D_U(b,b,b)
+    TijT   = D.stress_3D_T(b,b,b)
+    # Get the r, phi and z projections
+    rhat   = make_rhat(  b,b,b)
+    phihat = make_phihat(b,b,b)
+    zhat   = make_zhat(  b,b,b)
+    prU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, rhat, rhat)
+    ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, phihat, phihat)
+    pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, zhat, zhat)
+    prT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, rhat, rhat)
+    ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, phihat, phihat)
+    pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, zhat, zhat)
+    # Get the spin projections
+    pr0 = prU + 2/3*prT
+    pt0 = ptU + 2/3*ptT
+    pz0 = pzU + 2/3*pzT
+    pr1 = prU - 1/3*prT
+    pt1 = ptU - 1/3*ptT
+    pz1 = pzU - 1/3*pzT
+    t_A = time.time()
+    # Prepare figure
+    nrows,ncols=2,3
+    fig = py.figure(figsize=(ncols*11,nrows*11))
+    ax0r = py.subplot(nrows,ncols,1,projection='3d')
+    ax0t = py.subplot(nrows,ncols,2,projection='3d')
+    ax0z = py.subplot(nrows,ncols,3,projection='3d')
+    ax1r = py.subplot(nrows,ncols,4,projection='3d')
+    ax1t = py.subplot(nrows,ncols,5,projection='3d')
+    ax1z = py.subplot(nrows,ncols,6,projection='3d')
+    for ax in [ax0r, ax0t, ax0z, ax1r, ax1t, ax1z]:
+        for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
+            axis.set_pane_color((0,0,0,1))
+            axis.pane.set_edgecolor('gray')
+        ax.grid(False)
+        ax.patch.set_alpha(0)
+        ax.set_xlabel('\n'+r'$x$ (fm)')
+        ax.set_ylabel('\n'+r'$y$ (fm)')
+        ax.set_zlabel('\n'+r'$z$ (fm)')
+    # 3D densities
+    kwargs = {
+            's' : 2, 'opacity' : 0.26, 'decay' : 4, 'cmap' : py.cm.vanimo,
+            'projections' : True, 'divergent' : True
+            }
+    densityplot3d(ax0r, b, b, b, pr0, **kwargs)
+    densityplot3d(ax0t, b, b, b, pt0, **kwargs)
+    densityplot3d(ax0z, b, b, b, pz0, **kwargs)
+    densityplot3d(ax1r, b, b, b, pr1, **kwargs)
+    densityplot3d(ax1t, b, b, b, pt1, **kwargs)
+    densityplot3d(ax1z, b, b, b, pz1, **kwargs)
+    t_B = time.time()
+    # Some labels
+    bbox = dict(facecolor='white', alpha=0.76, edgecolor='black', boxstyle='round,pad=0.5')
+    ax0r.text2D(0.05, 0.95, r'$m_j=0$, radial pressure',        transform=ax0r.transAxes, bbox=bbox)
+    ax1r.text2D(0.05, 0.95, r'$m_j=1$, radial pressure',        transform=ax1r.transAxes, bbox=bbox)
+    ax0t.text2D(0.05, 0.95, r'$m_j=0$, azimuthal pressure',     transform=ax0t.transAxes, bbox=bbox)
+    ax1t.text2D(0.05, 0.95, r'$m_j=1$, azimuthal pressure',     transform=ax1t.transAxes, bbox=bbox)
+    ax0z.text2D(0.05, 0.95, r'$m_j=0$, $z$-direction pressure', transform=ax0z.transAxes, bbox=bbox)
+    ax1z.text2D(0.05, 0.95, r'$m_j=1$, $z$-direction pressure', transform=ax1z.transAxes, bbox=bbox)
+    # Save as png, because pdf is insanely large
+    fig.tight_layout()
+    fig.patch.set_alpha(0)
+    fig.savefig('stress3D_{}_{}.png'.format(wf,nff), dpi=150)
+    t_C = time.time()
+    print("Time to calculate pressure: {:.3f} s".format(t_A-t_0))
+    print("Time to plot pressures:     {:.3f} s".format(t_B-t_A))
+    print("Time to save plots:         {:.3f} s".format(t_C-t_B))
+    return
+
+
+
 
 def plot_mass_slices():
     ''' Plot four slices of the mass density.
