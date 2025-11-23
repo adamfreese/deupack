@@ -20,6 +20,7 @@ def densityplot3d(ax: plt.axis,
                   cmap: mpl.colors.LinearSegmentedColormap = plt.cm.jet,
                   projections: bool = False,
                   divergent: bool = False,
+                  vmax: float = 0.0,
                   **kwargs) -> None:
     """
     Create a density plot for X, Y, Z coordinates and corresponding intensity values.
@@ -46,6 +47,9 @@ def densityplot3d(ax: plt.axis,
         Set to True to also plot 2D projections on the panes.
     divergent: bool, optional
         Set to True if the values can go negative and a divergent colormap is used.
+    vmax: float, optional
+        Maximum effective value for scaling the coloarmap in the 2D projections.
+        If 0 is passed, then the data will be used to determine the maximum value.
     **kwargs
         Additional keyword arguments to pass to the scatter function.
 
@@ -94,23 +98,20 @@ def densityplot3d(ax: plt.axis,
         # Colors for intensities
         if(divergent):
             # For divergent colormap, need to shift center to 0.5
-            vmax = max(
-                    np.max(v_xy), np.max(v_yz), np.max(v_zx)
-                    -np.min(v_xy), -np.min(v_yz), -np.min(v_zx)
-                    )
+            if(vmax==0.0):
+                vmax = max(
+                        np.max(v_xy), np.max(v_yz), np.max(v_zx)
+                        -np.min(v_xy), -np.min(v_yz), -np.min(v_zx)
+                        )
             c_xy = cmap((v_xy+vmax) / (2*vmax))
             c_yz = cmap((v_yz+vmax) / (2*vmax))
             c_zx = cmap((v_zx+vmax) / (2*vmax))
         else:
-            vmax = max(np.max(v_xy), np.max(v_yz), np.max(v_zx))
+            if(vmax==0.0):
+                vmax = max(np.max(v_xy), np.max(v_yz), np.max(v_zx))
             c_xy = cmap(v_xy / vmax)
             c_yz = cmap(v_yz / vmax)
             c_zx = cmap(v_zx / vmax)
-
-        # Flatten out the color array, keeping last dimension
-        c_xy_fl = c_xy.reshape(-1, c_xy.shape[-1])
-        c_yz_fl = c_yz.reshape(-1, c_yz.shape[-1])
-        c_zx_fl = c_zx.reshape(-1, c_zx.shape[-1])
 
         # Create the 2D meshed grids needed for the projections
         x_xy, y_xy = np.meshgrid(x, y, indexing='ij')
@@ -122,11 +123,15 @@ def densityplot3d(ax: plt.axis,
         ymin, ymax = ax.get_ylim()
         zmin, zmax = ax.get_zlim()
 
-        # Do the projections as scatter plots, because pcolormesh
-        # doesn't seem to be supported for this. =(
-        ax.scatter(x_xy, y_xy, zs=zmin, zdir='z', c=c_xy_fl, zorder=2, **kwargs)
-        ax.scatter(y_yz, z_yz, zs=xmin, zdir='x', c=c_yz_fl, zorder=2, **kwargs)
-        ax.scatter(x_zx, z_zx, zs=ymax, zdir='y', c=c_zx_fl, zorder=2, **kwargs)
+        # Arrays for positioning the projections on the panes
+        z_xy = np.full_like(x_xy, zmin)
+        x_yz = np.full_like(y_yz, xmin)
+        y_zx = np.full_like(z_zx, ymax)
+
+        # Plot surfaces to emulate pcolormesh as best as possible
+        ax.plot_surface(x_xy, y_xy, z_xy, facecolors=c_xy, rstride=1, cstride=1, shade=False, zorder=2)
+        ax.plot_surface(x_yz, y_yz, z_yz, facecolors=c_yz, rstride=1, cstride=1, shade=False, zorder=2)
+        ax.plot_surface(x_zx, y_zx, z_zx, facecolors=c_zx, rstride=1, cstride=1, shade=False, zorder=2)
 
         # Reset the x, y and z limits in case they were moved
         ax.set_xlim((xmin, xmax))

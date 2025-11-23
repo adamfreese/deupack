@@ -280,7 +280,7 @@ def plot_J():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Density plots
+# 3D density plots
 
 def plot_mass_3d(nff='ba', wf='av18'):
     D = Density(nff=nff, wf=wf)
@@ -322,41 +322,51 @@ def plot_mass_3d(nff='ba', wf='av18'):
 def plot_stress_3d(nff='ba', wf='av18',
                    nb=180, # try smaller number (e.g., 60) for testing
                    bmax=2.12):
-    # TODO: maybe locally cache the densities,
-    # since they take a long time to compute for large nb
     t_0 = time.time()
-    D = Density(nff=nff, wf=wf)
     b = np.linspace(-bmax, bmax, nb)
-    # Get the full stress tensor first
-    TijU   = D.stress_3D_U(b,b,b)
-    TijT   = D.stress_3D_T(b,b,b)
-    # Get the r, phi and z projections
-    rhat   = make_rhat(  b,b,b)
-    phihat = make_phihat(b,b,b)
-    zhat   = make_zhat(  b,b,b)
-    prU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, rhat, rhat)
-    ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, phihat, phihat)
-    pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, zhat, zhat)
-    prT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, rhat, rhat)
-    ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, phihat, phihat)
-    pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, zhat, zhat)
-    # Get the spin projections
-    pr0 = prU + 2/3*prT
-    pt0 = ptU + 2/3*ptT
-    pz0 = pzU + 2/3*pzT
-    pr1 = prU - 1/3*prT
-    pt1 = ptU - 1/3*ptT
-    pz1 = pzU - 1/3*pzT
+    # Try loading a cache file
+    cachefile = "stress_{}_{}_{:d}_{:.2f}.npy".format(nff,wf,nb,bmax)
+    try:
+        data = np.load(cachefile)
+        pr0,pt0,pz0,pr1,pt1,pz1 = data
+    except:
+        D = Density(nff=nff, wf=wf)
+        # Get the full stress tensor first
+        TijU   = D.stress_3D_U(b,b,b)
+        TijT   = D.stress_3D_T(b,b,b)
+        # Get the r, phi and z projections
+        rhat   = make_rhat(  b,b,b)
+        phihat = make_phihat(b,b,b)
+        zhat   = make_zhat(  b,b,b)
+        prU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, rhat, rhat)
+        ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, phihat, phihat)
+        pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, zhat, zhat)
+        prT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, rhat, rhat)
+        ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, phihat, phihat)
+        pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, zhat, zhat)
+        # Get the spin projections
+        pr0 = prU + 2/3*prT
+        pt0 = ptU + 2/3*ptT
+        pz0 = pzU + 2/3*pzT
+        pr1 = prU - 1/3*prT
+        pt1 = ptU - 1/3*ptT
+        pz1 = pzU - 1/3*pzT
+        # cache this since it's expensive
+        np.save(cachefile, [pr0,pt0,pz0,pr1,pt1,pz1])
     t_A = time.time()
     # Prepare figure
     nrows,ncols=2,3
-    fig = py.figure(figsize=(ncols*11,nrows*11))
-    ax0r = py.subplot(nrows,ncols,1,projection='3d')
-    ax0t = py.subplot(nrows,ncols,2,projection='3d')
-    ax0z = py.subplot(nrows,ncols,3,projection='3d')
-    ax1r = py.subplot(nrows,ncols,4,projection='3d')
-    ax1t = py.subplot(nrows,ncols,5,projection='3d')
-    ax1z = py.subplot(nrows,ncols,6,projection='3d')
+    fig = py.figure(figsize=(ncols*10,nrows*10+1))
+    N = 10 # how many times taller a subfigure should be than the colorbar
+    gs = fig.add_gridspec(2*N+1,3*N)
+    ax0r = fig.add_subplot(gs[0:N,     0:N  ], projection='3d')
+    ax0t = fig.add_subplot(gs[0:N,     N:2*N], projection='3d')
+    ax0z = fig.add_subplot(gs[0:N,   2*N:3*N], projection='3d')
+    ax1r = fig.add_subplot(gs[N:2*N,   0:N  ], projection='3d')
+    ax1t = fig.add_subplot(gs[N:2*N,   N:2*N], projection='3d')
+    ax1z = fig.add_subplot(gs[N:2*N, 2*N:3*N], projection='3d')
+    cax  = fig.add_subplot(gs[2*N,:])
+
     for ax in [ax0r, ax0t, ax0z, ax1r, ax1t, ax1z]:
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
             axis.set_pane_color((0,0,0,1))
@@ -367,9 +377,14 @@ def plot_stress_3d(nff='ba', wf='av18',
         ax.set_ylabel('\n'+r'$y$ (fm)')
         ax.set_zlabel('\n'+r'$z$ (fm)')
     # 3D densities
+    maxes = [
+            [ abs(np.trapz(p, x=b, axis=axis)).max() for p in [pr0,pt0,pz0,pr1,pt1,pz1] ]
+            for axis in [0,1,2]
+            ]
+    vmax = np.max(maxes)
     kwargs = {
-            's' : 2, 'opacity' : 0.26, 'decay' : 4, 'cmap' : py.cm.vanimo,
-            'projections' : True, 'divergent' : True
+            's' : 1, 'opacity' : 0.76, 'decay' : 4, 'cmap' : py.cm.vanimo,
+            'projections' : True, 'divergent' : True, 'vmax' : vmax
             }
     densityplot3d(ax0r, b, b, b, pr0, **kwargs)
     densityplot3d(ax0t, b, b, b, pt0, **kwargs)
@@ -380,24 +395,35 @@ def plot_stress_3d(nff='ba', wf='av18',
     t_B = time.time()
     # Some labels
     bbox = dict(facecolor='white', alpha=0.76, edgecolor='black', boxstyle='round,pad=0.5')
-    ax0r.text2D(0.05, 0.95, r'$m_j=0$, radial pressure',        transform=ax0r.transAxes, bbox=bbox)
-    ax1r.text2D(0.05, 0.95, r'$m_j=1$, radial pressure',        transform=ax1r.transAxes, bbox=bbox)
-    ax0t.text2D(0.05, 0.95, r'$m_j=0$, azimuthal pressure',     transform=ax0t.transAxes, bbox=bbox)
-    ax1t.text2D(0.05, 0.95, r'$m_j=1$, azimuthal pressure',     transform=ax1t.transAxes, bbox=bbox)
-    ax0z.text2D(0.05, 0.95, r'$m_j=0$, $z$-direction pressure', transform=ax0z.transAxes, bbox=bbox)
-    ax1z.text2D(0.05, 0.95, r'$m_j=1$, $z$-direction pressure', transform=ax1z.transAxes, bbox=bbox)
+    ax0r.text2D(0.05, 0.95, r'$m_j=0$, radial pressure',        fontsize=36, transform=ax0r.transAxes, bbox=bbox)
+    ax1r.text2D(0.05, 0.95, r'$m_j=1$, radial pressure',        fontsize=36, transform=ax1r.transAxes, bbox=bbox)
+    ax0t.text2D(0.05, 0.95, r'$m_j=0$, azimuthal pressure',     fontsize=36, transform=ax0t.transAxes, bbox=bbox)
+    ax1t.text2D(0.05, 0.95, r'$m_j=1$, azimuthal pressure',     fontsize=36, transform=ax1t.transAxes, bbox=bbox)
+    ax0z.text2D(0.05, 0.95, r'$m_j=0$, $z$-direction pressure', fontsize=36, transform=ax0z.transAxes, bbox=bbox)
+    ax1z.text2D(0.05, 0.95, r'$m_j=1$, $z$-direction pressure', fontsize=36, transform=ax1z.transAxes, bbox=bbox)
+    # Colorbar!
+    norm = mpl.colors.Normalize(vmin=-vmax, vmax=vmax)
+    print(cax)
+    print(cax.get_figure())
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=py.cm.vanimo),
+            cax=cax,
+            orientation='horizontal'
+            )
+    cbar.set_label(r'Two-dimensional pressure projections (GeV/fm$^2$)', size=36)
     # Save as png, because pdf is insanely large
     fig.tight_layout()
     fig.patch.set_alpha(0)
     fig.savefig('stress3D_{}_{}.png'.format(wf,nff), dpi=150)
     t_C = time.time()
-    print("Time to calculate pressure: {:.3f} s".format(t_A-t_0))
-    print("Time to plot pressures:     {:.3f} s".format(t_B-t_A))
-    print("Time to save plots:         {:.3f} s".format(t_C-t_B))
+    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
+    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
+    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
 
-
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 2D density plots of slices
 
 def plot_mass_slices():
     ''' Plot four slices of the mass density.
