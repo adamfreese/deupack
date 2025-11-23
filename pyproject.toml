@@ -12,6 +12,7 @@ maintainers = [
 readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [
+  "cmasher",
   "matplotlib",
   "numpy",
   "pandas",
