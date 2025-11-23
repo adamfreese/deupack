@@ -303,7 +303,7 @@ def plot_mass_3d(nff='ba', wf='av18',
                    M0, M1,
                    labels=labels,
                    clabel=r'Two-dimensional mass densities (GeV/fm$^2$)',
-                   decay=2, opacity=0.76, cmap=cmr.voltage,
+                   decay=3, opacity=0.53, cmap=cmr.voltage,
                    projections=True, divergent=False, s=1)
     t_B = time.time()
     fig.savefig('mass3D_{}_{}.png'.format(wf,nff), dpi=150)
@@ -324,10 +324,10 @@ def plot_stress_3d(nff='ba', wf='av18',
     # Make some labels
     labels = [
             r'$m_j=0$, radial pressure',
-            r'$m_j=1$, radial pressure',
             r'$m_j=0$, azimuthal pressure',
-            r'$m_j=1$, azimuthal pressure',
             r'$m_j=0$, $z$-direction pressure',
+            r'$m_j=1$, radial pressure',
+            r'$m_j=1$, azimuthal pressure',
             r'$m_j=1$, $z$-direction pressure'
             ]
     # Prepare figure
@@ -338,7 +338,7 @@ def plot_stress_3d(nff='ba', wf='av18',
                    pr0, pt0, pz0, pr1, pt1, pz1,
                    labels=labels,
                    clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
-                   decay=2, opacity=0.76, cmap=cmr.iceburn,
+                   decay=3, opacity=0.53, cmap=cmr.iceburn,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
     ### Save as png, because pdf is insanely large
