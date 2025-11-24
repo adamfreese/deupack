@@ -585,6 +585,6 @@ def _pisoT1_integrand_direct(k, b, DT1, cT1):
 def _paniT1_integrand_direct(k, b, DT1, norder):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = (-1)**(norder//2) * k**2/(8*mN**2)
-    bessel = jn(2, k*b/hbar)
+    bessel = jn(norder, k*b/hbar)
     form = k**2/(8*mN)*DT1(k)
     return common * unique * bessel * form
