@@ -32,6 +32,7 @@ class Density:
                  nk=100,
                  kmin=1e-6, # GeV
                  kmax=10,   # GeV
+                 use_cache=True
                  ):
         self.wf   = wf
         self.nff  = nff
@@ -40,7 +41,7 @@ class Density:
         self.kmax = kmax
         # attempt to find a cached lookup table on disk
         path = self._cache_path()
-        if(path.is_file()):
+        if(path.is_file() and use_cache):
             self._load_mff_table(path)
         else:
             # if not found, make one
@@ -146,9 +147,9 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.mass_1D_T(b)
-        e = make_zhat(x,y,z)
-        Y2 = make_Y2(x,y,z)
-        harmonics = np.einsum('xyzi,xyzj,xyzij->xyz', e, e, Y2)
+        Y2 = make_Y2(x, y, z)
+        rhoT = make_rhoT(x, y, z)
+        harmonics = np.einsum('xyzab,xyzab->xyz', Y2, rhoT)
         return harmonics * scalar
 
     def momentum_3D(self, x, y, z):
@@ -161,8 +162,8 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.momentum_1D(b)
-        e = make_phihat(x,y,z)
-        return e * scalar
+        sxb = make_phihat(x,y,z)
+        return sxb * scalar
 
     def flux_3D(self, x, y, z):
         ''' Three-dimensional mass flux density of the deuteron.
@@ -174,8 +175,8 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.flux_1D(b)
-        e = make_phihat(x,y,z)
-        return e * scalar
+        sxb = make_phihat(x,y,z)
+        return sxb * scalar
 
     def stress_3D_U(self, x, y, z):
         ''' Three-dimensional stress tensor of the deuteron.
@@ -268,16 +269,17 @@ class Density:
                       args=(b, self.DT1, 4),
                       workers=8)[0]
         # Rest of the calculation
-        e = make_zhat(x,y,z)
+        dl = make_kronecker(x,y,z)
+        Y2 = make_Y2(x,y,z)
         Y4 = make_Y4(x,y,z)
         X0 = make_X0(x,y,z)
         X2 = make_X2(x,y,z)
-        Q = make_Q(x,y,z)
-        T0  = np.einsum('xyz,xyzijab->xyzijab', p,  Q)
+        T0  = np.einsum('xyz,xyzab,xyzij->xyzijab', p, Y2, dl)
         T2a = np.einsum('xyz,xyzijab->xyzijab', s0, X0)
         T2b = np.einsum('xyz,xyzijab->xyzijab', s2, X2)
         T2c = np.einsum('xyz,xyzijab->xyzijab', s4, Y4)
-        T = np.einsum('xyzijab,xyza,xyzb->xyzij', T0+T2a+T2b+T2c, e, e)
+        rhoT = make_rhoT(x, y, z)
+        T = np.einsum('xyzijab,xyzab->xyzij', T0+T2a+T2b+T2c, rhoT)
         return T
 
     def stress_3D_T2(self, x, y, z):
@@ -291,7 +293,6 @@ class Density:
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         p = self.piso_1D_T2(b)
         s = self.pani_1D_T2(b)
-        e = make_zhat(x,y,z)
         dl = make_kronecker(x,y,z)
         Y2 = make_Y2(x,y,z)
         Q = make_Q(x,y,z)
@@ -302,12 +303,13 @@ class Density:
                 -
                 np.einsum('xyzlkab,xyzlk,xyzij->xyzijab', Q, Y2, dl)
                 )
-        T0  = np.einsum('xyz,xyzijab->xyzijab', p,  Q)
-        T2  = np.einsum('xyz,xyzijab->xyzijab', s,  QY2)
-        T = np.einsum('xyzijab,xyza,xyzb->xyzij', T0+T2, e, e)
+        T0 = np.einsum('xyz,xyzijab->xyzijab', p, Q)
+        T2 = np.einsum('xyz,xyzijab->xyzijab', s, QY2)
+        rhoT = make_rhoT(x, y, z)
+        T = np.einsum('xyzijab,xyzab->xyzij', T0+T2, rhoT)
         return T
 
-    # Internal metthods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _cache_path(self):
         filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
@@ -406,11 +408,11 @@ def make_phihat(x,y,z):
     # TODO: docstring
     eps = 1e-9 # to regulate division by zero
     x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
-    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + eps)
+    rho_ = np.sqrt(x_**2 + y_**2 + eps)
     phihat = np.zeros(x_.shape+(3,))
     phihat[...,0] = 0
-    phihat[...,1] = -y_/r_
-    phihat[...,2] = x_/r_
+    phihat[...,1] = -y_/rho_
+    phihat[...,2] = x_/rho_
     return phihat
 
 def make_kronecker(x, y, z):
@@ -483,7 +485,7 @@ def make_X2(x, y, z):
     ajbi = np.einsum('xyzaj,xyzbi->xyzijab', Y2, dl)
     bjai = np.einsum('xyzbj,xyzai->xyzijab', Y2, dl)
     biaj = np.einsum('xyzbi,xyzaj->xyzijab', Y2, dl)
-    term1 = -(ijab + abij + aibj + ajbi + bjai + biaj)/7
+    term1 = (ijab + abij + aibj + ajbi + bjai + biaj)/7
     term2 = -(ijab + abij)/3
     return term1 + term2
 
@@ -493,9 +495,18 @@ def make_X0(x, y, z):
     ijab = np.einsum('xyzij,xyzab->xyzijab', dl, dl)
     aibj = np.einsum('xyzai,xyzbj->xyzijab', dl, dl)
     ajbi = np.einsum('xyzaj,xyzbi->xyzijab', dl, dl)
-    term1 = -(ijab + aibj + ajbi)/15
+    term1 = (ijab + aibj + ajbi)/15
     term2 = -ijab/9
     return term1 + term2
+
+# Spin density matrices ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def make_rhoT(x, y, z):
+    # TODO: docstring
+    zh = make_zhat(x,y,z)
+    dl = make_kronecker(x,y,z)
+    zz = np.einsum('xyzi,xyzj->xyzij', zh, zh)
+    return 3/2*zz - dl/2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Integrand functions
@@ -577,7 +588,7 @@ def _paniT2_integrand(k, b, DT2):
 
 def _pisoT1_integrand_direct(k, b, DT1, cT1):
     common = k**2/(2*np.pi**2*hbar**3)
-    unique = -k**2/(8*mN**2)
+    unique = +k**2/(8*mN**2)
     bessel = jn(2, k*b/hbar)
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
