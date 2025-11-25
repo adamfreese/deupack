@@ -240,15 +240,15 @@ def V_MM_np_ls(r):
 def Y_mu(r, mu):
     ''' Regularized Yukawa potential; see Eq. (19) of AV18 paper. '''
     c = 2.1 # fm**-2; see Table II
-    if(r==0):
-        return 0
+    ##if(r==0):
+    ##    return 0
     return np.exp(-mu*r)/(mu*r)*(1 - np.exp(-c*r**2))
 
 def T_mu(r, mu):
     ''' Regularized tensor potential; see Eq. (19) of AV18 paper. '''
     c = 2.1 # fm**-2; see Table II
-    if(r==0):
-        return 0
+    ##if(r==0):
+    ##    return 0
     return np.exp(-mu*r)/(mu*r)*(1 - np.exp(-c*r**2))**2*(
             1 + 3/(mu*r) + 3/(mu*r)**2
             )
@@ -279,8 +279,8 @@ def W(r):
     r0 = 0.5 # fm; see Table II
     a  = 0.2 # fm; see Table II
     # For insanely large r, just return 0. Avoids an overflow warning.
-    if(r > 100):
-        return 0
+    ##if(r > 100):
+    ##    return 0
     return 1/(1+np.exp((r-r0)/a))
 
 def V_short_form(r, I, P, Q, R):
@@ -371,6 +371,30 @@ def Vw(r):
     and w(r) themselves, instead of needing to do numerical derivatives.
     '''
     return Vc(r) + 6*Vl2(r) - 3*Vls(r) + 9*Vls2(r) - 2*Vt(r)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Routines to obtain the mean potential as a function of space
+
+def VmeanU(r):
+    ''' The density-weighted mean value of the potential, defined via:
+        Tr(rho*V)
+    for an unpolarized deuteron ensemble.
+    '''
+    Vmean = Vc(r)*u(r)**2 + 4*np.sqrt(2)*Vt(r)*u(r)*w(r) + (Vw(r)+6/mN/r**2)*w(r)**2
+    return Vmean / (4*np.pi*r**2)
+
+def VmeanT(r):
+    ''' The density-weighted mean value of the potential, defined via:
+        Tr(rho*V)
+    for a tensor-polarized deuteron ensemble.
+    This must be multiplied by 3/2*cos(theta)-1/2 for angular dependence.
+    '''
+    Vmean = 3*(
+            2*Vt(r)*u(r)**2
+            + (2*Vt(r) - Vw(r)/2 - 3/mN/r**2)*w(r)**2
+            + np.sqrt(2)*(Vc(r)/2 - Vt(r) + Vw(r)/2 + 3/mN/r**2)*u(r)*w(r)
+            )
+    return Vmean / (4*np.pi*r**2)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run the wave function maker on initialization
