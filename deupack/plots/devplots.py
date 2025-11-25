@@ -306,7 +306,7 @@ def plot_mass_3d(nff='ba', wf='av18',
                    decay=3, opacity=0.53, cmap=cmr.voltage,
                    projections=True, divergent=False, s=1)
     t_B = time.time()
-    fig.savefig('mass3D_{}_{}.png'.format(wf,nff), dpi=150)
+    fig.savefig('mass3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
     t_C = time.time()
     print("Time to calculate mass densities: {:.3f} s".format(t_A-t_0))
     print("Time to plot mass densities:      {:.3f} s".format(t_B-t_A))
@@ -342,7 +342,7 @@ def plot_stress_3d(nff='ba', wf='av18',
                    projections=True, divergent=True, s=1)
     t_B = time.time()
     ### Save as png, because pdf is insanely large
-    fig.savefig('stress3D_{}_{}.png'.format(wf,nff), dpi=150)
+    fig.savefig('stress3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
     t_C = time.time()
     print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
