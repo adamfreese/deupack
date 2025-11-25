@@ -6,6 +6,7 @@ import cmasher as cmr
 from .. import mff
 from ..density import *
 from ..mff.nucleon.chooser import choose_nff
+from ..wf.av18 import VmeanU, VmeanT
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)
@@ -383,3 +384,39 @@ def get_stresses(nff='ba', wf='av18', nb=150, bmax=2.8):
         # cache this since it's expensive
         np.save(cachefile, [pr0,pt0,pz0,pr1,pt1,pz1])
     return pr0,pt0,pz0,pr1,pt1,pz1
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 3D potential energy plot
+
+def plot_potential_energy(nb=60, bmax=2.0):
+    # Probability density
+    D = Density(nff='point', wf='av18')
+    b = np.linspace(-bmax, bmax, nb)
+    MU = D.mass_3D_U(b,b,b)
+    MT = D.mass_3D_T(b,b,b)
+    P0 = (MU + 2/3*MT) / (2*mN) / 8 # Scale down by mass, factor 8 from r=2*b
+    P1 = (MU - 1/3*MT) / (2*mN) / 8 # Scale down by mass, factor 8 from r=2*b
+    # Potential ... remember here that r=2*b
+    Y2 = make_Y2(b,b,b)
+    rhoT = make_rhoT(b,b,b)
+    harmonics = np.einsum('xyzij,xyzij->xyz', Y2, rhoT)
+    x_, y_, z_ = np.meshgrid(2*b,2*b,2*b,indexing='ij')
+    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + 1e-12)
+    VU = VmeanU(r_)
+    VT = VmeanT(r_) * harmonics
+    V0 = 1000*(VU + 2/3*VT) # convert from GeV to MeV
+    V1 = 1000*(VU - 1/3*VT) # convert from GeV to MeV
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*11,nrows*11))
+    labels = [r'$m_j=0$', r'$m_j=1$']
+    multidensity3d(fig, b, b, b,
+                   nrows, ncols,
+                   V0/P0, V1/P1,
+                   labels=labels,
+                   clabel=r'$\psi^\dagger V_{\mathrm{eff}} \psi / (\psi^\dagger \psi)$ (MeV)',
+                   decay=2, opacity=0.07, cmap=cmr.iceburn,
+                   projections=False, divergent=True, s=1,
+                   vmax3d=5, vmax=5)
+    fig.savefig('potential.png', dpi=150)
+    return
