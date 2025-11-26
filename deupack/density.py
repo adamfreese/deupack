@@ -415,6 +415,18 @@ def make_phihat(x,y,z):
     phihat[...,2] = x_/rho_
     return phihat
 
+def make_thetahat(x,y,z):
+    # TODO: docstring
+    eps = 1e-9 # to regulate division by zero
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    rho_ = np.sqrt(x_**2 + y_**2 + eps)
+    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + eps)
+    thetahat = np.zeros(x_.shape+(3,))
+    thetahat[...,0] = -rho_/r_
+    thetahat[...,1] = x_*z_/(rho_*r_)
+    thetahat[...,2] = y_*z_/(rho_*r_)
+    return thetahat
+
 def make_kronecker(x, y, z):
     # TODO: docstring
     x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
