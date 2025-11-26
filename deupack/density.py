@@ -86,46 +86,46 @@ class Density:
                             workers=8)[0]
         return integral
 
-    def piso_1D_U(self, b):
+    def pressure_1D_U(self, b):
         # TODO: docstring
-        integral = quad_vec(_pisoU_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_pressureU_integrand, self.kmin, self.kmax,
                             args=(b, self.DU, self.cU),
                             workers=8)[0]
         return integral
 
-    def piso_1D_T1(self, b):
+    def pressure_1D_T1(self, b):
         # TODO: docstring
         # NOTE: this is the Polyakov-Sun density, which must be differentiated
-        integral = quad_vec(_pisoT1_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_pressureT1_integrand, self.kmin, self.kmax,
                             args=(b, self.DT1, self.cT1),
                             workers=8)[0]
         return integral
 
-    def piso_1D_T2(self, b):
+    def pressure_1D_T2(self, b):
         # TODO: docstring
-        integral = quad_vec(_pisoT2_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_pressureT2_integrand, self.kmin, self.kmax,
                             args=(b, self.DT2, self.cT2),
                             workers=8)[0]
         return integral
 
-    def pani_1D_U(self, b):
+    def shear_1D_U(self, b):
         # TODO: docstring
-        integral = quad_vec(_paniU_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_shearU_integrand, self.kmin, self.kmax,
                             args=(b, self.DU),
                             workers=8)[0]
         return integral
 
-    def pani_1D_T1(self, b):
+    def shear_1D_T1(self, b):
         # TODO: docstring
         # NOTE: this is the Polyakov-Sun density, which must be differentiated
-        integral = quad_vec(_paniT1_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_shearT1_integrand, self.kmin, self.kmax,
                             args=(b, self.DT1),
                             workers=8)[0]
         return integral
 
-    def pani_1D_T2(self, b):
+    def shear_1D_T2(self, b):
         # TODO: docstring
-        integral = quad_vec(_paniT2_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_shearT2_integrand, self.kmin, self.kmax,
                             args=(b, self.DT2),
                             workers=8)[0]
         return integral
@@ -187,8 +187,8 @@ class Density:
         '''
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
-        p = self.piso_1D_U(b)
-        s = self.pani_1D_U(b)
+        p = self.pressure_1D_U(b)
+        s = self.shear_1D_U(b)
         dl = make_kronecker(x,y,z)
         Y2 = make_Y2(x,y,z)
         T0 = np.einsum('xyz,xyzij->xyzij', p, dl)
@@ -231,8 +231,8 @@ class Density:
         '''
         T = self.stress_3D_U(x, y, z)
         dl = make_kronecker(x, y, z)
-        piso = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
-        return piso
+        pressure = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
+        return pressure
 
     def piso_3D_T(self, x, y, z):
         ''' Three-dimensional isotropic pressure in the deuteron.
@@ -241,8 +241,8 @@ class Density:
         '''
         T = self.stress_3D_T(x, y, z)
         dl = make_kronecker(x, y, z)
-        piso = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
-        return piso
+        pressure = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
+        return pressure
 
     # Separated T1 and T2 contributions to tensor polarized stress ~~~~~~~~~~~~~
 
@@ -256,16 +256,16 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         # Direct integrals for pieces of this stress
-        p = quad_vec(_pisoT1_integrand_direct, self.kmin, self.kmax,
+        p = quad_vec(_pressureT1_integrand_direct, self.kmin, self.kmax,
                      args=(b, self.DT1, self.cT1),
                      workers=8)[0]
-        s0 = quad_vec(_paniT1_integrand_direct, self.kmin, self.kmax,
+        s0 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
                       args=(b, self.DT1, 0),
                       workers=8)[0]
-        s2 = quad_vec(_paniT1_integrand_direct, self.kmin, self.kmax,
+        s2 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
                       args=(b, self.DT1, 2),
                       workers=8)[0]
-        s4 = quad_vec(_paniT1_integrand_direct, self.kmin, self.kmax,
+        s4 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
                       args=(b, self.DT1, 4),
                       workers=8)[0]
         # Rest of the calculation
@@ -291,8 +291,8 @@ class Density:
         '''
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
-        p = self.piso_1D_T2(b)
-        s = self.pani_1D_T2(b)
+        p = self.pressure_1D_T2(b)
+        s = self.shear_1D_T2(b)
         dl = make_kronecker(x,y,z)
         Y2 = make_Y2(x,y,z)
         Q = make_Q(x,y,z)
@@ -540,14 +540,14 @@ def _flux_integrand(k, b, J, S):
     form = J(k) + S(k)
     return common * unique * bessel * form
 
-def _pisoU_integrand(k, b, DU, cU):
+def _pressureU_integrand(k, b, DU, cU):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
     form = k**2/(12*mN)*DU(k) + 2*mN*cU(k)
     return common * unique * bessel * form
 
-def _pisoT1_integrand(k, b, DT1, cT1):
+def _pressureT1_integrand(k, b, DT1, cT1):
     # NOTE: this is the Polyakov-Sun density, which must be differentiated
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
@@ -555,21 +555,21 @@ def _pisoT1_integrand(k, b, DT1, cT1):
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
 
-def _pisoT2_integrand(k, b, DT2, cT2):
+def _pressureT2_integrand(k, b, DT2, cT2):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
     form = k**2/(12*mN)*DT2(k) + 2*mN*cT2(k)
     return common * unique * bessel * form
 
-def _paniU_integrand(k, b, DU):
+def _shearU_integrand(k, b, DU):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
     form = k**2/(8*mN)*DU(k)
     return common * unique * bessel * form
 
-def _paniT1_integrand(k, b, DT1):
+def _shearT1_integrand(k, b, DT1):
     # NOTE: this is the Polyakov-Sun density, which must be differentiated
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
@@ -577,7 +577,7 @@ def _paniT1_integrand(k, b, DT1):
     form = k**2/(8*mN)*DT1(k)
     return common * unique * bessel * form
 
-def _paniT2_integrand(k, b, DT2):
+def _shearT2_integrand(k, b, DT2):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
@@ -586,14 +586,14 @@ def _paniT2_integrand(k, b, DT2):
 
 # T1 stress integrals for direct use (no differentiation) ~~~~~~~~~~~~~~~~~~~~~~
 
-def _pisoT1_integrand_direct(k, b, DT1, cT1):
+def _pressureT1_integrand_direct(k, b, DT1, cT1):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = +k**2/(8*mN**2)
     bessel = jn(2, k*b/hbar)
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
 
-def _paniT1_integrand_direct(k, b, DT1, norder):
+def _shearT1_integrand_direct(k, b, DT1, norder):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = (-1)**(norder//2) * k**2/(8*mN**2)
     bessel = jn(norder, k*b/hbar)
