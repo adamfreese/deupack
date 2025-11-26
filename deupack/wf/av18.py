@@ -240,15 +240,15 @@ def V_MM_np_ls(r):
 def Y_mu(r, mu):
     ''' Regularized Yukawa potential; see Eq. (19) of AV18 paper. '''
     c = 2.1 # fm**-2; see Table II
-    ##if(r==0):
-    ##    return 0
+    if(r==0):
+        return 0
     return np.exp(-mu*r)/(mu*r)*(1 - np.exp(-c*r**2))
 
 def T_mu(r, mu):
     ''' Regularized tensor potential; see Eq. (19) of AV18 paper. '''
     c = 2.1 # fm**-2; see Table II
-    ##if(r==0):
-    ##    return 0
+    if(r==0):
+        return 0
     return np.exp(-mu*r)/(mu*r)*(1 - np.exp(-c*r**2))**2*(
             1 + 3/(mu*r) + 3/(mu*r)**2
             )
@@ -279,8 +279,8 @@ def W(r):
     r0 = 0.5 # fm; see Table II
     a  = 0.2 # fm; see Table II
     # For insanely large r, just return 0. Avoids an overflow warning.
-    ##if(r > 100):
-    ##    return 0
+    if(r > 100):
+        return 0
     return 1/(1+np.exp((r-r0)/a))
 
 def V_short_form(r, I, P, Q, R):
