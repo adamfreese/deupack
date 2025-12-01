@@ -32,6 +32,7 @@ class Density:
                  nk=100,
                  kmin=1e-6, # GeV
                  kmax=10,   # GeV
+                 use_cache=True
                  ):
         self.wf   = wf
         self.nff  = nff
@@ -40,7 +41,7 @@ class Density:
         self.kmax = kmax
         # attempt to find a cached lookup table on disk
         path = self._cache_path()
-        if(path.is_file()):
+        if(path.is_file() and use_cache):
             self._load_mff_table(path)
         else:
             # if not found, make one
@@ -85,46 +86,46 @@ class Density:
                             workers=8)[0]
         return integral
 
-    def piso_1D_U(self, b):
+    def pressure_1D_U(self, b):
         # TODO: docstring
-        integral = quad_vec(_pisoU_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_pressureU_integrand, self.kmin, self.kmax,
                             args=(b, self.DU, self.cU),
                             workers=8)[0]
         return integral
 
-    def piso_1D_T1(self, b):
+    def pressure_1D_T1(self, b):
         # TODO: docstring
         # NOTE: this is the Polyakov-Sun density, which must be differentiated
-        integral = quad_vec(_pisoT1_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_pressureT1_integrand, self.kmin, self.kmax,
                             args=(b, self.DT1, self.cT1),
                             workers=8)[0]
         return integral
 
-    def piso_1D_T2(self, b):
+    def pressure_1D_T2(self, b):
         # TODO: docstring
-        integral = quad_vec(_pisoT2_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_pressureT2_integrand, self.kmin, self.kmax,
                             args=(b, self.DT2, self.cT2),
                             workers=8)[0]
         return integral
 
-    def pani_1D_U(self, b):
+    def shear_1D_U(self, b):
         # TODO: docstring
-        integral = quad_vec(_paniU_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_shearU_integrand, self.kmin, self.kmax,
                             args=(b, self.DU),
                             workers=8)[0]
         return integral
 
-    def pani_1D_T1(self, b):
+    def shear_1D_T1(self, b):
         # TODO: docstring
         # NOTE: this is the Polyakov-Sun density, which must be differentiated
-        integral = quad_vec(_paniT1_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_shearT1_integrand, self.kmin, self.kmax,
                             args=(b, self.DT1),
                             workers=8)[0]
         return integral
 
-    def pani_1D_T2(self, b):
+    def shear_1D_T2(self, b):
         # TODO: docstring
-        integral = quad_vec(_paniT2_integrand, self.kmin, self.kmax,
+        integral = quad_vec(_shearT2_integrand, self.kmin, self.kmax,
                             args=(b, self.DT2),
                             workers=8)[0]
         return integral
@@ -146,9 +147,9 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.mass_1D_T(b)
-        e = make_zhat(x,y,z)
-        Y2 = make_Y2(x,y,z)
-        harmonics = np.einsum('xyzi,xyzj,xyzij->xyz', e, e, Y2)
+        Y2 = make_Y2(x, y, z)
+        rhoT = make_rhoT(x, y, z)
+        harmonics = np.einsum('xyzab,xyzab->xyz', Y2, rhoT)
         return harmonics * scalar
 
     def momentum_3D(self, x, y, z):
@@ -161,8 +162,8 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.momentum_1D(b)
-        e = make_phihat(x,y,z)
-        return e * scalar
+        sxb = make_phihat(x,y,z)
+        return sxb * scalar
 
     def flux_3D(self, x, y, z):
         ''' Three-dimensional mass flux density of the deuteron.
@@ -174,8 +175,8 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.flux_1D(b)
-        e = make_phihat(x,y,z)
-        return e * scalar
+        sxb = make_phihat(x,y,z)
+        return sxb * scalar
 
     def stress_3D_U(self, x, y, z):
         ''' Three-dimensional stress tensor of the deuteron.
@@ -186,8 +187,8 @@ class Density:
         '''
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
-        p = self.piso_1D_U(b)
-        s = self.pani_1D_U(b)
+        p = self.pressure_1D_U(b)
+        s = self.shear_1D_U(b)
         dl = make_kronecker(x,y,z)
         Y2 = make_Y2(x,y,z)
         T0 = np.einsum('xyz,xyzij->xyzij', p, dl)
@@ -230,8 +231,8 @@ class Density:
         '''
         T = self.stress_3D_U(x, y, z)
         dl = make_kronecker(x, y, z)
-        piso = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
-        return piso
+        pressure = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
+        return pressure
 
     def piso_3D_T(self, x, y, z):
         ''' Three-dimensional isotropic pressure in the deuteron.
@@ -240,8 +241,8 @@ class Density:
         '''
         T = self.stress_3D_T(x, y, z)
         dl = make_kronecker(x, y, z)
-        piso = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
-        return piso
+        pressure = np.einsum('xyzij,xyzij->xyz', T, dl) / 3
+        return pressure
 
     # Separated T1 and T2 contributions to tensor polarized stress ~~~~~~~~~~~~~
 
@@ -255,29 +256,30 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         # Direct integrals for pieces of this stress
-        p = quad_vec(_pisoT1_integrand_direct, self.kmin, self.kmax,
+        p = quad_vec(_pressureT1_integrand_direct, self.kmin, self.kmax,
                      args=(b, self.DT1, self.cT1),
                      workers=8)[0]
-        s0 = quad_vec(_paniT1_integrand_direct, self.kmin, self.kmax,
+        s0 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
                       args=(b, self.DT1, 0),
                       workers=8)[0]
-        s2 = quad_vec(_paniT1_integrand_direct, self.kmin, self.kmax,
+        s2 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
                       args=(b, self.DT1, 2),
                       workers=8)[0]
-        s4 = quad_vec(_paniT1_integrand_direct, self.kmin, self.kmax,
+        s4 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
                       args=(b, self.DT1, 4),
                       workers=8)[0]
         # Rest of the calculation
-        e = make_zhat(x,y,z)
+        dl = make_kronecker(x,y,z)
+        Y2 = make_Y2(x,y,z)
         Y4 = make_Y4(x,y,z)
         X0 = make_X0(x,y,z)
         X2 = make_X2(x,y,z)
-        Q = make_Q(x,y,z)
-        T0  = np.einsum('xyz,xyzijab->xyzijab', p,  Q)
+        T0  = np.einsum('xyz,xyzab,xyzij->xyzijab', p, Y2, dl)
         T2a = np.einsum('xyz,xyzijab->xyzijab', s0, X0)
         T2b = np.einsum('xyz,xyzijab->xyzijab', s2, X2)
         T2c = np.einsum('xyz,xyzijab->xyzijab', s4, Y4)
-        T = np.einsum('xyzijab,xyza,xyzb->xyzij', T0+T2a+T2b+T2c, e, e)
+        rhoT = make_rhoT(x, y, z)
+        T = np.einsum('xyzijab,xyzab->xyzij', T0+T2a+T2b+T2c, rhoT)
         return T
 
     def stress_3D_T2(self, x, y, z):
@@ -289,9 +291,8 @@ class Density:
         '''
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
-        p = self.piso_1D_T2(b)
-        s = self.pani_1D_T2(b)
-        e = make_zhat(x,y,z)
+        p = self.pressure_1D_T2(b)
+        s = self.shear_1D_T2(b)
         dl = make_kronecker(x,y,z)
         Y2 = make_Y2(x,y,z)
         Q = make_Q(x,y,z)
@@ -302,12 +303,13 @@ class Density:
                 -
                 np.einsum('xyzlkab,xyzlk,xyzij->xyzijab', Q, Y2, dl)
                 )
-        T0  = np.einsum('xyz,xyzijab->xyzijab', p,  Q)
-        T2  = np.einsum('xyz,xyzijab->xyzijab', s,  QY2)
-        T = np.einsum('xyzijab,xyza,xyzb->xyzij', T0+T2, e, e)
+        T0 = np.einsum('xyz,xyzijab->xyzijab', p, Q)
+        T2 = np.einsum('xyz,xyzijab->xyzijab', s, QY2)
+        rhoT = make_rhoT(x, y, z)
+        T = np.einsum('xyzijab,xyzab->xyzij', T0+T2, rhoT)
         return T
 
-    # Internal metthods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _cache_path(self):
         filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
@@ -406,12 +408,24 @@ def make_phihat(x,y,z):
     # TODO: docstring
     eps = 1e-9 # to regulate division by zero
     x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
-    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + eps)
+    rho_ = np.sqrt(x_**2 + y_**2 + eps)
     phihat = np.zeros(x_.shape+(3,))
     phihat[...,0] = 0
-    phihat[...,1] = -y_/r_
-    phihat[...,2] = x_/r_
+    phihat[...,1] = -y_/rho_
+    phihat[...,2] = x_/rho_
     return phihat
+
+def make_thetahat(x,y,z):
+    # TODO: docstring
+    eps = 1e-9 # to regulate division by zero
+    x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
+    rho_ = np.sqrt(x_**2 + y_**2 + eps)
+    r_ = np.sqrt(x_**2 + y_**2 + z_**2 + eps)
+    thetahat = np.zeros(x_.shape+(3,))
+    thetahat[...,0] = -rho_/r_
+    thetahat[...,1] = x_*z_/(rho_*r_)
+    thetahat[...,2] = y_*z_/(rho_*r_)
+    return thetahat
 
 def make_kronecker(x, y, z):
     # TODO: docstring
@@ -483,7 +497,7 @@ def make_X2(x, y, z):
     ajbi = np.einsum('xyzaj,xyzbi->xyzijab', Y2, dl)
     bjai = np.einsum('xyzbj,xyzai->xyzijab', Y2, dl)
     biaj = np.einsum('xyzbi,xyzaj->xyzijab', Y2, dl)
-    term1 = -(ijab + abij + aibj + ajbi + bjai + biaj)/7
+    term1 = (ijab + abij + aibj + ajbi + bjai + biaj)/7
     term2 = -(ijab + abij)/3
     return term1 + term2
 
@@ -493,9 +507,18 @@ def make_X0(x, y, z):
     ijab = np.einsum('xyzij,xyzab->xyzijab', dl, dl)
     aibj = np.einsum('xyzai,xyzbj->xyzijab', dl, dl)
     ajbi = np.einsum('xyzaj,xyzbi->xyzijab', dl, dl)
-    term1 = -(ijab + aibj + ajbi)/15
+    term1 = (ijab + aibj + ajbi)/15
     term2 = -ijab/9
     return term1 + term2
+
+# Spin density matrices ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def make_rhoT(x, y, z):
+    # TODO: docstring
+    zh = make_zhat(x,y,z)
+    dl = make_kronecker(x,y,z)
+    zz = np.einsum('xyzi,xyzj->xyzij', zh, zh)
+    return 3/2*zz - dl/2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Integrand functions
@@ -529,14 +552,14 @@ def _flux_integrand(k, b, J, S):
     form = J(k) + S(k)
     return common * unique * bessel * form
 
-def _pisoU_integrand(k, b, DU, cU):
+def _pressureU_integrand(k, b, DU, cU):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
     form = k**2/(12*mN)*DU(k) + 2*mN*cU(k)
     return common * unique * bessel * form
 
-def _pisoT1_integrand(k, b, DT1, cT1):
+def _pressureT1_integrand(k, b, DT1, cT1):
     # NOTE: this is the Polyakov-Sun density, which must be differentiated
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
@@ -544,21 +567,21 @@ def _pisoT1_integrand(k, b, DT1, cT1):
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
 
-def _pisoT2_integrand(k, b, DT2, cT2):
+def _pressureT2_integrand(k, b, DT2, cT2):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
     form = k**2/(12*mN)*DT2(k) + 2*mN*cT2(k)
     return common * unique * bessel * form
 
-def _paniU_integrand(k, b, DU):
+def _shearU_integrand(k, b, DU):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
     form = k**2/(8*mN)*DU(k)
     return common * unique * bessel * form
 
-def _paniT1_integrand(k, b, DT1):
+def _shearT1_integrand(k, b, DT1):
     # NOTE: this is the Polyakov-Sun density, which must be differentiated
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
@@ -566,7 +589,7 @@ def _paniT1_integrand(k, b, DT1):
     form = k**2/(8*mN)*DT1(k)
     return common * unique * bessel * form
 
-def _paniT2_integrand(k, b, DT2):
+def _shearT2_integrand(k, b, DT2):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
@@ -575,14 +598,14 @@ def _paniT2_integrand(k, b, DT2):
 
 # T1 stress integrals for direct use (no differentiation) ~~~~~~~~~~~~~~~~~~~~~~
 
-def _pisoT1_integrand_direct(k, b, DT1, cT1):
+def _pressureT1_integrand_direct(k, b, DT1, cT1):
     common = k**2/(2*np.pi**2*hbar**3)
-    unique = -k**2/(8*mN**2)
+    unique = +k**2/(8*mN**2)
     bessel = jn(2, k*b/hbar)
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
 
-def _paniT1_integrand_direct(k, b, DT1, norder):
+def _shearT1_integrand_direct(k, b, DT1, norder):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = (-1)**(norder//2) * k**2/(8*mN**2)
     bessel = jn(norder, k*b/hbar)

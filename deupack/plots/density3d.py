@@ -20,7 +20,7 @@ import matplotlib as mpl
 
 def density3d(ax, x, y, z, values,
               decay=2.0, opacity=1.0, cmap=plt.cm.magma,
-              projections=False, divergent=False, vmax=0.0,
+              projections=False, divergent=False, vmax=-1, vmax3d=-1,
               **kwargs):
     ''' Create a density plot for X, Y, Z coordinates and corresponding intensity values.
     Adapted from code by Lorentz Sparrenberg; see:
@@ -51,7 +51,10 @@ def density3d(ax, x, y, z, values,
         Set to True if the values can go negative and a divergent colormap is used.
     vmax: float, optional
         Maximum effective value for scaling the coloarmap in the 2D projections.
-        If 0 is passed, then the data will be used to determine the maximum value.
+        If <0 is passed, then the data will be used to determine the maximum value.
+    vmax3d: float, optional
+        Give a positive number to manually set the 3D density plot color scale.
+        If <0 is passed, then the data will be used to determine the maximum value.
     **kwargs
         Additional keyword arguments to pass to the scatter function.
 
@@ -61,17 +64,18 @@ def density3d(ax, x, y, z, values,
     '''
     # Calculate RGB colors from intensities
     # Normalize the intensities between 0 and 1 and convert them to RGB colors using the chosen colormap
+    if(vmax3d < 0):
+        vmax3d = max(np.max(values), -np.min(values))
     if(divergent):
         # If we have negative values, we need to map the normed values onto [0,1]
-        truemax = max(np.max(values), -np.min(values))
-        normed_values = (values + truemax) / (2*truemax)
+        normed_values = (values + vmax3d) / (2*vmax3d)
         # We also need to make sure alpha is based on magnnitude
-        alphas = (abs(values) / truemax) ** decay
+        alphas = (clip(abs(values) / vmax3d)) ** decay
     else:
-        normed_values = values / np.max(values)
+        normed_values = values / vmax3d
         # Create alpha values for each data point based on its intensity and the specified decay factor
-        alphas = (values / np.max(values)) ** decay
-    colors = cmap(normed_values)
+        alphas = (clip(values / vmax3d)) ** decay
+    colors = cmap(clip(normed_values))
     alphas *= opacity
     colors[:, :, :, 3] = alphas  # add alpha values to RGB values
     # Flatten color array but keep last dimension
@@ -90,7 +94,7 @@ def density3d(ax, x, y, z, values,
 # The 2D projection routine called by the 3D density routine ~~~~~~~~~~~~~~~~~~~
 
 def projection2d(ax, x, y, z, values, axis,
-                 cmap=plt.cm.magma, divergent=False, vmax=0.0):
+                 cmap=plt.cm.magma, divergent=False, vmax=-1):
     ''' Calculates and plots a 2D projection of a 3D density onto one of its panes.
 
     Input:
@@ -114,7 +118,7 @@ def projection2d(ax, x, y, z, values, axis,
         Set to True if the values can go negative and a divergent colormap is used.
     vmax: float, optional
         Maximum effective value for scaling the coloarmap in the 2D projections.
-        If 0 is passed, then the data will be used to determine the maximum value.
+        If <0 is passed, then the data will be used to determine the maximum value.
 
     Returns:
     --------
@@ -146,15 +150,15 @@ def projection2d(ax, x, y, z, values, axis,
     else:
         raise ValueError("{} is not a valid axis; use 'x', 'y' or 'z'.".format(axis))
     # Colors for intensities
-    if(vmax==0.0):
+    if(vmax<0):
         if(divergent):
             vmax = max( np.max(values2D), -np.min(values2D) )
         else:
             vmax = np.max(values2D)
     if(divergent):
-        colors = cmap((values2D+vmax) / (2*vmax))
+        colors = cmap(clip((values2D+vmax) / (2*vmax)))
     else:
-        colors = cmap(values2D / vmax)
+        colors = cmap(clip(values2D / vmax))
     # Plot surfaces to emulate pcolormesh as best as possible
     ax.plot_surface(x_, y_, z_, facecolors=colors, rstride=1, cstride=1, shade=False, zorder=2)
     # Reset the x, y or z limits in case they were moved
@@ -166,6 +170,7 @@ def projection2d(ax, x, y, z, values, axis,
 
 def multidensity3d(fig, x, y, z, nrows, ncols, *values_list,
                    labels=None, clabel=None, cmap=plt.cm.magma, divergent=False,
+                   vmax = -1,
                    **kwargs):
     ''' Creates multiple 3D density plots in a single figure, along with a
     common colorbar for 2D projections at the bottom.
@@ -199,6 +204,8 @@ def multidensity3d(fig, x, y, z, nrows, ncols, *values_list,
         Default is plt.cm.magma.
     divergent: bool, optional
         Set to True if the values can go negative and a divergent colormap is used.
+    vmax: float, optional
+        Give a positive number to manually set the colorbar scale
     **kwargs
         Additional keyword arguments to pass to density3d.
         See docstring thereof for options.
@@ -231,11 +238,12 @@ def multidensity3d(fig, x, y, z, nrows, ncols, *values_list,
     axes += [fig.add_subplot(gs[nrows*N,:])]
     # Get the max value of any projections to use for scaling the colormap.
     # TODO: nicer code for getting vmax
-    maxes = [
-            [ abs(np.trapz(p, x=[x,y,z][axis], axis=axis)).max() for p in values_list ]
-            for axis in [0,1,2]
-            ]
-    vmax = np.max(maxes)
+    if(vmax<0):
+        maxes = [
+                [ abs(np.trapz(p, x=[x,y,z][axis], axis=axis)).max() for p in values_list ]
+                for axis in [0,1,2]
+                ]
+        vmax = np.max(maxes)
     # Add each of the 3D densities
     for n in range(len(values_list)):
         density3d(axes[n], x, y, z, values_list[n],
@@ -263,3 +271,10 @@ def multidensity3d(fig, x, y, z, nrows, ncols, *values_list,
     fig.patch.set_alpha(0)
     return
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def clip(x):
+    ''' Clips values of an array above 1 or below 0. '''
+    x[x>1] = 1
+    x[x<0] = 0
+    return x

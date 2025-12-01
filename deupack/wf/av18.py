@@ -373,6 +373,30 @@ def Vw(r):
     return Vc(r) + 6*Vl2(r) - 3*Vls(r) + 9*Vls2(r) - 2*Vt(r)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Routines to obtain the mean potential as a function of space
+
+def VmeanU(r):
+    ''' The density-weighted mean value of the potential, defined via:
+        Tr(rho*V)
+    for an unpolarized deuteron ensemble.
+    '''
+    Vmean = Vc(r)*u(r)**2 + 4*np.sqrt(2)*Vt(r)*u(r)*w(r) + (Vw(r)+6/mN/r**2)*w(r)**2
+    return Vmean / (4*np.pi*r**2)
+
+def VmeanT(r):
+    ''' The density-weighted mean value of the potential, defined via:
+        Tr(rho*V)
+    for a tensor-polarized deuteron ensemble.
+    This must be multiplied by 3/2*cos(theta)-1/2 for angular dependence.
+    '''
+    Vmean = 3*(
+            2*Vt(r)*u(r)**2
+            + (2*Vt(r) - Vw(r)/2 - 3/mN/r**2)*w(r)**2
+            + np.sqrt(2)*(Vc(r)/2 - Vt(r) + Vw(r)/2 + 3/mN/r**2)*u(r)*w(r)
+            )
+    return Vmean / (4*np.pi*r**2)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run the wave function maker on initialization
 
 make_wf()
