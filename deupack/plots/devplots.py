@@ -22,7 +22,7 @@ import time
 # Routines to make specific plots
 
 def plot_nff_comparisons():
-    nrows,ncols=2,5
+    nrows,ncols=2,6
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax_AU  = plt.subplot(nrows,ncols,1)
     ax_AT  = plt.subplot(nrows,ncols,2)
@@ -34,6 +34,7 @@ def plot_nff_comparisons():
     ax_cT1 = plt.subplot(nrows,ncols,8)
     ax_cT2 = plt.subplot(nrows,ncols,9)
     ax_S   = plt.subplot(nrows,ncols,10)
+    ax_sbar   = plt.subplot(nrows,ncols,11)
     plot_one_nff(ax_AU,  'AU')
     plot_one_nff(ax_AT,  'AT')
     plot_one_nff(ax_J,   'J')
@@ -44,13 +45,14 @@ def plot_nff_comparisons():
     plot_one_nff(ax_cT1,  'cT1')
     plot_one_nff(ax_cT2,  'cT2')
     plot_one_nff(ax_S,  'S')
+    plot_one_nff(ax_sbar,  'sbar')
     l = ax_AU.legend(prop = { 'size' : 27 }, loc=3)
     fig.patch.set_alpha(0)
     fig.savefig('nff_comparisons.pdf')
     return
 
 def plot_wf_comparisons():
-    nrows,ncols=2,5
+    nrows,ncols=2,6
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax_AU  = plt.subplot(nrows,ncols,1)
     ax_AT  = plt.subplot(nrows,ncols,2)
@@ -62,6 +64,7 @@ def plot_wf_comparisons():
     ax_cT1 = plt.subplot(nrows,ncols,8)
     ax_cT2 = plt.subplot(nrows,ncols,9)
     ax_S   = plt.subplot(nrows,ncols,10)
+    ax_sbar   = plt.subplot(nrows,ncols,11)
     plot_one_wf(ax_AU,  'AU')
     plot_one_wf(ax_AT,  'AT')
     plot_one_wf(ax_J,   'J')
@@ -72,6 +75,7 @@ def plot_wf_comparisons():
     plot_one_wf(ax_cT1, 'cT1')
     plot_one_wf(ax_cT2, 'cT2')
     plot_one_wf(ax_S,   'S')
+    plot_one_wf(ax_sbar,  'sbar')
     l = ax_AU.legend(prop = { 'size' : 27 }, loc=3)
     fig.patch.set_alpha(0)
     fig.savefig('wf_comparisons.pdf')
@@ -110,7 +114,8 @@ namelabel = {
         'cU'  : r'$\bar{c}_U(\varDelta^2)$',
         'cT1' : r'$\bar{c}_{T1}(\varDelta^2)$',
         'cT2' : r'$\bar{c}_{T2}(\varDelta^2)$',
-        'S'   : r'$S(\varDelta^2)$'
+        'S'   : r'$S(\varDelta^2)$',
+        'sbar'   : r'$\bar{s}(\varDelta^2)$'
         }
 
 def select_mff(name, dl2, wf='av18', nff='mit'):
@@ -134,6 +139,8 @@ def select_mff(name, dl2, wf='av18', nff='mit'):
         F = mff.cT2(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='S'):
         F = mff.S(np.sqrt(dl2), wf=wf, nff=nff)
+    elif(name=='sbar'):
+        F = mff.sbar(np.sqrt(dl2), wf=wf, nff=nff)
     else:
         F = dl2 * 0
     return F
@@ -242,8 +249,8 @@ def plot_cT2():
     dl2 = np.geomspace(1e-6, 1e1, 666)
     cT2_Adam  = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2')
     cT2_Alan  = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan')
-    cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
-    cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    # cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
+    # cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
     #
     nrows,ncols=1,1
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -251,14 +258,59 @@ def plot_cT2():
     #
     ax.plot(dl2, cT2_Adam,  '-',  linewidth=2, color='xkcd:true green', label=r'Adam')
     ax.plot(dl2, cT2_Alan,  '--', linewidth=2, color='xkcd:rich purple',label=r'Alan')
-    ax.plot(dl2, cT2_Adam3, '-.', linewidth=2, color='xkcd:cobalt',     label=r'Adam3')
-    ax.plot(dl2, cT2_Alan3, ':',  linewidth=2, color='xkcd:coral',      label=r'Alan3')
+    # ax.plot(dl2, cT2_Adam3, '-.', linewidth=2, color='xkcd:cobalt',     label=r'Adam3')
+    # ax.plot(dl2, cT2_Alan3, ':',  linewidth=2, color='xkcd:coral',      label=r'Alan3')
     #
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
     ax.set_ylabel(r'$\bar{c}_{T2}(\varDelta^2)$')
     l = ax.legend(prop = { 'size' : 27 }, loc=4)
     fig.patch.set_alpha(0)
     fig.savefig('cT2.pdf')
+    return
+
+
+def plot_cT1():
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    cT1_Adam  = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1')
+    cT1_Alan  = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1Alan')
+    # cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
+    # cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    #
+    nrows,ncols=1,1
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax = plt.subplot(nrows,ncols,1)
+    #
+    ax.plot(dl2, cT1_Adam,  '-',  linewidth=2, color='xkcd:true green', label=r'Adam')
+    ax.plot(dl2, cT1_Alan,  '--', linewidth=2, color='xkcd:rich purple',label=r'Alan')
+    # ax.plot(dl2, cT2_Adam3, '-.', linewidth=2, color='xkcd:cobalt',     label=r'Adam3')
+    # ax.plot(dl2, cT2_Alan3, ':',  linewidth=2, color='xkcd:coral',      label=r'Alan3')
+    #
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    ax.set_ylabel(r'$\bar{c}_{T1}(\varDelta^2)$')
+    l = ax.legend(prop = { 'size' : 27 }, loc=4)
+    fig.patch.set_alpha(0)
+    fig.savefig('cT1.pdf')
+    return
+
+def plot_sbar():
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    sbar_Adam  = mff.sbar(np.sqrt(dl2), nff='point', formula='sbar')
+    sbar_Alan  = mff.sbar(np.sqrt(dl2), nff='point', formula='sbarAlan')
+    # cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
+    # cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    #
+    nrows,ncols=1,1
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax = plt.subplot(nrows,ncols,1)
+    #
+    ax.plot(dl2, sbar_Adam,  '-',  linewidth=2, color='xkcd:true green', label=r'Adam')
+    ax.plot(dl2, sbar_Alan,  '--', linewidth=2, color='xkcd:rich purple',label=r'Alan')
+    #
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    ax.set_ylabel(r'$\bar{s}(\varDelta^2)$')
+    l = ax.legend(prop = { 'size' : 27 }, loc=4)
+    fig.patch.set_alpha(0)
+    fig.savefig('sbar.pdf')
     return
 
 def plot_J():

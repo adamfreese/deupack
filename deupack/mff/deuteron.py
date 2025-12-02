@@ -81,13 +81,13 @@ def cU(k, wf='av18', nff='mit'):
         rmin = 1e-2
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
-def cT1(k, wf='av18', nff='mit'):
+def cT1(k, wf='av18', nff='mit',formula='cT1'):
     ''' The mechanical form factor cT1.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     AN, JN, _, cN, _ = choose_nff(nff)
-    return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN)
+    return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN,formula=formula)
 
 def cT2(k, wf='av18', nff='mit', formula='cT2'):
     ''' The mechanical form factor cT2.
@@ -117,6 +117,15 @@ def S(k, wf='av18', nff='mit'):
     u, w, *_ = choose_wf(wf)
     _, _, _, _, SN = choose_nff(nff)
     return _S(k, u=u, w=w, SN=SN)
+
+def sbar(k, wf='av18', nff='mit',formula='sbar'):
+    ''' The mechanical form factor S.
+    See docstring of AU for more info.
+    '''
+    u, w, u1, w1, u2, w2, u3, w3= choose_wf(wf)
+    _, _, _, _, SN = choose_nff(nff)
+    return _sbar(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2,u3=u3,w3=w3, SN=SN, formula=formula)
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Under-the-hood implementation details for the MFFs:
@@ -212,17 +221,43 @@ def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
     # TODO: new J pieces need cross-check
-    #J2_piece = -6*JN(k)/(7*r**2*kfm**2)*jn(2,kfm*r/2)*(
-    #        11*np.sqrt(2)*r**2*(u(r)*w2(r)-w(r)*u2(r))
-    #        + 8*r*(-2*np.sqrt(2)*u1(r)+w1(r))*w(r)
-    #        + 2*(-25*np.sqrt(2)*u(r)+2*w(r))*w(r)
-    #        )
-    #J4_piece = -24*JN(k)/(7*r**2*kfm**2)*jn(4,kfm*r/2)*(
-    #        np.sqrt(2)*r**2*(u(r)*w2(r)-w(r)*u2(r))
-    #        + r*(-7*np.sqrt(2)*u(r)*w1(r)+3*np.sqrt(2)*w(r)*u1(r)+2*w(r)*w1(r))
-    #        + 6*(2*np.sqrt(2)*u(r)-w(r))*w(r)
-    #        )
+    J2_piece = -6*JN(k)/(7*r**2*kfm**2)*jn(2,kfm*r/2)*(
+           11*np.sqrt(2)*r**2*(u(r)*w2(r)-w(r)*u2(r))
+           + 8*r*(-2*np.sqrt(2)*u1(r)+w1(r))*w(r)
+           + 2*(-25*np.sqrt(2)*u(r)+2*w(r))*w(r)
+           )
+    J4_piece = -24*JN(k)/(7*r**2*kfm**2)*jn(4,kfm*r/2)*(
+           np.sqrt(2)*r**2*(u(r)*w2(r)-w(r)*u2(r))
+           + r*(-7*np.sqrt(2)*u(r)*w1(r)+3*np.sqrt(2)*w(r)*u1(r)+2*w(r)*w1(r))
+           + 6*(2*np.sqrt(2)*u(r)-w(r))*w(r)
+           )
     intd = A3_piece + A24_piece + c_piece + J2_piece + J4_piece
+    return intd
+
+def _cT1_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
+    kfm = k/hbar
+    A3_piece = 6*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
+            np.sqrt(2)*(2*u1(r)*w2(r) + 2*w1(r)*u2(r))
+            - 2*w1(r)*w2(r)
+            + 2*np.sqrt(2)*( u(r)*w2(r) - w(r)*u2(r) )/r
+            - 6*np.sqrt(2)*( u(r)*w1(r) - w(r)*u1(r) )/r**2
+            - 12*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**3
+            )
+    A24_piece = 6*AN(k)/(14*kfm**2)*(3*jn(2,kfm*r/2)-4*jn(4,kfm*r/2))*(
+                np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r))
+                - w(r)*w2(r)
+                )
+    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
+            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
+            )
+    # TODO: new J pieces need cross-check
+    J3_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(3,kfm*r/2)*(
+           3*(r*u1(r)*w(r)-r*w1(r)*u(r)+2*w(r)*u(r))
+           )
+    J1_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(1,kfm*r/2)*(
+           2*(-r*u1(r)*w(r)+r*w1(r)*u(r)+3*w(r)*u(r))
+           )
+    intd = A3_piece + A24_piece + c_piece + J1_piece + J3_piece
     return intd
 
 def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
@@ -239,22 +274,22 @@ def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
     intd = 3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_piece + A13_piece)
     # J pieces missing from the other formulas
     # TODO: new J pieces need cross-check
-    #J0_piece = 21*JN(k)/(140*r**2*(mN/hbar)**2)*jn(0,kfm*r/2)*(
-    #        np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
-    #        + r*(3*np.sqrt(2)*u(r)*w1(r) + 3*np.sqrt(2)*w(r)*u1(r) + 2*w(r)*w1(r))
-    #        - (3*np.sqrt(2)*u(r) + w(r))*w(r)
-    #        )
-    #J2_piece = 30*JN(k)/(140*r**2*(mN/hbar)**2)*jn(2,kfm*r/2)*(
-    #        5*np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
-    #        + r*(np.sqrt(2)*u1(r) + 3*w1(r))*w(r)
-    #        - (31*np.sqrt(2)*u(r) + 2*w(r))*w(r)
-    #        )
-    #J4_piece = 24*JN(k)/(140*r**2*(mN/hbar)**2)*jn(4,kfm*r/2)*(
-    #        np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
-    #        + r*(-7*np.sqrt(2)*w1(r) + 3*np.sqrt(2)*w(r)*u1(r) + 2*w(r)*w1(r))
-    #        + 6*(2*np.sqrt(2)*u(r) - w(r))*w(r)
-    #        )
-    #intd += J0_piece + J2_piece + J4_piece
+    J0_piece = 21*JN(k)/(140*r**2*(mN/hbar)**2)*jn(0,kfm*r/2)*(
+           np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
+           + r*(3*np.sqrt(2)*u(r)*w1(r) + 3*np.sqrt(2)*w(r)*u1(r) + 2*w(r)*w1(r))
+           - (3*np.sqrt(2)*u(r) + w(r))*w(r)
+           )
+    J2_piece = 30*JN(k)/(140*r**2*(mN/hbar)**2)*jn(2,kfm*r/2)*(
+           5*np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
+           + r*(np.sqrt(2)*u1(r) + 3*w1(r))*w(r)
+           - (31*np.sqrt(2)*u(r) + 2*w(r))*w(r)
+           )
+    J4_piece = 24*JN(k)/(140*r**2*(mN/hbar)**2)*jn(4,kfm*r/2)*(
+           np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
+           + r*(-7*np.sqrt(2)*w1(r) + 3*np.sqrt(2)*w(r)*u1(r) + 2*w(r)*w1(r))
+           + 6*(2*np.sqrt(2)*u(r) - w(r))*w(r)
+           )
+    intd += J0_piece + J2_piece + J4_piece
     return intd
 
 def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
@@ -276,6 +311,15 @@ def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
             +12*np.sqrt(2)*r*u(r)*(5*w1(r)-r*w2(r))
             )
     intd = -AN(k)/(140*mN**2*r**2)*hbar**2 * (A0_term + A2_term+A4_term)
+    # J terms
+    J3_piece = -3*JN(k)*k*hbar/(20*np.sqrt(2)*mN**2*r)*jn(3,kfm*r/2)*(
+           3*(r*u1(r)*w(r) - r*u(r)*w1(r)+2*u(r)*w(r))
+           )
+    J1_piece = -3*JN(k)*k*hbar/(20*np.sqrt(2)*mN**2*r)*jn(1,kfm*r/2)*(
+           2*(-r*u1(r)*w(r) + r*u(r)*w1(r)+3*u(r)*w(r))
+           )
+    
+    intd += J1_piece + J3_piece
     return intd
 
 def _cT2_integrandAlan3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
@@ -332,6 +376,27 @@ def _S_integrand(r, k, u, w, SN):
     intd = S0_piece + S2_piece
     return intd
 
+def _sbar_integrandAdam(r, k, u, w,u1,w1,u2,w2, SN):
+    kfm = k/hbar
+    J2_piece = 12*np.sqrt(2)*mN*SN(k)/(hbar*kfm**2)*jn(2,kfm*r/2)*(
+           (u(r)*w2(r) - r*u2(r)*w(r)-6*u(r)*w(r)/r**2)
+           )
+    intd = J2_piece 
+    return intd
+
+def _sbar_integrandAlan(r, k, u, w,u1,w1 ,u2,w2,SN):
+    kfm = k/hbar
+    J3_piece = 3*SN(k)/(5*np.sqrt(2)*kfm*r)*jn(3,kfm*r/2)*(
+           3*(r*u1(r)*w(r) - r*u(r)*w1(r)+2*u(r)*w(r))
+           )
+    J1_piece = 3*SN(k)*k*hbar/(5*np.sqrt(2)*mN**2*r)*jn(1,kfm*r/2)*(
+           2*(-r*u1(r)*w(r) + r*u(r)*w1(r)+3*u(r)*w(r))
+           )
+    
+    intd = J1_piece + J3_piece
+    return intd
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Under-the-hood implementation details for the MFFs:
 # 2. Integration
@@ -379,9 +444,15 @@ def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
                         workers=8)[0]
     return integral * 2
 
-def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf):
+def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf, formula='cT1'):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cT1_integrand, rmin, rmax,
+    if(formula=='cT1'):
+        integrand = _cT1_integrand
+    elif(formula=='cT1Alan'):
+        integrand = _cT1_integrandAlan
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN),
                         workers=8)[0]
     return integral * 2
@@ -420,6 +491,20 @@ def _S(k, u, w, SN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_S_integrand, rmin, rmax,
                         args=(k, u, w, SN),
+                        workers=8)[0]
+    return integral * 2
+
+
+def _sbar(k, u, w, u1, w1, u2, w2, u3, w3,SN, rmin=0, rmax=np.inf, formula='sbar'):
+    k = regulate_zero(k) # avoid division by zero
+    if(formula=='sbar'):
+        integrand = _sbar_integrandAdam
+    elif(formula=='sbarAlan'):
+        integrand = _sbar_integrandAlan
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
+                        args=( k, u, w,u1,w1 ,u2,w2,SN),
                         workers=8)[0]
     return integral * 2
 
