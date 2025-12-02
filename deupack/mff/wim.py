@@ -1,4 +1,4 @@
-# wimff.py
+# wim.py
 # Created 2025.10.10 by Adam Freese
 #
 # This module reads in Wim's data file for his EMT calculations,
