@@ -243,7 +243,7 @@ def plot_DN():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Formula comparison for cT2
+# Plots for internal comparisons
 
 def plot_cT2():
     dl2 = np.geomspace(1e-6, 1e1, 666)

@@ -13,7 +13,7 @@ from scipy.interpolate import CubicSpline
 from pathlib import Path
 
 from .constants import mN, hbar
-from .mff import deuteron as mff
+from . import mff
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density class
