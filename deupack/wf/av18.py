@@ -35,43 +35,59 @@ AD = 0
 
 def u(r):
     ''' Radial dependence of S-wave. '''
-    return u_cs(r)*(r < rmax) + AS*u_asy(r)*(r >= rmax)
+    if(r < rmax):
+        return u_cs(r)
+    else:
+        return AS*u_asy(r)
 
 def w(r):
     ''' Radial dependence of D-wave. '''
-    return w_cs(r)*(r < rmax) + AD*w_asy(r)*(r >= rmax)
+    if(r<rmax):
+        return w_cs(r)
+    else:
+        return AD*w_asy(r)
 
 def u1(r):
     ''' First derivative of S-wave. '''
-    return u1_cs(r)*(r < rmax) + AS*u1_asy(r)*(r >= rmax)
+    if(r < rmax):
+        return u1_cs(r)
+    else:
+        return AS*u1_asy(r)
 
 def u2(r):
     ''' Second derivative of S-wave.
     Basically just uses the AV18 potential and the Schrodinger equation
     to get this from u(r) and w(r).
     '''
-    #return u1_cs(r,1)*(r < rmax) + AS*u2_asy(r)*(r >= rmax)
     return mN*(Ed+Vc(r))/hbar**2*u(r) + np.sqrt(8)*mN*Vt(r)*w(r)/hbar**2
 
 def u3(r):
     ''' Third derivative of S-wave.  May become deprecated. '''
-    return u1_cs(r,2)*(r < rmax) + AS*u3_asy(r)*(r >= rmax)
+    if(r < rmax):
+        return u1_cs(r,2)
+    else:
+        return AS*u3_asy(r)
 
 def w1(r):
     ''' First derivative of D-wave. '''
-    return w1_cs(r)*(r < rmax) + AD*w1_asy(r)*(r >= rmax)
+    if(r < rmax):
+        return w1_cs(r)
+    else:
+        return AD*w1_asy(r)
 
 def w2(r):
     ''' Second derivative of D-wave.
     Basically just uses the AV18 potential and the Schrodinger equation
     to get this from u(r) and w(r).
     '''
-    #return w1_cs(r,1)*(r < rmax) + AD*w2_asy(r)*(r >= rmax)
     return (mN*(Ed+Vw(r))/hbar**2 + 6/r**2)*w(r) + np.sqrt(8)*mN*Vt(r)*u(r)/hbar**2
 
 def w3(r):
     ''' Third derivative of D-wave.  May become deprecated. '''
-    return w1_cs(r,2)*(r < rmax) + AD*w3_asy(r)*(r >= rmax)
+    if(r < rmax):
+        return w1_cs(r,2)
+    else:
+        return AD*w3_asy(r)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Asymptotic forms
@@ -95,32 +111,28 @@ def u3_asy(r):
 
 def w_asy(r):
     ''' Asymptotic form of the D-wave for large r. '''
-    r_ = r + 1e-9 # to division by zero
-    result = np.exp(-kappa*r)*(1 + 3/(kappa*r_) + 3/(kappa*r_)**2)
+    result = np.exp(-kappa*r)*(1 + 3/(kappa*r) + 3/(kappa*r)**2)
     return result
 
 def w1_asy(r):
     ''' Asymptotic form of the first derivative of the D-wave for large r. '''
-    r_ = r + 1e-9 # to division by zero
     result = -kappa * np.exp(-kappa*r)*(
-            1 + 3/(kappa*r_) + 6/(kappa*r_)**2 + 6/(kappa*r_)**3
+            1 + 3/(kappa*r) + 6/(kappa*r)**2 + 6/(kappa*r)**3
             )
     return result
 
 def w2_asy(r):
     ''' Asymptotic form of the second derivative of the D-wave for large r. '''
-    r_ = r + 1e-9 # to division by zero
     result = kappa**2 * np.exp(-kappa*r)*(
-            1 + 3/(kappa*r_) + 9/(kappa*r_)**2 + 18/(kappa*r_)**3 + 18/(kappa*r_)**4
+            1 + 3/(kappa*r) + 9/(kappa*r)**2 + 18/(kappa*r)**3 + 18/(kappa*r)**4
             )
     return result
 
 def w3_asy(r):
     ''' Asymptotic form of the third derivative of the D-wave for large r. '''
-    r_ = r + 1e-9 # to division by zero
     result = -kappa**3 * np.exp(-kappa*r)*(
-            1 + 3/(kappa*r_) + 12/(kappa*r_)**2 + 36/(kappa*r_)**3
-            + 72/(kappa*r_)**4 + 72/(kappa*r_)**5
+            1 + 3/(kappa*r) + 12/(kappa*r)**2 + 36/(kappa*r)**3
+            + 72/(kappa*r)**4 + 72/(kappa*r)**5
             )
     return result
 
@@ -168,8 +180,8 @@ def make_wf():
     # Make note of the maximum r for the splines
     rmax = r.max()
     # Now, get constants for asymptotic behavior at very large r
-    AS = (u / u_asy(r))[-1]
-    AD = (w / w_asy(r))[-1]
+    AS = (u[-1] / u_asy(r[-1]))
+    AD = (w[-1] / w_asy(r[-1]))
     # Done here
     return
 
@@ -375,7 +387,7 @@ def Vw(r):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Routines to obtain the mean potential as a function of space
 
-def VmeanU(r):
+def _VmeanU(r):
     ''' The density-weighted mean value of the potential, defined via:
         Tr(rho*V)
     for an unpolarized deuteron ensemble.
@@ -383,7 +395,7 @@ def VmeanU(r):
     Vmean = Vc(r)*u(r)**2 + 4*np.sqrt(2)*Vt(r)*u(r)*w(r) + (Vw(r)+6/mN/r**2)*w(r)**2
     return Vmean / (4*np.pi*r**2)
 
-def VmeanT(r):
+def _VmeanT(r):
     ''' The density-weighted mean value of the potential, defined via:
         Tr(rho*V)
     for a tensor-polarized deuteron ensemble.
@@ -395,6 +407,13 @@ def VmeanT(r):
             + np.sqrt(2)*(Vc(r)/2 - Vt(r) + Vw(r)/2 + 3/mN/r**2)*u(r)*w(r)
             )
     return Vmean / (4*np.pi*r**2)
+
+# Vectorize these routines, so they can take arrays of r values.
+# The wave functions use if statements because quad_vec passes r as a scalar,
+# and if statements are faster than casting r into an array and then using
+# np.where.
+VmeanU = np.vectorize(_VmeanU)
+VmeanT = np.vectorize(_VmeanT)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run the wave function maker on initialization
