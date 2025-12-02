@@ -81,13 +81,13 @@ def cU(k, wf='av18', nff='mit'):
         rmin = 1e-2
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
-def cT1(k, wf='av18', nff='mit',formula='cT1'):
+def cT1(k, wf='av18', nff='mit', formula='cT1'):
     ''' The mechanical form factor cT1.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     AN, JN, _, cN, _ = choose_nff(nff)
-    return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN,formula=formula)
+    return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN, formula=formula)
 
 def cT2(k, wf='av18', nff='mit', formula='cT2'):
     ''' The mechanical form factor cT2.
@@ -118,11 +118,11 @@ def S(k, wf='av18', nff='mit'):
     _, _, _, _, SN = choose_nff(nff)
     return _S(k, u=u, w=w, SN=SN)
 
-def sbar(k, wf='av18', nff='mit',formula='sbar'):
+def sbar(k, wf='av18', nff='mit', formula='sbar'):
     ''' The mechanical form factor S.
     See docstring of AU for more info.
     '''
-    u, w, u1, w1, u2, w2, u3, w3= choose_wf(wf)
+    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     _, _, _, _, SN = choose_nff(nff)
     return _sbar(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2,u3=u3,w3=w3, SN=SN, formula=formula)
 
@@ -378,10 +378,9 @@ def _S_integrand(r, k, u, w, SN):
 
 def _sbar_integrandAdam(r, k, u, w,u1,w1,u2,w2, SN):
     kfm = k/hbar
-    J2_piece = 12*np.sqrt(2)*mN*SN(k)/(hbar*kfm**2)*jn(2,kfm*r/2)*(
-           (u(r)*w2(r) - r*u2(r)*w(r)-6*u(r)*w(r)/r**2)
-           )
-    intd = J2_piece 
+    intd = 6*np.sqrt(2)*SN(k)/kfm**2*jn(2,kfm*r/2)*(
+            u(r)*w2(r) - u2(r)*w(r) - 6*u(r)*w(r)/r**2
+            )
     return intd
 
 def _sbar_integrandAlan(r, k, u, w,u1,w1 ,u2,w2,SN):
@@ -389,10 +388,9 @@ def _sbar_integrandAlan(r, k, u, w,u1,w1 ,u2,w2,SN):
     J3_piece = 3*SN(k)/(5*np.sqrt(2)*kfm*r)*jn(3,kfm*r/2)*(
            3*(r*u1(r)*w(r) - r*u(r)*w1(r)+2*u(r)*w(r))
            )
-    J1_piece = 3*SN(k)*k*hbar/(5*np.sqrt(2)*mN**2*r)*jn(1,kfm*r/2)*(
+    J1_piece = 3*SN(k)/(5*np.sqrt(2)*kfm*r)*jn(1,kfm*r/2)*(
            2*(-r*u1(r)*w(r) + r*u(r)*w1(r)+3*u(r)*w(r))
            )
-    
     intd = J1_piece + J3_piece
     return intd
 
