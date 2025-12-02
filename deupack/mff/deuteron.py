@@ -265,24 +265,10 @@ def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
             w2(r) - 2*np.sqrt(2)*u2(r)
             ) * w(r) / r
     intd = 3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_piece + A13_piece)
-    # J pieces missing from the other formulas
-    # TODO: new J pieces need cross-check
-    J0_piece = 21*JN(k)/(140*r**2*(mN/hbar)**2)*jn(0,kfm*r/2)*(
-           np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
-           + r*(3*np.sqrt(2)*u(r)*w1(r) + 3*np.sqrt(2)*w(r)*u1(r) + 2*w(r)*w1(r))
-           - (3*np.sqrt(2)*u(r) + w(r))*w(r)
-           )
-    J2_piece = 30*JN(k)/(140*r**2*(mN/hbar)**2)*jn(2,kfm*r/2)*(
-           5*np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
-           + r*(np.sqrt(2)*u1(r) + 3*w1(r))*w(r)
-           - (31*np.sqrt(2)*u(r) + 2*w(r))*w(r)
-           )
-    J4_piece = 24*JN(k)/(140*r**2*(mN/hbar)**2)*jn(4,kfm*r/2)*(
-           np.sqrt(2)*r**2*(u(r)*w2(r) - w(r)*u2(r))
-           + r*(-7*np.sqrt(2)*w1(r) + 3*np.sqrt(2)*w(r)*u1(r) + 2*w(r)*w1(r))
-           + 6*(2*np.sqrt(2)*u(r) - w(r))*w(r)
-           )
-    intd += J0_piece + J2_piece + J4_piece
+    J_piece = 3*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/(2*mN/hbar)**2*(
+            u(r)*w2(r) - w(r)*u2(r) - 6*u(r)*w(r)/r**2
+            )
+    intd += J_piece
     return intd
 
 def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
@@ -304,7 +290,7 @@ def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
             +12*np.sqrt(2)*r*u(r)*(5*w1(r)-r*w2(r))
             )
     intd = -AN(k)/(140*mN**2*r**2)*hbar**2 * (A0_term + A2_term+A4_term)
-    # J terms
+    # J terms (confirmed)
     J3_piece = -3*JN(k)*k*hbar/(20*np.sqrt(2)*mN**2*r)*jn(3,kfm*r/2)*(
            3*(r*u1(r)*w(r) - r*u(r)*w1(r)+2*u(r)*w(r))
            )
@@ -316,6 +302,7 @@ def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
     return intd
 
 def _cT2_integrandAlan3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
+    # missing J terms; will deprecate since cross-checks were passed
     kfm = k/hbar
     A2_term = 10.*jn(2,kfm*r/2)/(kfm*r)*(
             r**3*w1(r)*(np.sqrt(2.)*u2(r)-w2(r))+r**3*np.sqrt(2.)*u1(r)*w2(r)
@@ -334,6 +321,7 @@ def _cT2_integrandAlan3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
     return intd
 
 def _cT2_integrandAdam3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
+    # missing J terms; will deprecate since cross-checks were passed
     kfm = k/hbar
     A2_term = jn(2,kfm*r/2)*(
             (2*np.sqrt(2)*(w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
