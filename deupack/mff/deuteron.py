@@ -220,18 +220,11 @@ def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
     c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
-    # TODO: new J pieces need cross-check
-    J2_piece = -6*JN(k)/(7*r**2*kfm**2)*jn(2,kfm*r/2)*(
-           11*np.sqrt(2)*r**2*(u(r)*w2(r)-w(r)*u2(r))
-           + 8*r*(-2*np.sqrt(2)*u1(r)+w1(r))*w(r)
-           + 2*(-25*np.sqrt(2)*u(r)+2*w(r))*w(r)
-           )
-    J4_piece = -24*JN(k)/(7*r**2*kfm**2)*jn(4,kfm*r/2)*(
-           np.sqrt(2)*r**2*(u(r)*w2(r)-w(r)*u2(r))
-           + r*(-7*np.sqrt(2)*u(r)*w1(r)+3*np.sqrt(2)*w(r)*u1(r)+2*w(r)*w1(r))
-           + 6*(2*np.sqrt(2)*u(r)-w(r))*w(r)
-           )
-    intd = A3_piece + A24_piece + c_piece + J2_piece + J4_piece
+    # TODO: determine whether this J piece is right or too big by a factor 2
+    J_piece = 6*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/kfm**2*(
+            w(r)*u2(r) - u(r)*w2(r) + 6*u(r)*w(r)/r**2
+            )
+    intd = A3_piece + A24_piece + c_piece + J_piece
     return intd
 
 def _cT1_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
