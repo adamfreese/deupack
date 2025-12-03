@@ -13,7 +13,7 @@ from scipy.interpolate import CubicSpline
 from pathlib import Path
 
 from .constants import mN, hbar
-from . import mff
+from . import emtff
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density class
@@ -42,10 +42,10 @@ class Density:
         # attempt to find a cached lookup table on disk
         path = self._cache_path()
         if(path.is_file() and use_cache):
-            self._load_mff_table(path)
+            self._load_emtff_table(path)
         else:
             # if not found, make one
-            self._init_mff_table(save_table=True)
+            self._init_emtff_table(save_table=True)
         return
 
     # 1D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -312,24 +312,24 @@ class Density:
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _cache_path(self):
-        filename = "mff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
+        filename = "emtff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
                 self.wf, self.nff, self.nk, self.kmin, self.kmax
                 )
         path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
         return path
 
-    def _init_mff_table(self, save_table=False):
+    def _init_emtff_table(self, save_table=False):
         k   = np.geomspace(self.kmin, self.kmax, self.nk)
-        AU  = mff.AU( k, wf=self.wf, nff=self.nff)
-        AT  = mff.AT( k, wf=self.wf, nff=self.nff)
-        DU  = mff.DU( k, wf=self.wf, nff=self.nff)
-        DT1 = mff.DT1(k, wf=self.wf, nff=self.nff)
-        DT2 = mff.DT2(k, wf=self.wf, nff=self.nff)
-        cU  = mff.cU( k, wf=self.wf, nff=self.nff)
-        cT1 = mff.cT1(k, wf=self.wf, nff=self.nff)
-        cT2 = mff.cT2(k, wf=self.wf, nff=self.nff)
-        J   = mff.J(  k, wf=self.wf, nff=self.nff)
-        S   = mff.S(  k, wf=self.wf, nff=self.nff)
+        AU  = emtff.AU( k, wf=self.wf, nff=self.nff)
+        AT  = emtff.AT( k, wf=self.wf, nff=self.nff)
+        DU  = emtff.DU( k, wf=self.wf, nff=self.nff)
+        DT1 = emtff.DT1(k, wf=self.wf, nff=self.nff)
+        DT2 = emtff.DT2(k, wf=self.wf, nff=self.nff)
+        cU  = emtff.cU( k, wf=self.wf, nff=self.nff)
+        cT1 = emtff.cT1(k, wf=self.wf, nff=self.nff)
+        cT2 = emtff.cT2(k, wf=self.wf, nff=self.nff)
+        J   = emtff.J(  k, wf=self.wf, nff=self.nff)
+        S   = emtff.S(  k, wf=self.wf, nff=self.nff)
         if(save_table):
             df = pd.DataFrame(data={
                 'k'   : k,
@@ -358,7 +358,7 @@ class Density:
         self.S   = CubicSpline(k, S)
         return
 
-    def _load_mff_table(self, filename):
+    def _load_emtff_table(self, filename):
         df = pd.read_csv(filename)
         k = df['k'].to_numpy()
         AU  = df['AU'].to_numpy()

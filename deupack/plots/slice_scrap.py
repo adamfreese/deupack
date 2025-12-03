@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-from .. import mff
+from .. import emtff
 from ..density import *
-from ..mff.nucleon.chooser import choose_nff
+from ..emtff.nucleon.chooser import choose_nff
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)

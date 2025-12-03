@@ -3,7 +3,7 @@
 #
 # This module reads in Wim's data file for his EMT calculations,
 # from a light cone convolution model, and converts them to
-# the MFFs defined in our more recent non-relativistic work.
+# the EMTFFs defined in our more recent non-relativistic work.
 #
 # The form factors this module looks at are from:
 #   Adam Freese and Wim Cosyn
@@ -19,7 +19,7 @@ from ..constants import Md
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def make_wimffs(remove_G7=False): 
-    ''' Convert the data Wim provided into the MFFs used in our
+    ''' Convert the data Wim provided into the EMTFFs used in our
     more recent, non-relativistic work.
     '''
     df = read_emt_data()

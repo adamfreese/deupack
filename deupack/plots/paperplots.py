@@ -9,7 +9,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import cmasher as cmr
 
-from .. import mff
+from .. import emtff
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)
@@ -144,29 +144,29 @@ _namelabel = {
         'sbar': r'$\bar{s}(\varDelta^2)$'
         }
 
-def _select_mff(name, dl2, wf='av18', nff='ba'):
+def _select_emtff(name, dl2, wf='av18', nff='ba'):
     if(name=='AU'):
-        F = mff.AU(  np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.AU(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='AT'):
-        F = mff.AT(  np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.AT(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='J'):
-        F = mff.J(   np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.J(   np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DU'):
-        F = mff.DU(  np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.DU(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DT1'):
-        F = mff.DT1( np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.DT1( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DT2'):
-        F = mff.DT2( np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.DT2( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cU'):
-        F = mff.cU(  np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.cU(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cT1'):
-        F = mff.cT1( np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.cT1( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cT2'):
-        F = mff.cT2( np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.cT2( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='S'):
-        F = mff.S(   np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.S(   np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='sbar'):
-        F = mff.sbar(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.sbar(np.sqrt(dl2), wf=wf, nff=nff)
     else:
         F = dl2 * 0
     return F
@@ -178,10 +178,10 @@ def _select_mff(name, dl2, wf='av18', nff='ba'):
 def _4curve_panel(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
     # 4 curve version
-    F_ba_18 = _select_mff(name, dl2, nff='ba',    wf='av18')
-    F_pt_18 = _select_mff(name, dl2, nff='point', wf='av18')
-    F_ba_cd = _select_mff(name, dl2, nff='ba',    wf='cdbonn')
-    F_pt_cd = _select_mff(name, dl2, nff='point', wf='cdbonn')
+    F_ba_18 = _select_emtff(name, dl2, nff='ba',    wf='av18')
+    F_pt_18 = _select_emtff(name, dl2, nff='point', wf='av18')
+    F_ba_cd = _select_emtff(name, dl2, nff='ba',    wf='cdbonn')
+    F_pt_cd = _select_emtff(name, dl2, nff='point', wf='cdbonn')
     ax.plot(dl2, F_ba_18, '-',  linewidth=2.6, color='tab:blue',   label=r'AV18 + BA')
     ax.plot(dl2, F_pt_18, '--', linewidth=2.6, color='tab:green',  label=r'AV18 + point')
     ax.plot(dl2, F_ba_cd, '-.', linewidth=2.6, color='tab:orange', label=r'CDBonn + BA')
@@ -210,9 +210,9 @@ def _4curve_panel(ax, name):
 def _3curve_panel(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
     # 3 curve version
-    F_domin = _select_mff(name, dl2, nff='ba')
-    F_holog = _select_mff(name, dl2, nff='hz')
-    F_point = _select_mff(name, dl2, nff='point')
+    F_domin = _select_emtff(name, dl2, nff='ba')
+    F_holog = _select_emtff(name, dl2, nff='hz')
+    F_point = _select_emtff(name, dl2, nff='point')
     ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Meson dominance')
     ax.plot(dl2, F_holog, '--', linewidth=2.6, color='tab:green',  label=r'Holography')
     ax.plot(dl2, F_point, '-.', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
@@ -240,9 +240,9 @@ def _3curve_panel(ax, name):
 def _2curve_panel(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
     # 3 curve version
-    F_domin = _select_mff(name, dl2, nff='ba')
-    F_holog = _select_mff(name, dl2, nff='hz')
-    F_point = _select_mff(name, dl2, nff='point')
+    F_domin = _select_emtff(name, dl2, nff='ba')
+    F_holog = _select_emtff(name, dl2, nff='hz')
+    F_point = _select_emtff(name, dl2, nff='point')
     ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Meson dominance')
     ax.plot(dl2, F_point, '-.', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
     # Line at zero to help guide the eye
@@ -268,9 +268,9 @@ def _2curve_panel(ax, name):
 
 def _group_comparison_panel(ax, name):
     # MFF from other papers
-    df_wc = mff.wim.make_wimffs()
-    fc_hz = mff.hz.make_hzmffs()
-    df_jp = mff.pegg.make_peggmffs()
+    df_wc = emtff.wim.make_wimffs()
+    fc_hz = emtff.hz.make_hzffs()
+    df_jp = emtff.pegg.make_peggffs()
     F_wc = df_wc[name]
     F_hz = fc_hz[name]
     F_jp = df_jp[name]
@@ -279,7 +279,7 @@ def _group_comparison_panel(ax, name):
     dl2_jp = df_jp['Delta2']
     # Our MFF
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    F = _select_mff(name, dl2, nff='hz') # Use HZ NFFs for apples-to-apples comparison
+    F = _select_emtff(name, dl2, nff='hz') # Use HZ NFFs for apples-to-apples comparison
     # Use the Tableau Palette (default as of matplotlib v2),
     # since it was designed with accessibility in mind.
     ax.plot(dl2,    F,    '-',  linewidth=2.6, color='tab:blue',  label=r'Ours')

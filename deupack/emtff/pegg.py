@@ -2,7 +2,7 @@
 # Created 2025.10.23 by Adam Freese
 #
 # This module reads in Julia's data files for her GFF calculations,
-# and converts them to the MFFs in Cosyn/Freese/Sosa.
+# and converts them to the EMTFFs in Cosyn/Freese/Sosa.
 #
 # The form factors this module looks at are from:
 #   J.Yu. Panteleeva, E. Epelbaum, A.M. Gasparyan, J. Gegelia
@@ -17,9 +17,9 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_peggmffs():
-    ''' Convert Panteleeva et al.'s MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffs()
+def make_peggffs():
+    ''' Convert Panteleeva et al.'s EMTFFs into those of Cosyn, Freese and Sosa. '''
+    df = read_ffs()
     t = df['t']
     E0 = df['E0']
     E2 = df['E2']
@@ -45,9 +45,9 @@ def make_peggmffs():
 
 
 
-def make_peggmffsLO():
-    ''' Convert Panteleeva et al.'s MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffsLO()
+def make_peggffsLO():
+    ''' Convert Panteleeva et al.'s EMTFFs into those of Cosyn, Freese and Sosa. '''
+    df = read_ffsLO()
     t = df['t']
     E0 = df['E0']
     E2 = df['E2']
@@ -72,13 +72,13 @@ def make_peggmffsLO():
     return new_df
 
 
-def read_mffs():
+def read_ffs():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/pegg'
     # c8 and c9 provided by Julia Panteleeva (private communication)
     c8 = -2.77/1000 # MeV**-1
     c9 = 0
-    # Use the highest-order data available for each MFF
+    # Use the highest-order data available for each EMTFF
     df_E0 = pd.read_csv(path / "E0_nnlo.txt", comment='#')
     df_E2 = pd.read_csv(path / "E2_nnlo.txt", comment='#')
     df_D0 = pd.read_csv(path / "D0_nlo.txt",  comment='#')
@@ -105,13 +105,13 @@ def read_mffs():
 
 
 
-def read_mffsLO():
+def read_ffsLO():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/pegg'
     # c8 and c9 provided by Julia Panteleeva (private communication)
     c8 = -2.77/1000 # MeV**-1
     c9 = 0
-    # Use the highest-order data available for each MFF
+    # Use the highest-order data available for each EMTFF
     df_E0 = pd.read_csv(path / "E0_lo.txt", comment='#')
     df_E2 = pd.read_csv(path / "E2_lo.txt", comment='#')
     df_D0 = pd.read_csv(path / "D0_lo.txt",  comment='#')

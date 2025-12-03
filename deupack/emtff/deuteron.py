@@ -23,7 +23,7 @@ from .nucleon.chooser import choose_nff
 # Add optional wf parameter (last arg) that overrides u/w function arguments if provided.
 
 def AU(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor AU.
+    ''' The EMT form factor AU.
 
     k should be a float or numpy array of momentum transfer values in GeV.
     k=0 will automatically be pushed to 1e-6 to avoid division by zero.
@@ -37,7 +37,7 @@ def AU(k, wf='av18', nff='mit'):
     return _AU(k, u=u, w=w, AN=AN)
 
 def AT(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor AT.
+    ''' The EMT form factor AT.
     See docstring of AU for more info.
     '''
     u, w, *_ = choose_wf(wf)
@@ -45,7 +45,7 @@ def AT(k, wf='av18', nff='mit'):
     return _AT(k, u=u, w=w, AN=AN)
 
 def DU(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor DU.
+    ''' The EMT form factor DU.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
@@ -53,7 +53,7 @@ def DU(k, wf='av18', nff='mit'):
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
 def DT1(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor DT1.
+    ''' The EMT form factor DT1.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
@@ -61,7 +61,7 @@ def DT1(k, wf='av18', nff='mit'):
     return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
 def DT2(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor DT2.
+    ''' The EMT form factor DT2.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
@@ -69,7 +69,7 @@ def DT2(k, wf='av18', nff='mit'):
     return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
 def cU(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor cU.
+    ''' The EMT form factor cU.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
@@ -82,7 +82,7 @@ def cU(k, wf='av18', nff='mit'):
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
 def cT1(k, wf='av18', nff='mit', formula='cT1'):
-    ''' The mechanical form factor cT1.
+    ''' The EMT form factor cT1.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
@@ -90,7 +90,7 @@ def cT1(k, wf='av18', nff='mit', formula='cT1'):
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN, formula=formula)
 
 def cT2(k, wf='av18', nff='mit', formula='cT2'):
-    ''' The mechanical form factor cT2.
+    ''' The EMT form factor cT2.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
@@ -103,7 +103,7 @@ def cT2(k, wf='av18', nff='mit', formula='cT2'):
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, rmin=rmin, formula=formula)
 
 def J(k, wf='av18', nff='mit', formula='form1'):
-    ''' The mechanical form factor J.
+    ''' The EMT form factor J.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, *_ = choose_wf(wf)
@@ -111,7 +111,7 @@ def J(k, wf='av18', nff='mit', formula='form1'):
     return _J(k, u=u, w=w, u1=u1, w1=w1, AN=AN, JN=JN, formula=formula)
 
 def S(k, wf='av18', nff='mit'):
-    ''' The mechanical form factor S.
+    ''' The EMT form factor S.
     See docstring of AU for more info.
     '''
     u, w, *_ = choose_wf(wf)
@@ -119,7 +119,7 @@ def S(k, wf='av18', nff='mit'):
     return _S(k, u=u, w=w, SN=SN)
 
 def sbar(k, wf='av18', nff='mit', formula='sbar'):
-    ''' The mechanical form factor S.
+    ''' The EMT form factor S.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
@@ -128,7 +128,7 @@ def sbar(k, wf='av18', nff='mit', formula='sbar'):
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the MFFs:
+# Under-the-hood implementation details for the EMTFFs:
 # 1. Integrands
 #    Parallelization of the integration requires the integrands to be defined
 #    as top-level (rather than nested) functions.
@@ -377,7 +377,7 @@ def _sbar_integrandAlan(r, k, u, w,u1,w1 ,u2,w2,SN):
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the MFFs:
+# Under-the-hood implementation details for the EMTFFs:
 # 2. Integration
 #    quad_vec achieves good speed for parallel calculation of form factors
 #    at multiple k values. It's also parallelizable.
