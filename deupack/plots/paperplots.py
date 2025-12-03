@@ -17,7 +17,7 @@ mpl.rc('text.latex', preamble=r"\usepackage{bm,amsmath,amssymb,amsfonts,mathrsfs
 plt.rcParams["axes.formatter.use_mathtext"] = True
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The group comparison plot
+# MFF plots
 
 def group_comparison():
     ''' Creates a six-panel figure with plots of the conserved symmetric MFFs.
@@ -59,7 +59,76 @@ def group_comparison():
     fig.savefig('group_comparisons.pdf')
     return
 
-# Utilities for the group comparison plot ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def D():
+    # TODO: change docstring depending on what we ultimately choose
+    ''' Creates three-panel figure for the D-like form factors.
+    Each panel has four curves, comparing two choices of wave function:
+        (1) AV18
+        (2) CD Bonn
+    and two sets of nucleon MFFs:
+        (1) Broniowski & Ruiz Arriola (from Broniowski:2025ctl)
+        (2) pointlike nucleons
+    '''
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax_DU  = plt.subplot(nrows,ncols,1)
+    ax_DT1 = plt.subplot(nrows,ncols,2)
+    ax_DT2 = plt.subplot(nrows,ncols,3)
+    _3curve_panel(ax_DU,  'DU')
+    _3curve_panel(ax_DT1, 'DT1')
+    _3curve_panel(ax_DT2, 'DT2')
+    # Legend in DU panel, since it's the first
+    legend = ax_DU.legend(prop = { 'size' : 27 }, loc=6)
+    legend.get_frame().set_facecolor('#f8f8f8')
+    fig.patch.set_alpha(0)
+    fig.savefig('D.pdf')
+    return
+
+def cbar():
+    # TODO: change docstring depending on what we ultimately choose
+    ''' Creates three-panel figure for the cbar-like form factors.
+    Each panel has four curves, comparing two choices of wave function:
+        (1) AV18
+        (2) CD Bonn
+    and two sets of nucleon MFFs:
+        (1) Broniowski & Ruiz Arriola (from Broniowski:2025ctl)
+        (2) pointlike nucleons
+    '''
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax_cU  = plt.subplot(nrows,ncols,1)
+    ax_cT1 = plt.subplot(nrows,ncols,2)
+    ax_cT2 = plt.subplot(nrows,ncols,3)
+    _2curve_panel(ax_cU,  'cU')
+    _2curve_panel(ax_cT1, 'cT1')
+    _2curve_panel(ax_cT2, 'cT2')
+    # Legend in cU panel, since it's the first
+    legend = ax_cU.legend(prop = { 'size' : 27 }, loc=2)
+    legend.get_frame().set_facecolor('#f8f8f8')
+    fig.patch.set_alpha(0)
+    fig.savefig('cbar.pdf')
+    return
+
+def antisymmetric():
+    ''' Creates two-panel figure for the antisymmetric form factors.
+    Each panel has two curves, comparing a meson dominance form to
+    pointlike nucleons.
+    '''
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax_S    = plt.subplot(nrows,ncols,1)
+    ax_sbar = plt.subplot(nrows,ncols,2)
+    _2curve_panel(ax_S,    'S')
+    _2curve_panel(ax_sbar, 'sbar')
+    # Legend in S panel, since it's the first
+    legend = ax_S.legend(prop = { 'size' : 27 }, loc=1)
+    legend.get_frame().set_facecolor('#f8f8f8')
+    fig.patch.set_alpha(0)
+    fig.savefig('antisymmetric.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Utilities for MFF plots
 
 _namelabel = {
         'AU'  : r'$A_U(\varDelta^2)$',
@@ -77,30 +146,125 @@ _namelabel = {
 
 def _select_mff(name, dl2, wf='av18', nff='ba'):
     if(name=='AU'):
-        F = mff.AU(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.AU(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='AT'):
-        F = mff.AT(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.AT(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='J'):
-        F = mff.J(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.J(   np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DU'):
-        F = mff.DU(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.DU(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DT1'):
-        F = mff.DT1(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.DT1( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DT2'):
-        F = mff.DT2(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.DT2( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cU'):
-        F = mff.cU(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.cU(  np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cT1'):
-        F = mff.cT1(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.cT1( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cT2'):
-        F = mff.cT2(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.cT2( np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='S'):
-        F = mff.S(np.sqrt(dl2), wf=wf, nff=nff)
+        F = mff.S(   np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='sbar'):
         F = mff.sbar(np.sqrt(dl2), wf=wf, nff=nff)
     else:
         F = dl2 * 0
     return F
+
+# Panel plots ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# TODO: there's a lot of repeated code; this could be modularized
+
+def _4curve_panel(ax, name):
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    # 4 curve version
+    F_ba_18 = _select_mff(name, dl2, nff='ba',    wf='av18')
+    F_pt_18 = _select_mff(name, dl2, nff='point', wf='av18')
+    F_ba_cd = _select_mff(name, dl2, nff='ba',    wf='cdbonn')
+    F_pt_cd = _select_mff(name, dl2, nff='point', wf='cdbonn')
+    ax.plot(dl2, F_ba_18, '-',  linewidth=2.6, color='tab:blue',   label=r'AV18 + BA')
+    ax.plot(dl2, F_pt_18, '--', linewidth=2.6, color='tab:green',  label=r'AV18 + point')
+    ax.plot(dl2, F_ba_cd, '-.', linewidth=2.6, color='tab:orange', label=r'CDBonn + BA')
+    ax.plot(dl2, F_pt_cd, ':',  linewidth=2.6, color='tab:red',    label=r'CDBonn + point')
+    # Line at zero to help guide the eye
+    ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.5')
+    if(name=='cU' or name=='DU' or name=='DT1'):
+        textxy = (0.74,0.09)
+    elif(name=='cT1'):
+        textxy = (0.05,0.09)
+    else:
+        textxy = (0.05,0.09)
+    ax.annotate(
+            _namelabel[name], xy=textxy, xycoords='axes fraction',
+            bbox=bbox
+            )
+    # Need to manually adjust the window for DT1 to avoid tick label overlap
+    if(name=='DT1'):
+        ax.set_ylim((-311,11))
+    ax.set_xscale('log')
+    ax.set_xlim((1e-6,10))
+    return
+
+def _3curve_panel(ax, name):
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    # 3 curve version
+    F_domin = _select_mff(name, dl2, nff='ba')
+    F_holog = _select_mff(name, dl2, nff='hz')
+    F_point = _select_mff(name, dl2, nff='point')
+    ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Meson dominance')
+    ax.plot(dl2, F_holog, '--', linewidth=2.6, color='tab:green',  label=r'Holography')
+    ax.plot(dl2, F_point, '-.', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
+    # Line at zero to help guide the eye
+    ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.5')
+    if(name=='cU' or name=='DU' or name=='DT1'):
+        textxy = (0.74,0.09)
+    elif(name=='cT1'):
+        textxy = (0.05,0.09)
+    else:
+        textxy = (0.05,0.09)
+    ax.annotate(
+            _namelabel[name], xy=textxy, xycoords='axes fraction',
+            bbox=bbox
+            )
+    # Need to manually adjust the window for DT1 to avoid tick label overlap
+    if(name=='DT1'):
+        ax.set_ylim((-311,11))
+    ax.set_xscale('log')
+    ax.set_xlim((1e-6,10))
+    return
+
+def _2curve_panel(ax, name):
+    dl2 = np.geomspace(1e-6, 1e1, 666)
+    # 3 curve version
+    F_domin = _select_mff(name, dl2, nff='ba')
+    F_holog = _select_mff(name, dl2, nff='hz')
+    F_point = _select_mff(name, dl2, nff='point')
+    ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Meson dominance')
+    ax.plot(dl2, F_point, '-.', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
+    # Line at zero to help guide the eye
+    ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.5')
+    if(name=='cU' or name=='DU' or name=='DT1'):
+        textxy = (0.74,0.09)
+    elif(name=='cT1'):
+        textxy = (0.05,0.09)
+    else:
+        textxy = (0.05,0.09)
+    ax.annotate(
+            _namelabel[name], xy=textxy, xycoords='axes fraction',
+            bbox=bbox
+            )
+    # Need to manually adjust the window for DT1 to avoid tick label overlap
+    if(name=='DT1'):
+        ax.set_ylim((-311,11))
+    ax.set_xscale('log')
+    ax.set_xlim((1e-6,10))
+    return
 
 def _group_comparison_panel(ax, name):
     # MFF from other papers
@@ -116,7 +280,7 @@ def _group_comparison_panel(ax, name):
     # Our MFF
     dl2 = np.geomspace(1e-6, 1e1, 666)
     F = _select_mff(name, dl2, nff='hz') # Use HZ NFFs for apples-to-apples comparison
-    # Use the Tableau Palette (default as of v2),
+    # Use the Tableau Palette (default as of matplotlib v2),
     # since it was designed with accessibility in mind.
     ax.plot(dl2,    F,    '-',  linewidth=2.6, color='tab:blue',  label=r'Ours')
     ax.plot(dl2_wc, F_wc, '--', linewidth=2.6, color='tab:orange',label=r'Freese and Cosyn')
@@ -125,7 +289,6 @@ def _group_comparison_panel(ax, name):
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
-    ##ax.set_ylabel(_namelabel[name])
     bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.5')
     if(name=='AU' or name=='AT' or name=='J'):
         textxy = (0.74,0.88)
@@ -143,4 +306,3 @@ def _group_comparison_panel(ax, name):
         ax.set_ylim((-0.69,1.37))
     ax.set_xlim((1e-6,10))
     return
-
