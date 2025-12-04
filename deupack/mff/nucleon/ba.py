@@ -7,7 +7,6 @@
 #   Broniowski:2025ctl
 
 from ...constants import mN
-from ..utils import regulate_zero
 
 def AN(k):
     ''' See Eq. (49) of Broniowski:2025ctl '''
@@ -46,7 +45,6 @@ def ThetaN(k):
 
 def DN(k):
     ''' See Eq. (15) of Broniowski:2025ctl '''
-    k = regulate_zero(k)
     t = -k**2
     P2 = mN**2 - t/4
     return ( (4*P2*AN(k) - 4*mN*ThetaN(k))/t + 2*JN(k) )/3
