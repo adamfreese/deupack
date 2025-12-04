@@ -369,6 +369,9 @@ def plot_mass_3d(nff='ba', wf='av18',
 def plot_stress_3d(nff='ba', wf='av18',
                    nb=150, # try smaller number (e.g., 50) for testing
                    bmax=2.8):
+    # TODO:
+    # pointlike results look wrong; too much support in mj=1 azimuthal pressure
+    # form factors seem to be solid; error probably in density formulas...
     t_0 = time.time()
     # Load or create the stresses
     b = np.linspace(-bmax, bmax, nb)
@@ -378,11 +381,21 @@ def plot_stress_3d(nff='ba', wf='av18',
     labels = [
             r'$m_j=0$, radial pressure',
             r'$m_j=0$, azimuthal pressure',
-            r'$m_j=0$, $z$-direction pressure',
+            r'$m_j=0$, lateral pressure',
             r'$m_j=1$, radial pressure',
             r'$m_j=1$, azimuthal pressure',
-            r'$m_j=1$, $z$-direction pressure'
+            r'$m_j=1$, lateral pressure'
             ]
+    # Perhaps a maximum...?
+    # or maybe not.
+    vmax3d = max(
+            np.abs(pr0).max(),
+            np.abs(pt0).max(),
+            np.abs(pz0).max(),
+            np.abs(pr1).max(),
+            np.abs(pt1).max(),
+            np.abs(pz1).max()
+            ) / 2
     # Prepare figure
     nrows,ncols=2,3
     fig = plt.figure(figsize=(ncols*10,nrows*10+1))
@@ -391,7 +404,7 @@ def plot_stress_3d(nff='ba', wf='av18',
                    pr0, pt0, pz0, pr1, pt1, pz1,
                    labels=labels,
                    clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
-                   decay=3, opacity=0.53, cmap=cmr.iceburn,
+                   decay=3, opacity=0.53, cmap=cmr.iceburn, vmax3d=vmax3d,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
     ### Save as png, because pdf is insanely large
@@ -408,6 +421,7 @@ def get_stresses(nff='ba', wf='av18', nb=150, bmax=2.8):
     # But if we need to make them, save to a cache since this is expensive.
     cachefile = "stress_{}_{}_{:d}_{:.2f}.npy".format(nff,wf,nb,bmax)
     try:
+        assert(False)
         data = np.load(cachefile)
         pr0,pt0,pz0,pr1,pt1,pz1 = data
     except:
@@ -417,15 +431,15 @@ def get_stresses(nff='ba', wf='av18', nb=150, bmax=2.8):
         TijU   = D.stress_3D_U(b,b,b)
         TijT   = D.stress_3D_T(b,b,b)
         # Get the r, phi and z projections
-        rhat   = make_rhat(  b,b,b)
-        phihat = make_phihat(b,b,b)
-        zhat   = make_zhat(  b,b,b)
+        rhat = make_rhat(    b,b,b)
+        φhat = make_phihat(  b,b,b)
+        θhat = make_thetahat(b,b,b)
         prU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, rhat, rhat)
-        ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, phihat, phihat)
-        pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, zhat, zhat)
+        ptU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, φhat, φhat)
+        pzU = np.einsum('xyzij,xyzi,xyzj->xyz', TijU, θhat, θhat)
         prT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, rhat, rhat)
-        ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, phihat, phihat)
-        pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, zhat, zhat)
+        ptT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, φhat, φhat)
+        pzT = np.einsum('xyzij,xyzi,xyzj->xyz', TijT, θhat, θhat)
         # Get the spin projections
         pr0 = prU + 2/3*prT
         pt0 = ptU + 2/3*ptT
@@ -433,6 +447,14 @@ def get_stresses(nff='ba', wf='av18', nb=150, bmax=2.8):
         pr1 = prU - 1/3*prT
         pt1 = ptU - 1/3*ptT
         pz1 = pzU - 1/3*pzT
+        # temporary test
+        print("Some maximum and minimum vales....")
+        print("pr0", pr0.min(), pr0.max())
+        print("pt0", pt0.min(), pt0.max())
+        print("pz0", pz0.min(), pz0.max())
+        print("pr1", pr1.min(), pr1.max())
+        print("pt1", pt1.min(), pt1.max())
+        print("pz1", pz1.min(), pz1.max())
         # cache this since it's expensive
         np.save(cachefile, [pr0,pt0,pz0,pr1,pt1,pz1])
     return pr0,pt0,pz0,pr1,pt1,pz1
