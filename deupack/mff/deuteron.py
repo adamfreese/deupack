@@ -18,6 +18,8 @@ from ..wf.chooser import choose_wf
 # Import nucleon form factor chooser
 from .nucleon.chooser import choose_nff
 
+from .utils import regulate_zero
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The user interfaces for the form factors
 
@@ -388,42 +390,42 @@ def _AU(k, u, w, AN, rmin=0, rmax=np.inf):
     return integral * 2
 
 def _AT(k, u, w, AN, rmin=0, rmax=np.inf):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_AT_integrand, rmin, rmax,
                         args=(k,u,w,AN),
                         workers=8)[0]
     return integral * 2
 
 def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN, rmin=0, rmax=np.inf):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DU_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
 def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN, rmin=0, rmax=np.inf):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DT1_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
                         workers=8)[0]
     return integral * 2
 
 def _DT2(k, u, w, u1, w1, u2, w2, AN, JN, rmin=0, rmax=np.inf):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DT2_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN),
                         workers=8)[0]
     return integral * 2
 
 def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_cU_integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
                         workers=8)[0]
     return integral * 2
 
 def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf, formula='cT1'):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     if(formula=='cT1'):
         integrand = _cT1_integrand
     elif(formula=='cT1Alan'):
@@ -436,7 +438,7 @@ def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf, formu
     return integral * 2
 
 def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, rmin=0, rmax=np.inf, formula='cT2'):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     if(formula=='cT2'):
         integrand = _cT2_integrand
     elif(formula=='cT2Adam3'):
@@ -453,7 +455,7 @@ def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, rmin=0, rmax=np.inf, formula='
     return integral * 2
 
 def _J(k, u, w, u1, w1, AN, JN, rmin=0, rmax=np.inf, formula='form1'):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     if(formula=='form1'):
         integrand = _J_integrand
     elif(formula=='form2'):
@@ -466,7 +468,7 @@ def _J(k, u, w, u1, w1, AN, JN, rmin=0, rmax=np.inf, formula='form1'):
     return integral * 2
 
 def _S(k, u, w, SN, rmin=0, rmax=np.inf):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_S_integrand, rmin, rmax,
                         args=(k, u, w, SN),
                         workers=8)[0]
@@ -474,7 +476,7 @@ def _S(k, u, w, SN, rmin=0, rmax=np.inf):
 
 
 def _sbar(k, u, w, u1, w1, u2, w2, u3, w3,SN, rmin=0, rmax=np.inf, formula='sbar'):
-    k = _regulate_zero(k) # avoid division by zero
+    k = regulate_zero(k) # avoid division by zero
     if(formula=='sbar'):
         integrand = _sbar_integrandAdam
     elif(formula=='sbarAlan'):
@@ -485,21 +487,6 @@ def _sbar(k, u, w, u1, w1, u2, w2, u3, w3,SN, rmin=0, rmax=np.inf, formula='sbar
                         args=( k, u, w,u1,w1 ,u2,w2,SN),
                         workers=8)[0]
     return integral * 2
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Misc utilities
-
-def _regulate_zero(X):
-    ''' Takes a scalar or an array, and if it is or contains 0,
-    the 0 is shifted.
-    '''
-    epsilon = 1e-6
-    if(np.isscalar(X)):
-        if(X==0):
-            X += epsilon
-    else:
-        X[X==0] = epsilon
-    return X
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Temporary stuff for internal cross-checks
