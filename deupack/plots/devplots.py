@@ -366,6 +366,34 @@ def plot_mass_3d(nff='ba', wf='av18',
     print("Time to save plots:               {:.3f} s".format(t_C-t_B))
     return
 
+def plot_candy_shell_3d(nff='ba', wf='av18',
+                 nb=120, # try smaller number (e.g., 50) for testing
+                 bmax=2.0):
+    t_0 = time.time()
+    D = Density(nff=nff, wf=wf)
+    b = np.linspace(-bmax, bmax, nb)
+    MU = D.mass_3D_U(b,b,b)
+    MT = D.mass_3D_T(b,b,b)
+    t_A = time.time()
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*11,nrows*11))
+    labels = [r'Unpolarized', r'Tensor-polarized']
+    multidensity3d(fig, b, b, b,
+                   nrows, ncols,
+                   MU, MT,
+                   labels=labels,
+                   clabel=r'Two-dimensional mass densities (GeV/fm$^2$)',
+                   decay=4, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    t_B = time.time()
+    fig.savefig('mass_UT_3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    t_C = time.time()
+    print("Time to calculate mass densities: {:.3f} s".format(t_A-t_0))
+    print("Time to plot mass densities:      {:.3f} s".format(t_B-t_A))
+    print("Time to save plots:               {:.3f} s".format(t_C-t_B))
+    return
+
 def plot_momentum_3d(nff='ba', wf='av18',
                      nb=120,
                      bmax=2.0):
