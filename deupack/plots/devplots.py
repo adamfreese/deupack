@@ -356,7 +356,7 @@ def plot_mass_3d(nff='ba', wf='av18',
                    M0, M1,
                    labels=labels,
                    clabel=r'Two-dimensional mass densities (GeV/fm$^2$)',
-                   decay=3, opacity=0.53, cmap=cmr.voltage,
+                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
                    projections=True, divergent=False, s=1)
     t_B = time.time()
     fig.savefig('mass3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
@@ -375,8 +375,7 @@ def plot_momentum_3d(nff='ba', wf='av18',
     φhat = make_phihat(b,b,b)
     M1 = np.einsum('xyzi,xyzi->xyz', M1_vec, φhat)
     M0 = M1*0
-    print(M1.min(), M1.max())
-    #
+    # Prepare figure
     nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*11,nrows*11))
     labels = [r'$m_j=0$', r'$m_j=1$']
@@ -385,17 +384,14 @@ def plot_momentum_3d(nff='ba', wf='av18',
                    M0, M1,
                    labels=labels,
                    clabel=r'Two-dimensional momentum densities (GeV/fm$^2$)',
-                   decay=3, opacity=0.53, cmap=cmr.voltage,
-                   projections=False, divergent=False, s=1)
+                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
+                   projections=True, divergent=False, s=1)
     fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
     return
 
 def plot_stress_3d(nff='ba', wf='av18',
                    nb=120, # try smaller number (e.g., 50) for testing
                    bmax=2.0):
-    # TODO:
-    # pointlike results look wrong; too much support in mj=1 azimuthal pressure
-    # form factors seem to be solid; error probably in density formulas...
     t_0 = time.time()
     # Load or create the stresses
     b = np.linspace(-bmax, bmax, nb)
@@ -410,16 +406,6 @@ def plot_stress_3d(nff='ba', wf='av18',
             r'$m_j=1$, azimuthal pressure',
             r'$m_j=1$, lateral pressure'
             ]
-    # Perhaps a maximum...?
-    # or maybe not.
-    vmax3d = max(
-            np.abs(pr0).max(),
-            np.abs(pt0).max(),
-            np.abs(pz0).max(),
-            np.abs(pr1).max(),
-            np.abs(pt1).max(),
-            np.abs(pz1).max()
-            ) / 2
     # Prepare figure
     nrows,ncols=2,3
     fig = plt.figure(figsize=(ncols*10,nrows*10+1))
@@ -428,7 +414,7 @@ def plot_stress_3d(nff='ba', wf='av18',
                    pr0, pt0, pz0, pr1, pt1, pz1,
                    labels=labels,
                    clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
-                   decay=3, opacity=0.53, cmap=cmr.iceburn, vmax3d=vmax3d,
+                   decay=4, opacity=0.69, cmap=cmr.fusion_r, #vmax3d=vmax3d,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
     ### Save as png, because pdf is insanely large
@@ -445,7 +431,6 @@ def get_stresses(nff='ba', wf='av18', nb=120, bmax=2.0):
     # But if we need to make them, save to a cache since this is expensive.
     cachefile = "stress_{}_{}_{:d}_{:.2f}.npy".format(nff,wf,nb,bmax)
     try:
-        assert(False)
         data = np.load(cachefile)
         pr0,pt0,pz0,pr1,pt1,pz1 = data
     except:
@@ -471,14 +456,6 @@ def get_stresses(nff='ba', wf='av18', nb=120, bmax=2.0):
         pr1 = prU - 1/3*prT
         pt1 = ptU - 1/3*ptT
         pz1 = pzU - 1/3*pzT
-        # temporary test
-        print("Some maximum and minimum vales....")
-        print("pr0", pr0.min(), pr0.max())
-        print("pt0", pt0.min(), pt0.max())
-        print("pz0", pz0.min(), pz0.max())
-        print("pr1", pr1.min(), pr1.max())
-        print("pt1", pt1.min(), pt1.max())
-        print("pz1", pz1.min(), pz1.max())
         # cache this since it's expensive
         np.save(cachefile, [pr0,pt0,pz0,pr1,pt1,pz1])
     return pr0,pt0,pz0,pr1,pt1,pz1
