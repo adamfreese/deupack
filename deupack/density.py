@@ -162,8 +162,11 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.momentum_1D(b)
-        sxb = make_phihat(x,y,z)
-        return sxb * scalar
+        s = make_zhat(x,y,z)
+        r = make_rhat(x,y,z)
+        sxb = cross_product(s,r)
+        result = np.einsum('xyz,xyzi->xyzi', scalar, sxb)
+        return result
 
     def flux_3D(self, x, y, z):
         ''' Three-dimensional mass flux density of the deuteron.
@@ -175,8 +178,11 @@ class Density:
         x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
         b = np.sqrt(x_**2 + y_**2 + z_**2)
         scalar = self.flux_1D(b)
-        sxb = make_phihat(x,y,z)
-        return sxb * scalar
+        s = make_zhat(x,y,z)
+        r = make_rhat(x,y,z)
+        sxb = cross_product(s,r)
+        result = np.einsum('xyz,xyzi->xyzi', scalar, sxb)
+        return result
 
     def stress_3D_U(self, x, y, z):
         ''' Three-dimensional stress tensor of the deuteron.
@@ -426,6 +432,14 @@ def make_thetahat(x,y,z):
     thetahat[...,1] = x_*z_/(rho_*r_)
     thetahat[...,2] = y_*z_/(rho_*r_)
     return thetahat
+
+def cross_product(A,B):
+    # TODO: docstring
+    C = np.zeros(A.shape)
+    C[...,0] = A[...,1]*B[...,2] - A[...,2]*B[...,1]
+    C[...,1] = A[...,2]*B[...,0] - A[...,0]*B[...,2]
+    C[...,2] = A[...,0]*B[...,1] - A[...,1]*B[...,0]
+    return C
 
 def make_kronecker(x, y, z):
     # TODO: docstring

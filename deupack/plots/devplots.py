@@ -337,8 +337,8 @@ def plot_J():
 # 3D density plots
 
 def plot_mass_3d(nff='ba', wf='av18',
-                 nb=150, # try smaller number (e.g., 50) for testing
-                 bmax=2.8):
+                 nb=120, # try smaller number (e.g., 50) for testing
+                 bmax=2.0):
     t_0 = time.time()
     D = Density(nff=nff, wf=wf)
     b = np.linspace(-bmax, bmax, nb)
@@ -366,9 +366,33 @@ def plot_mass_3d(nff='ba', wf='av18',
     print("Time to save plots:               {:.3f} s".format(t_C-t_B))
     return
 
+def plot_momentum_3d(nff='ba', wf='av18',
+                     nb=120,
+                     bmax=2.0):
+    D = Density(nff=nff, wf=wf)
+    b = np.linspace(-bmax, bmax, nb)
+    M1_vec = D.momentum_3D(b,b,b)
+    φhat = make_phihat(b,b,b)
+    M1 = np.einsum('xyzi,xyzi->xyz', M1_vec, φhat)
+    M0 = M1*0
+    print(M1.min(), M1.max())
+    #
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*11,nrows*11))
+    labels = [r'$m_j=0$', r'$m_j=1$']
+    multidensity3d(fig, b, b, b,
+                   nrows, ncols,
+                   M0, M1,
+                   labels=labels,
+                   clabel=r'Two-dimensional momentum densities (GeV/fm$^2$)',
+                   decay=3, opacity=0.53, cmap=cmr.voltage,
+                   projections=False, divergent=False, s=1)
+    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    return
+
 def plot_stress_3d(nff='ba', wf='av18',
-                   nb=150, # try smaller number (e.g., 50) for testing
-                   bmax=2.8):
+                   nb=120, # try smaller number (e.g., 50) for testing
+                   bmax=2.0):
     # TODO:
     # pointlike results look wrong; too much support in mj=1 azimuthal pressure
     # form factors seem to be solid; error probably in density formulas...
@@ -415,7 +439,7 @@ def plot_stress_3d(nff='ba', wf='av18',
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
-def get_stresses(nff='ba', wf='av18', nb=150, bmax=2.8):
+def get_stresses(nff='ba', wf='av18', nb=120, bmax=2.0):
     # Try loading a cache file.
     # If that doesn't work, then we actually need to make the densities.
     # But if we need to make them, save to a cache since this is expensive.
