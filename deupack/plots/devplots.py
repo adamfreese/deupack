@@ -340,18 +340,16 @@ def plot_mass_3d(nff='ba', wf='av18',
                  nb=120, # try smaller number (e.g., 50) for testing
                  bmax=2.0):
     t_0 = time.time()
-    D = Density(nff=nff, wf=wf)
-    b = np.linspace(-bmax, bmax, nb)
-    MU = D.mass_3D_U(b,b,b)
-    MT = D.mass_3D_T(b,b,b)
-    M0 = MU + 2/3*MT
-    M1 = MU - 1/3*MT
+    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    ###b = np.linspace(-bmax, bmax, nb)
+    M0 = D.mass_density(pol=0)
+    M1 = D.mass_density(pol=1)
     t_A = time.time()
     # Prepare figure
     nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*11,nrows*11))
     labels = [r'$m_j=0$', r'$m_j=1$']
-    multidensity3d(fig, b, b, b,
+    multidensity3d(fig, D.x, D.x, D.x,
                    nrows, ncols,
                    M0, M1,
                    labels=labels,
@@ -366,74 +364,43 @@ def plot_mass_3d(nff='ba', wf='av18',
     print("Time to save plots:               {:.3f} s".format(t_C-t_B))
     return
 
-def plot_candy_shell_3d(nff='ba', wf='av18',
-                 nb=120, # try smaller number (e.g., 50) for testing
-                 bmax=2.0):
-    t_0 = time.time()
-    D = Density(nff=nff, wf=wf)
-    b = np.linspace(-bmax, bmax, nb)
-    MU = D.mass_3D_U(b,b,b)
-    MT = D.mass_3D_T(b,b,b)
-    t_A = time.time()
-    # Prepare figure
-    nrows,ncols=1,2
-    fig = plt.figure(figsize=(ncols*11,nrows*11))
-    labels = [r'Unpolarized', r'Tensor-polarized']
-    multidensity3d(fig, b, b, b,
-                   nrows, ncols,
-                   MU, MT,
-                   labels=labels,
-                   clabel=r'Two-dimensional mass densities (GeV/fm$^2$)',
-                   decay=4, opacity=0.69, cmap=cmr.fusion_r,
-                   projections=True, divergent=True, s=1)
-    t_B = time.time()
-    fig.savefig('mass_UT_3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
-    t_C = time.time()
-    print("Time to calculate mass densities: {:.3f} s".format(t_A-t_0))
-    print("Time to plot mass densities:      {:.3f} s".format(t_B-t_A))
-    print("Time to save plots:               {:.3f} s".format(t_C-t_B))
-    return
-
-def plot_momentum_3d(nff='ba', wf='av18',
-                     nb=120,
-                     bmax=2.0):
-    D = Density(nff=nff, wf=wf)
-    b = np.linspace(-bmax, bmax, nb)
-    M1_vec = D.momentum_3D(b,b,b)
-    φhat = make_phihat(b,b,b)
-    M1 = np.einsum('xyzi,xyzi->xyz', M1_vec, φhat)
-    M0 = M1*0
-    # Prepare figure
-    nrows,ncols=1,2
-    fig = plt.figure(figsize=(ncols*11,nrows*11))
-    labels = [r'$m_j=0$', r'$m_j=1$']
-    multidensity3d(fig, b, b, b,
-                   nrows, ncols,
-                   M0, M1,
-                   labels=labels,
-                   clabel=r'Two-dimensional momentum densities (GeV/fm$^2$)',
-                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
-                   projections=True, divergent=False, s=1)
-    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
-    return
+# TODO: redo this with refactored density class
+#def plot_momentum_3d(nff='ba', wf='av18',
+#                     nb=120,
+#                     bmax=2.0):
+#    D = Density(nff=nff, wf=wf)
+#    b = np.linspace(-bmax, bmax, nb)
+#    M1_vec = D.momentum_3D(b,b,b)
+#    φhat = make_phihat(b,b,b)
+#    M1 = np.einsum('xyzi,xyzi->xyz', M1_vec, φhat)
+#    M0 = M1*0
+#    # Prepare figure
+#    nrows,ncols=1,2
+#    fig = plt.figure(figsize=(ncols*11,nrows*11))
+#    labels = [r'$m_j=0$', r'$m_j=1$']
+#    multidensity3d(fig, b, b, b,
+#                   nrows, ncols,
+#                   M0, M1,
+#                   labels=labels,
+#                   clabel=r'Two-dimensional momentum densities (GeV/fm$^2$)',
+#                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
+#                   projections=True, divergent=False, s=1)
+#    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+#    return
 
 def plot_normal_stress_3d(nff='ba', wf='av18',
                    nb=120, # try smaller number (e.g., 50) for testing
                    bmax=2.0):
     t_0 = time.time()
     # Load or create the stresses
-    b = np.linspace(-bmax, bmax, nb)
-    Tij0, Tij1 = get_stresses(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    # The normal components
-    rhat = make_rhat(b,b,b)
-    θhat = make_thetahat(b,b,b)
-    φhat = make_phihat(b,b,b)
-    pr0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, rhat, rhat)
-    pθ0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, θhat, θhat)
-    pφ0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, φhat, φhat)
-    pr1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, rhat, rhat)
-    pθ1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, θhat, θhat)
-    pφ1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, φhat, φhat)
+    ###b = np.linspace(-bmax, bmax, nb)
+    D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
+    pr0 = D.radial_pressure(   pol=0)
+    pθ0 = D.lateral_pressure(  pol=0)
+    pφ0 = D.azimuthal_pressure(pol=0)
+    pr1 = D.radial_pressure(   pol=1)
+    pθ1 = D.lateral_pressure(  pol=1)
+    pφ1 = D.azimuthal_pressure(pol=1)
     t_A = time.time()
     # Make some labels
     labels = [
@@ -447,7 +414,7 @@ def plot_normal_stress_3d(nff='ba', wf='av18',
     # Prepare figure
     nrows,ncols=2,3
     fig = plt.figure(figsize=(ncols*10,nrows*10+1))
-    multidensity3d(fig, b, b, b,
+    multidensity3d(fig, D.x, D.x, D.x,
                    nrows, ncols,
                    pr0, pθ0, pφ0, pr1, pθ1, pφ1,
                    labels=labels,
@@ -462,147 +429,6 @@ def plot_normal_stress_3d(nff='ba', wf='av18',
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
-
-def plot_radial_shear_3d(nff='ba', wf='av18', nb=120, bmax=2.0):
-    t_0 = time.time()
-    # Load or create the stresses
-    b = np.linspace(-bmax, bmax, nb)
-    Tij0, Tij1 = get_stresses(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    # The normal components
-    rhat = make_rhat(b,b,b)
-    θhat = make_thetahat(b,b,b)
-    φhat = make_phihat(b,b,b)
-    pθ0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, θhat, rhat)
-    pφ0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, φhat, rhat)
-    pθ1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, θhat, rhat)
-    pφ1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, φhat, rhat)
-    t_A = time.time()
-    # Make some labels
-    labels = [
-            r'$m_j=0$, $\langle T^{\theta r}\rangle$',
-            r'$m_j=0$, $\langle T^{\phi   r}\rangle$',
-            r'$m_j=1$, $\langle T^{\theta r}\rangle$',
-            r'$m_j=1$, $\langle T^{\phi   r}\rangle$'
-            ]
-    # Prepare figure
-    nrows,ncols=2,2
-    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
-    multidensity3d(fig, b, b, b,
-                   nrows, ncols,
-                   pθ0, pφ0, pθ1, pφ1,
-                   labels=labels,
-                   clabel=r'Two-dimensional shear projections (GeV/fm$^2$)',
-                   decay=4, opacity=0.69, cmap=cmr.fusion_r,
-                   projections=True, divergent=True, s=1)
-    t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('radial_shear3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
-    t_C = time.time()
-    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
-    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
-    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
-    return
-
-def plot_azimuthal_shear_3d(nff='ba', wf='av18', nb=120, bmax=2.0):
-    t_0 = time.time()
-    # Load or create the stresses
-    b = np.linspace(-bmax, bmax, nb)
-    Tij0, Tij1 = get_stresses(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    # The normal components
-    rhat = make_rhat(b,b,b)
-    θhat = make_thetahat(b,b,b)
-    φhat = make_phihat(b,b,b)
-    pr0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, rhat, φhat)
-    pθ0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, θhat, φhat)
-    pr1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, rhat, φhat)
-    pθ1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, θhat, φhat)
-    t_A = time.time()
-    # Make some labels
-    labels = [
-            r'$m_j=0$, $\langle T^{r      \phi}\rangle$',
-            r'$m_j=0$, $\langle T^{\theta \phi}\rangle$',
-            r'$m_j=1$, $\langle T^{r      \phi}\rangle$',
-            r'$m_j=1$, $\langle T^{\theta \phi}\rangle$'
-            ]
-    # Prepare figure
-    nrows,ncols=2,2
-    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
-    multidensity3d(fig, b, b, b,
-                   nrows, ncols,
-                   pr0, pθ0, pr1, pθ1,
-                   labels=labels,
-                   clabel=r'Two-dimensional shear projections (GeV/fm$^2$)',
-                   decay=4, opacity=0.69, cmap=cmr.fusion_r,
-                   projections=True, divergent=True, s=1)
-    t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('azimuthal_shear_3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
-    t_C = time.time()
-    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
-    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
-    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
-    return
-
-def plot_lateral_shear_3d(nff='ba', wf='av18', nb=120, bmax=2.0):
-    t_0 = time.time()
-    # Load or create the stresses
-    b = np.linspace(-bmax, bmax, nb)
-    Tij0, Tij1 = get_stresses(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    # The normal components
-    rhat = make_rhat(b,b,b)
-    θhat = make_thetahat(b,b,b)
-    φhat = make_phihat(b,b,b)
-    pr0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, rhat, θhat)
-    pφ0 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij0, φhat, θhat)
-    pr1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, rhat, θhat)
-    pφ1 = np.einsum('xyzij,xyzi,xyzj->xyz', Tij1, φhat, θhat)
-    t_A = time.time()
-    # Make some labels
-    labels = [
-            r'$m_j=0$, $\langle T^{r    \theta}\rangle$',
-            r'$m_j=0$, $\langle T^{\phi \theta}\rangle$',
-            r'$m_j=1$, $\langle T^{r    \theta}\rangle$',
-            r'$m_j=1$, $\langle T^{\phi \theta}\rangle$'
-            ]
-    # Prepare figure
-    nrows,ncols=2,2
-    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
-    multidensity3d(fig, b, b, b,
-                   nrows, ncols,
-                   pr0, pφ0, pr1, pφ1,
-                   labels=labels,
-                   clabel=r'Two-dimensional shear projections (GeV/fm$^2$)',
-                   decay=4, opacity=0.69, cmap=cmr.fusion_r,
-                   projections=True, divergent=True, s=1)
-    t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('lateral_shear_3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
-    t_C = time.time()
-    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
-    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
-    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
-    return
-
-def get_stresses(nff='ba', wf='av18', nb=120, bmax=2.0):
-    # Try loading a cache file.
-    # If that doesn't work, then we actually need to make the densities.
-    # But if we need to make them, save to a cache since this is expensive.
-    cachefile = "stress_{}_{}_{:d}_{:.2f}.npy".format(nff,wf,nb,bmax)
-    try:
-        data = np.load(cachefile)
-        Tij0, Tij1 = data
-    except:
-        D = Density(nff=nff, wf=wf)
-        b = np.linspace(-bmax, bmax, nb)
-        # Unpolarized and tensor-polarized
-        TijU = D.stress_3D_U(b,b,b)
-        TijT = D.stress_3D_T(b,b,b)
-        # Realistic pure states
-        Tij0 = TijU + 2/3*TijT
-        Tij1 = TijU - 1/3*TijT
-        # cache this since it's expensive
-        np.save(cachefile,[Tij0,Tij1])
-    return Tij0, Tij1
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 3D potential energy plot
