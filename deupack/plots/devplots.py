@@ -334,6 +334,97 @@ def plot_J():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 2D density or quiver plots
+
+def doublequiver(ax, x, y, vx, vy):
+    quiver_kwargs_white = {
+            'color' : 'white',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'tail',
+            'scale' : x.shape[0]/x.max(),
+            'width' : 0.004
+            }
+    quiver_kwargs_black = {
+            'color' : 'black',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'tail',
+            'scale' : 5/4*x.shape[0]/x.max(),
+            'width' : 0.003
+            }
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_white)
+    ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs_white)
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_black)
+    ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs_black)
+    return
+
+def eigenvectors(nff='ba', wf='av18'):
+    # Parameters for this visualization (fixed)
+    bmax = 2
+    # Quiver plot calculations
+    nbq = 21
+    Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
+    bq = Dq.x
+    Xp0, Yp0, Zp0 = Dq.e_plus( pol=0)
+    Xp1, Yp1, Zp1 = Dq.e_plus( pol=1)
+    Xm0, Ym0, Zm0 = Dq.e_minus(pol=0)
+    Xm1, Ym1, Zm1 = Dq.e_minus(pol=1)
+    # Slice at y=0
+    xp0 = Xp0[:,nbq//2,:]
+    zp0 = Zp0[:,nbq//2,:]
+    xp1 = Xp1[:,nbq//2,:]
+    zp1 = Zp1[:,nbq//2,:]
+    xm0 = Xm0[:,nbq//2,:]
+    zm0 = Zm0[:,nbq//2,:]
+    xm1 = Xm1[:,nbq//2,:]
+    zm1 = Zm1[:,nbq//2,:]
+    # Density heat map calculations
+    nbh = 101
+    Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
+    bh = Dh.x
+    PLS0 = Dh.pseudoradial_pressure( pol=0)
+    MIN0 = Dh.pseudolateral_pressure(pol=0)
+    PLS1 = Dh.pseudoradial_pressure( pol=1)
+    MIN1 = Dh.pseudolateral_pressure(pol=1)
+    # Slice at y=0
+    pls0 = PLS0[:,nbh//2,:]
+    min0 = MIN0[:,nbh//2,:]
+    pls1 = PLS1[:,nbh//2,:]
+    min1 = MIN1[:,nbh//2,:]
+    # Prepare figure
+    nrows,ncols=2,2
+    fig = plt.figure(figsize=(ncols*6,nrows*6), layout='constrained')
+    ax0p = plt.subplot(nrows,ncols,1,aspect='equal')
+    ax0m = plt.subplot(nrows,ncols,2,aspect='equal')
+    ax1p = plt.subplot(nrows,ncols,3,aspect='equal')
+    ax1m = plt.subplot(nrows,ncols,4,aspect='equal')
+    # Heat maps ... NOTE: need transpose of mapped values!
+    vmax = np.max([abs(pls0).max(), abs(min0).max(), abs(pls1).max(), abs(min1).max()])
+    c0p = ax0p.pcolormesh(bh, bh, pls0.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
+    c0m = ax0m.pcolormesh(bh, bh, min0.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
+    c1p = ax1p.pcolormesh(bh, bh, pls1.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
+    c1m = ax1m.pcolormesh(bh, bh, min1.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
+    # Quivers ... NOTE: need to take transpose of values for correct orientation!!!!
+    doublequiver(ax0p, bq, bq, xp0, zp0)
+    doublequiver(ax0m, bq, bq, xm0, zm0)
+    doublequiver(ax1p, bq, bq, xp1, zp1)
+    doublequiver(ax1m, bq, bq, xm1, zm1)
+    # Finish up
+    for ax in [ax0p, ax0m, ax1p, ax1m]:
+        ax.set_xlabel(r'$x$ (fm)')
+        ax.set_ylabel(r'$z$ (fm)')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax0p.annotate(r'Pseudoradial,  $m_j=0$', xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax0m.annotate(r'Pseudolateral, $m_j=0$', xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax1p.annotate(r'Pseudoradial,  $m_j=1$', xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax1m.annotate(r'Pseudolateral, $m_j=1$', xy=textxy, xycoords='axes fraction', bbox=bbox)
+    fig.patch.set_alpha(0)
+    fig.savefig('eigenvectors_{}_{}.pdf'.format(wf,nff))
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 3D density plots
 
 def plot_mass_3d(nff='ba', wf='av18', nb=151, bmax=2):

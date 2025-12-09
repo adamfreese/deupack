@@ -210,14 +210,50 @@ class Density:
         pr = self.radial_pressure(pol=pol)
         pt = self.lateral_pressure(pol=pol)
         s = self.symmetric_shear(pol=pol)
-        return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
+        #return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
+        return 0.5*(pr + pt + (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
 
     def pseudolateral_pressure(self, pol='U'):
         ''' Eigenpressure closest to the lateral direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
         pt = self.lateral_pressure(pol=pol)
         s = self.symmetric_shear()
-        return 0.5*(pr+pt - np.sqrt((pr-pt)**2+4*s**2))
+        #return 0.5*(pr+pt - np.sqrt((pr-pt)**2+4*s**2))
+        return 0.5*(pr + pt - (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
+
+    # Unit eigenvectors of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def e_plus(self, pol='U'):
+        ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
+        components of the pseudoradial eigenvector of the symmetric stress
+        tensor.
+        '''
+        pr = self.radial_pressure( pol=pol)
+        pt = self.lateral_pressure(pol=pol)
+        s  = self.symmetric_shear( pol=pol)
+        sgn = np.sign(s)
+        R  = np.sqrt( 0.5*(1 + np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 - np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Z = R*np.cos(self.theta) - sgn*Th*np.sin(self.theta)
+        X = (R*np.sin(self.theta) + sgn*Th*np.cos(self.theta))*np.cos(self.phi)
+        Y = (R*np.sin(self.theta) + sgn*Th*np.cos(self.theta))*np.sin(self.phi)
+        return X, Y, Z
+
+    def e_minus(self, pol='U'):
+        ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
+        components of the pseudoradial eigenvector of the symmetric stress
+        tensor.
+        '''
+        pr = self.radial_pressure( pol=pol)
+        pt = self.lateral_pressure(pol=pol)
+        s  = self.symmetric_shear( pol=pol)
+        sgn = np.sign(s)
+        R  = np.sqrt( 0.5*(1 - np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 + np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Z = R*np.cos(self.theta) + sgn*Th*np.sin(self.theta)
+        X = (R*np.sin(self.theta) - sgn*Th*np.cos(self.theta))*np.cos(self.phi)
+        Y = (R*np.sin(self.theta) - sgn*Th*np.cos(self.theta))*np.sin(self.phi)
+        return X, Y, Z
 
     # Bessel transforms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -405,7 +441,7 @@ class Density:
         b = np.linspace(-self.bmax, self.bmax, self.nb)
         x, y, z = np.meshgrid(b, b, b, indexing='ij')
         self.b = np.sqrt(x**2 + y**2 + z**2)
-        self.theta = np.atan2(np.sqrt(x**2+y**2), z)
+        self.theta = np.atan2(np.sqrt(x**2+y**2 + 1e-9), z)
         self.phi = np.atan2(y, x)
         self.x = b # a 1D array to grab for making plots
         return
