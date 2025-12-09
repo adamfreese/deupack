@@ -336,9 +336,7 @@ def plot_J():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 3D density plots
 
-def plot_mass_3d(nff='ba', wf='av18',
-                 nb=120, # try smaller number (e.g., 50) for testing
-                 bmax=2.0):
+def plot_mass_3d(nff='ba', wf='av18', nb=151, bmax=2):
     t_0 = time.time()
     D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
     ###b = np.linspace(-bmax, bmax, nb)
@@ -353,7 +351,7 @@ def plot_mass_3d(nff='ba', wf='av18',
                    nrows, ncols,
                    M0, M1,
                    labels=labels,
-                   clabel=r'Two-dimensional mass densities (GeV/fm$^2$)',
+                   clabel=r'Mass densities (GeV/fm$^3$)',
                    decay=4, opacity=0.69, cmap=cmr.voltage_r,
                    projections=True, divergent=False, s=1)
     t_B = time.time()
@@ -366,7 +364,7 @@ def plot_mass_3d(nff='ba', wf='av18',
 
 # TODO: redo this with refactored density class
 #def plot_momentum_3d(nff='ba', wf='av18',
-#                     nb=120,
+#                     nb=151,
 #                     bmax=2.0):
 #    D = Density(nff=nff, wf=wf)
 #    b = np.linspace(-bmax, bmax, nb)
@@ -388,9 +386,7 @@ def plot_mass_3d(nff='ba', wf='av18',
 #    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
 #    return
 
-def plot_normal_stress_3d(nff='ba', wf='av18',
-                   nb=120, # try smaller number (e.g., 50) for testing
-                   bmax=2.0):
+def plot_normal_stress_3d(nff='ba', wf='av18', nb=151, bmax=2):
     t_0 = time.time()
     # Load or create the stresses
     ###b = np.linspace(-bmax, bmax, nb)
@@ -418,7 +414,7 @@ def plot_normal_stress_3d(nff='ba', wf='av18',
                    nrows, ncols,
                    pr0, pθ0, pφ0, pr1, pθ1, pφ1,
                    labels=labels,
-                   clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
+                   clabel=r'Normal stresses (GeV/fm$^3$)',
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
@@ -430,12 +426,12 @@ def plot_normal_stress_3d(nff='ba', wf='av18',
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
-def plot_shear_stress_3d(nff='ba', wf='av18', nb=120, bmax=2):
+def plot_shear_stress_3d(nff='ba', wf='av18', nb=151, bmax=2):
     t_0 = time.time()
     # Load or create the stresses
     ###b = np.linspace(-bmax, bmax, nb)
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    s= D.symmetric_shear()
+    s= D.symmetric_shear(pol='T')
     t_A = time.time()
     # Make some labels
     labels = [
@@ -448,7 +444,7 @@ def plot_shear_stress_3d(nff='ba', wf='av18', nb=120, bmax=2):
                    nrows, ncols,
                    s,
                    labels=labels,
-                   clabel=r'Two-dimensional shear projections (GeV/fm$^2$)',
+                   clabel=r'Shear stress (GeV/fm$^3$)',
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
@@ -460,9 +456,7 @@ def plot_shear_stress_3d(nff='ba', wf='av18', nb=120, bmax=2):
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
-def plot_eigenpressures_3d(nff='ba', wf='av18',
-                   nb=120, # try smaller number (e.g., 50) for testing
-                   bmax=2.0):
+def plot_eigenpressures_3d(nff='ba', wf='av18', nb=151, bmax=2):
     t_0 = time.time()
     # Load or create the stresses
     ###b = np.linspace(-bmax, bmax, nb)
@@ -490,7 +484,7 @@ def plot_eigenpressures_3d(nff='ba', wf='av18',
                    nrows, ncols,
                    pr0, pθ0, pφ0, pr1, pθ1, pφ1,
                    labels=labels,
-                   clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
+                   clabel=r'Eigenpressures (GeV/fm$^3$)',
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
@@ -534,6 +528,6 @@ def plot_potential_energy(nb=60, bmax=2.0):
                    clabel=r'$\psi^\dagger V_{\mathrm{eff}} \psi / (\psi^\dagger \psi)$ (MeV)',
                    decay=2, opacity=0.07, cmap=cmr.iceburn,
                    projections=False, divergent=True, s=1,
-                   vmax3d=5, vmax=5)
+                   vmax=5)
     fig.savefig('potential.png', dpi=150)
     return
