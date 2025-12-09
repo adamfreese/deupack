@@ -178,6 +178,48 @@ class Density:
             self._pol_error(pol)
         return
 
+    def symmetric_shear(self, pol='U'):
+        ''' Symmetric shear in the r-theta directions, in GeV/fm**3. '''
+        theta_dep = 0.5*np.sin(2*self.theta)
+        b_dep = (
+                -
+                1/5*self._shear_bessel_T1(0)
+                -
+                1/7*self._shear_bessel_T1(2)
+                +
+                12/35*self._shear_bessel_T1(4)
+                -
+                3/2*self._pressure_bessel_T2()
+                -
+                self._shear_bessel_T2()
+                )
+        shear = theta_dep*b_dep
+        if(pol=='U'):
+            shear *= 0
+        elif(pol=='T'):
+            pass
+        elif(pol==0):
+            shear *= 2/3
+        elif(pol==1 or pol==-1):
+            shear *= -1/3
+        else:
+            self._pol_error(pol)
+        return shear
+
+    def pseudoradial_pressure(self, pol='U'):
+        ''' Eigenpressure closest to the radial direction, in GeV/fm**3. '''
+        pr = self.radial_pressure(pol=pol)
+        pt = self.lateral_pressure(pol=pol)
+        s = self.symmetric_shear(pol=pol)
+        return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
+
+    def pseudolateral_pressure(self, pol='U'):
+        ''' Eigenpressure closest to the lateral direction, in GeV/fm**3. '''
+        pr = self.radial_pressure(pol=pol)
+        pt = self.lateral_pressure(pol=pol)
+        s = self.symmetric_shear()
+        return 0.5*(pr+pt - np.sqrt((pr-pt)**2+4*s**2))
+
     # Bessel transforms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _mass_bessel_U(self):
@@ -718,6 +760,11 @@ class Density:
     def _pol_error(self,pol):
         raise ValueError(
                 "pol={} not recognized; use 'U', 'T', 1, 0 or -1.".format(pol)
+                )
+
+    def _pol_error_eigen(self,pol):
+        raise ValueError(
+                "pol={} invalid for eigenpressures; use 1, 0 or -1.".format(pol)
                 )
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

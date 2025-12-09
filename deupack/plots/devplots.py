@@ -419,11 +419,83 @@ def plot_normal_stress_3d(nff='ba', wf='av18',
                    pr0, pθ0, pφ0, pr1, pθ1, pφ1,
                    labels=labels,
                    clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
-                   decay=4, opacity=0.69, cmap=cmr.fusion_r,
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
     ### Save as png, because pdf is insanely large
     fig.savefig('normal_stress3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    t_C = time.time()
+    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
+    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
+    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
+    return
+
+def plot_shear_stress_3d(nff='ba', wf='av18', nb=120, bmax=2):
+    t_0 = time.time()
+    # Load or create the stresses
+    ###b = np.linspace(-bmax, bmax, nb)
+    D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
+    s= D.symmetric_shear()
+    t_A = time.time()
+    # Make some labels
+    labels = [
+            r'symmetric shear $(r,\theta)$'
+            ]
+    # Prepare figure
+    nrows,ncols=1,1
+    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   s,
+                   labels=labels,
+                   clabel=r'Two-dimensional shear projections (GeV/fm$^2$)',
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    t_B = time.time()
+    ### Save as png, because pdf is insanely large
+    fig.savefig('shear_stress3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    t_C = time.time()
+    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
+    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
+    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
+    return
+
+def plot_eigenpressures_3d(nff='ba', wf='av18',
+                   nb=120, # try smaller number (e.g., 50) for testing
+                   bmax=2.0):
+    t_0 = time.time()
+    # Load or create the stresses
+    ###b = np.linspace(-bmax, bmax, nb)
+    D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
+    pr0 = D.pseudoradial_pressure( pol=0)
+    pθ0 = D.pseudolateral_pressure(pol=0)
+    pφ0 = D.azimuthal_pressure(    pol=0)
+    pr1 = D.pseudoradial_pressure( pol=1)
+    pθ1 = D.pseudolateral_pressure(pol=1)
+    pφ1 = D.azimuthal_pressure(    pol=1)
+    t_A = time.time()
+    # Make some labels
+    labels = [
+            r'$m_j=0$, pseudoradial pressure',
+            r'$m_j=0$, pseudolateral pressure',
+            r'$m_j=0$, azimuthal pressure',
+            r'$m_j=1$, pseudoradial pressure',
+            r'$m_j=1$, pseudolateral pressure',
+            r'$m_j=1$, azimuthal pressure'
+            ]
+    # Prepare figure
+    nrows,ncols=2,3
+    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   pr0, pθ0, pφ0, pr1, pθ1, pφ1,
+                   labels=labels,
+                   clabel=r'Two-dimensional pressure projections (GeV/fm$^2$)',
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    t_B = time.time()
+    ### Save as png, because pdf is insanely large
+    fig.savefig('eigenpressures3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
     t_C = time.time()
     print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
