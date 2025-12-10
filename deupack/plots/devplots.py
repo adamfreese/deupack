@@ -427,7 +427,7 @@ def eigenvectors(nff='ba', wf='av18'):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 3D density plots
 
-def plot_mass_3d(nff='ba', wf='av18', nb=151, bmax=2):
+def plot_mass_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
     D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
     ###b = np.linspace(-bmax, bmax, nb)
@@ -455,7 +455,7 @@ def plot_mass_3d(nff='ba', wf='av18', nb=151, bmax=2):
 
 # TODO: redo this with refactored density class
 #def plot_momentum_3d(nff='ba', wf='av18',
-#                     nb=151,
+#                     nb=101,
 #                     bmax=2.0):
 #    D = Density(nff=nff, wf=wf)
 #    b = np.linspace(-bmax, bmax, nb)
@@ -477,7 +477,7 @@ def plot_mass_3d(nff='ba', wf='av18', nb=151, bmax=2):
 #    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
 #    return
 
-def plot_normal_stress_3d(nff='ba', wf='av18', nb=151, bmax=2):
+def plot_normal_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
     # Load or create the stresses
     ###b = np.linspace(-bmax, bmax, nb)
@@ -517,7 +517,7 @@ def plot_normal_stress_3d(nff='ba', wf='av18', nb=151, bmax=2):
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
-def plot_shear_stress_3d(nff='ba', wf='av18', nb=151, bmax=2):
+def plot_shear_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
     # Load or create the stresses
     ###b = np.linspace(-bmax, bmax, nb)
@@ -547,7 +547,7 @@ def plot_shear_stress_3d(nff='ba', wf='av18', nb=151, bmax=2):
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
-def plot_eigenpressures_3d(nff='ba', wf='av18', nb=151, bmax=2):
+def plot_eigenpressures_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
     # Load or create the stresses
     ###b = np.linspace(-bmax, bmax, nb)
