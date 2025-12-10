@@ -268,26 +268,26 @@ def plot_cT2():
     fig.savefig('cT2.pdf')
     return
 
-
 def plot_cT1():
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    cT1_Adam  = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1')
-    cT1_Alan  = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1Alan')
-    # cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
-    # cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    cT1_Adam = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1')
+    cT1_Alan = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1Alan')
+    cT1_alnt = mff.cT1(np.sqrt(dl2), nff='point', formula='alannote')
+    cT1_papr = mff.cT1(np.sqrt(dl2), nff='point', formula='paper')
     #
     nrows,ncols=1,1
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax = plt.subplot(nrows,ncols,1)
     #
-    ax.plot(dl2, cT1_Adam,  '-',  linewidth=2, color='xkcd:true green', label=r'Adam')
-    ax.plot(dl2, cT1_Alan,  '--', linewidth=2, color='xkcd:rich purple',label=r'Alan')
-    # ax.plot(dl2, cT2_Adam3, '-.', linewidth=2, color='xkcd:cobalt',     label=r'Adam3')
-    # ax.plot(dl2, cT2_Alan3, ':',  linewidth=2, color='xkcd:coral',      label=r'Alan3')
+    ax.plot(dl2, cT1_Adam, '-',  linewidth=2.6, label=r"Adam's code")
+    ax.plot(dl2, cT1_Alan, '--', linewidth=2.6, label=r"Alan's code")
+    ax.plot(dl2, cT1_alnt, '-.', linewidth=2.6, label=r"Alan's note")
+    ax.plot(dl2, cT1_papr, ':',  linewidth=2.6, label=r"Paper formula")
     #
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
     ax.set_ylabel(r'$\bar{c}_{T1}(\varDelta^2)$')
-    l = ax.legend(prop = { 'size' : 27 }, loc=4)
+    ax.set_xscale('log')
+    l = ax.legend(prop = { 'size' : 27 }, loc=1)
     fig.patch.set_alpha(0)
     fig.savefig('cT1.pdf')
     return

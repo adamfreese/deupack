@@ -307,6 +307,23 @@ def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
             )/(7*kfm**3*r**3)
     return intd
 
+def _cT1_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
+    kfm = k/hbar
+    A_piece = 6*AN(k)/kfm**3*jn(3,kfm*r/2)*(
+            np.sqrt(2)*(u1(r)*w2(r) + w1(r)*u2(r) - u(r)*w3(r) - w(r)*u3(r))
+            + w(r)*w3(r) - w1(r)*w2(r)
+            + 2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r))/r
+            + 6*np.sqrt(2)*(u(r)*w1(r)-w(r)*u1(r))/r**2
+            -12*(2*np.sqrt(2)*u(r)*w(r)-w(r)**2)/r**3
+            )
+    J_piece = 6*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/kfm**2*(
+            w(r)*u2(r) - u(r)*w2(r) + 6*u(r)*w(r)/r**2
+            )
+    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
+            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
+            )
+    return A_piece + J_piece + c_piece
+
 def _cT1_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
     kfm = k/hbar
     A3_piece = 6*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
@@ -323,14 +340,45 @@ def _cT1_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
     c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
             2*np.sqrt(2)*u(r)*w(r) - w(r)**2
             )
-    # TODO: new J pieces need cross-check
     J3_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(3,kfm*r/2)*(
            3*(r*u1(r)*w(r)-r*w1(r)*u(r)+2*w(r)*u(r))
            )
     J1_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(1,kfm*r/2)*(
            2*(-r*u1(r)*w(r)+r*w1(r)*u(r)+3*w(r)*u(r))
            )
-    intd = A3_piece + A24_piece + c_piece + J1_piece + J3_piece
+    # AF: added a factor 2 to the J piece; confirmed by Alan in an email
+    intd = A3_piece + A24_piece + c_piece + 2*(J1_piece + J3_piece)
+    return intd
+
+def _cT1_integrand_alannote(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
+    # AF: This replaces the A pieces in _cT1_integrandAlan with the formula in Alan's note
+    # ... though multiplied by 2, because I recall we agreed there was a factor 6 overall
+    kfm = k/hbar
+    A4_piece = 3*AN(k)/(14*kfm**2*r**2) * jn(4,kfm*r/2)*(
+            4*r**2*w1(r)*(2*np.sqrt(2)*u1(r) - w1(r))
+            - 4*r*w(r)*(np.sqrt(2)*r*u2(r) + 3*np.sqrt(2)*u1(r) - r*w2(r) + w1(r))
+            - 4*np.sqrt(2)*r*u(r)*(r*w2(r) - 5*w1(r))
+            - 48*np.sqrt(2)*u(r)*w(r)
+            + 24*w(r)**2
+            )
+    A2_piece = 3*AN(k)/(14*kfm**2*r**2) * jn(2,kfm*r/2)*(
+            - 3*r**2*w1(r)*(2*np.sqrt(2)*u1(r) - w1(r))
+            + r*w(r)*(3*np.sqrt(2)*r*u2(r) + 2*np.sqrt(2)*u1(r) - 3*r*w2(r) - 4*w1(r))
+            + 3*np.sqrt(2)*r*u(r)*(r*w2(r) + 2*w1(r))
+            - 20*np.sqrt(2)*u(r)*w(r)
+            + 10*w(r)**2
+            )
+    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
+            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
+            )
+    J3_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(3,kfm*r/2)*(
+           3*(r*u1(r)*w(r)-r*w1(r)*u(r)+2*w(r)*u(r))
+           )
+    J1_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(1,kfm*r/2)*(
+           2*(-r*u1(r)*w(r)+r*w1(r)*u(r)+3*w(r)*u(r))
+           )
+    # AF: added a factor 2 to the J piece; confirmed by Alan in an email
+    intd = 2*(A4_piece + A2_piece) + c_piece + 2*(J1_piece + J3_piece)
     return intd
 
 def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
@@ -534,6 +582,10 @@ def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf, formu
         integrand = _cT1_integrand
     elif(formula=='cT1Alan'):
         integrand = _cT1_integrandAlan
+    elif(formula=='paper'):
+        integrand = _cT1_integrand_paper
+    elif(formula=='alannote'):
+        integrand = _cT1_integrand_alannote
     else:
         raise ValueError("{} is not a valid formula key.".format(formula))
     integral = quad_vec(integrand, rmin, np.inf,
