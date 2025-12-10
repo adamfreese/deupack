@@ -547,6 +547,39 @@ def plot_shear_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
     print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
     return
 
+def plot_torsion_3d(nff='ba', wf='av18', nb=101, bmax=2):
+    t_0 = time.time()
+    # Load or create the stresses
+    ###b = np.linspace(-bmax, bmax, nb)
+    D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
+    s = D.torsion_shear(pol='T')
+    s0 =  2/3*s
+    s1 = -1/3*s
+    t_A = time.time()
+    # Make some labels
+    labels = [
+            r'$m_j=0$',
+            r'$m_j=1$'
+            ]
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   s0, s1,
+                   labels=labels,
+                   clabel=r'Torsional shear stress (GeV/fm$^3$)',
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    t_B = time.time()
+    ### Save as png, because pdf is insanely large
+    fig.savefig('torsion3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    t_C = time.time()
+    print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
+    print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
+    print("Time to save plots:                    {:.3f} s".format(t_C-t_B))
+    return
+
 def plot_eigenpressures_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
     # Load or create the stresses

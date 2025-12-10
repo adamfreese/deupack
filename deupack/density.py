@@ -205,6 +205,24 @@ class Density:
             self._pol_error(pol)
         return shear
 
+    def torsion_shear(self, pol='U'):
+        ''' Antisymmetric shear in the r-theta direction, in GeV/fm**3. '''
+        # TODO: check sign
+        theta_dep = np.sin(self.theta) * np.cos(self.theta)
+        b_dep = 3*self._shear_bessel_A()
+        shear = theta_dep*b_dep
+        if(pol=='U'):
+            shear *= 0
+        elif(pol=='T'):
+            pass
+        elif(pol==0):
+            shear *= 2/3
+        elif(pol==1 or pol==-1):
+            shear *= -1/3
+        else:
+            self._pol_error(pol)
+        return shear
+
     def pseudoradial_pressure(self, pol='U'):
         ''' Eigenpressure closest to the radial direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
@@ -434,6 +452,21 @@ class Density:
                 np.save(path, self.bessel_sT2)
         return self.bessel_sT2
 
+    def _shear_bessel_A(self):
+        ''' The quantity sA, defined as a Bessel transform.
+        Uses internal spatial variables.
+        '''
+        if(self.bessel_sA is None):
+            path = self._cache_path_bessel('sA')
+            if(path.is_file()):
+                self.bessel_sA = np.load(path)
+            else:
+                self.bessel_sA = quad_vec(_shearA_integrand, self.kmin, self.kmax,
+                                           args=(self.b, self.sbar),
+                                           workers=8)[0]
+                np.save(path, self.bessel_sA)
+        return self.bessel_sA
+
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _initialize_space(self):
@@ -462,6 +495,7 @@ class Density:
         self.bessel_sT14 = None
         self.bessel_pT2  = None
         self.bessel_sT2  = None
+        self.bessel_sA   = None
         return
 
     def _cache_path(self):
@@ -479,68 +513,73 @@ class Density:
         return path
 
     def _init_mff_table(self, save_table=False):
-        k   = np.geomspace(self.kmin, self.kmax, self.nk)
-        AU  = mff.AU( k, wf=self.wf, nff=self.nff)
-        AT  = mff.AT( k, wf=self.wf, nff=self.nff)
-        DU  = mff.DU( k, wf=self.wf, nff=self.nff)
-        DT1 = mff.DT1(k, wf=self.wf, nff=self.nff)
-        DT2 = mff.DT2(k, wf=self.wf, nff=self.nff)
-        cU  = mff.cU( k, wf=self.wf, nff=self.nff)
-        cT1 = mff.cT1(k, wf=self.wf, nff=self.nff)
-        cT2 = mff.cT2(k, wf=self.wf, nff=self.nff)
-        J   = mff.J(  k, wf=self.wf, nff=self.nff)
-        S   = mff.S(  k, wf=self.wf, nff=self.nff)
+        k    = np.geomspace(self.kmin, self.kmax, self.nk)
+        AU   = mff.AU(  k, wf=self.wf, nff=self.nff)
+        AT   = mff.AT(  k, wf=self.wf, nff=self.nff)
+        DU   = mff.DU(  k, wf=self.wf, nff=self.nff)
+        DT1  = mff.DT1( k, wf=self.wf, nff=self.nff)
+        DT2  = mff.DT2( k, wf=self.wf, nff=self.nff)
+        cU   = mff.cU(  k, wf=self.wf, nff=self.nff)
+        cT1  = mff.cT1( k, wf=self.wf, nff=self.nff)
+        cT2  = mff.cT2( k, wf=self.wf, nff=self.nff)
+        J    = mff.J(   k, wf=self.wf, nff=self.nff)
+        S    = mff.S(   k, wf=self.wf, nff=self.nff)
+        sbar = mff.sbar(k, wf=self.wf, nff=self.nff)
         if(save_table):
             df = pd.DataFrame(data={
-                'k'   : k,
-                'AU'  : AU,
-                'AT'  : AT,
-                'DU'  : DU,
-                'DT1' : DT1,
-                'DT2' : DT2,
-                'cU'  : cU,
-                'cT1' : cT1,
-                'cT2' : cT2,
-                'J'   : J,
-                'S'   : S
+                'k'    : k,
+                'AU'   : AU,
+                'AT'   : AT,
+                'DU'   : DU,
+                'DT1'  : DT1,
+                'DT2'  : DT2,
+                'cU'   : cU,
+                'cT1'  : cT1,
+                'cT2'  : cT2,
+                'J'    : J,
+                'S'    : S,
+                'sbar' : sbar
                 })
             path = self._cache_path()
             df.to_csv(path, index=None)
-        self.AU  = CubicSpline(k, AU)
-        self.AT  = CubicSpline(k, AT)
-        self.DU  = CubicSpline(k, DU)
-        self.DT1 = CubicSpline(k, DT1)
-        self.DT2 = CubicSpline(k, DT2)
-        self.cU  = CubicSpline(k, cU)
-        self.cT1 = CubicSpline(k, cT1)
-        self.cT2 = CubicSpline(k, cT2)
-        self.J   = CubicSpline(k, J)
-        self.S   = CubicSpline(k, S)
+        self.AU   = CubicSpline(k, AU)
+        self.AT   = CubicSpline(k, AT)
+        self.DU   = CubicSpline(k, DU)
+        self.DT1  = CubicSpline(k, DT1)
+        self.DT2  = CubicSpline(k, DT2)
+        self.cU   = CubicSpline(k, cU)
+        self.cT1  = CubicSpline(k, cT1)
+        self.cT2  = CubicSpline(k, cT2)
+        self.J    = CubicSpline(k, J)
+        self.S    = CubicSpline(k, S)
+        self.sbar = CubicSpline(k, sbar)
         return
 
     def _load_mff_table(self, filename):
-        df = pd.read_csv(filename)
-        k = df['k'].to_numpy()
-        AU  = df['AU'].to_numpy()
-        AT  = df['AT'].to_numpy()
-        DU  = df['DU'].to_numpy()
-        DT1 = df['DT1'].to_numpy()
-        DT2 = df['DT2'].to_numpy()
-        cU  = df['cU'].to_numpy()
-        cT1 = df['cT1'].to_numpy()
-        cT2 = df['cT2'].to_numpy()
-        J   = df['J'].to_numpy()
-        S   = df['S'].to_numpy()
-        self.AU  = CubicSpline(k, AU)
-        self.AT  = CubicSpline(k, AT)
-        self.DU  = CubicSpline(k, DU)
-        self.DT1 = CubicSpline(k, DT1)
-        self.DT2 = CubicSpline(k, DT2)
-        self.cU  = CubicSpline(k, cU)
-        self.cT1 = CubicSpline(k, cT1)
-        self.cT2 = CubicSpline(k, cT2)
-        self.J   = CubicSpline(k, J)
-        self.S   = CubicSpline(k, S)
+        df   = pd.read_csv(filename)
+        k    = df['k'].to_numpy()
+        AU   = df['AU'].to_numpy()
+        AT   = df['AT'].to_numpy()
+        DU   = df['DU'].to_numpy()
+        DT1  = df['DT1'].to_numpy()
+        DT2  = df['DT2'].to_numpy()
+        cU   = df['cU'].to_numpy()
+        cT1  = df['cT1'].to_numpy()
+        cT2  = df['cT2'].to_numpy()
+        J    = df['J'].to_numpy()
+        S    = df['S'].to_numpy()
+        sbar = df['sbar'].to_numpy()
+        self.AU   = CubicSpline(k, AU)
+        self.AT   = CubicSpline(k, AT)
+        self.DU   = CubicSpline(k, DU)
+        self.DT1  = CubicSpline(k, DT1)
+        self.DT2  = CubicSpline(k, DT2)
+        self.cU   = CubicSpline(k, cU)
+        self.cT1  = CubicSpline(k, cT1)
+        self.cT2  = CubicSpline(k, cT2)
+        self.J    = CubicSpline(k, J)
+        self.S    = CubicSpline(k, S)
+        self.sbar = CubicSpline(k, sbar)
         return
 
     def _pol_error(self,pol):
@@ -627,6 +666,13 @@ def _shearT2_integrand(k, b, DT2):
     unique = -1
     bessel = jn(2, k*b/hbar)
     form = k**2/(8*mN)*DT2(k)
+    return common * unique * bessel * form
+
+def _shearA_integrand(k, b, sbar):
+    common = k**2/(2*np.pi**2*hbar**3)
+    unique = -1
+    bessel = jn(2, k*b/hbar)
+    form = k**2/(8*mN)*sbar(k)
     return common * unique * bessel * form
 
 # T1 stress integrals for direct use (no differentiation) ~~~~~~~~~~~~~~~~~~~~~~
