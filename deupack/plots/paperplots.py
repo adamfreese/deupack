@@ -176,18 +176,75 @@ def momentum_density(nff='ba', wf='av18', nb=101, bmax=2):
     fig.savefig('momentum3D.pdf')
     return
 
+def pressure():
+    # Fixed parameters for the visualization
+    nff='ba'; wf='av18'; nb=101; bmax=2
+    # Get the pressures
+    D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
+    pr0 = D.pseudoradial_pressure( pol=0)
+    pθ0 = D.pseudolateral_pressure(pol=0)
+    pφ0 = D.azimuthal_pressure(    pol=0)
+    pr1 = D.pseudoradial_pressure( pol=1)
+    pθ1 = D.pseudolateral_pressure(pol=1)
+    pφ1 = D.azimuthal_pressure(    pol=1)
+    # Make some labels
+    labels = [
+            r'$m_j=0$, pseudoradial pressure',
+            r'$m_j=0$, pseudolateral pressure',
+            r'$m_j=0$, azimuthal pressure',
+            r'$m_j=1$, pseudoradial pressure',
+            r'$m_j=1$, pseudolateral pressure',
+            r'$m_j=1$, azimuthal pressure'
+            ]
+    # Prepare figure
+    nrows,ncols=2,3
+    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    # Use the custom multi-3D plotter
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   pr0, pθ0, pφ0, pr1, pθ1, pφ1,
+                   labels=labels,
+                   clabel=r'Pressure (GeV/fm$^3$)',
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    fig.savefig('pressure3D.pdf')
+    return
+
+def torsion(nff='ba', wf='av18', nb=101, bmax=2):
+    # Fixed parameters for the visualization
+    nff='ba'; wf='av18'; nb=101; bmax=2
+    # Get the torsion
+    D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
+    s = D.torsion_shear(pol='T')
+    s0 =  2/3*s
+    s1 = -1/3*s
+    # Make some labels
+    labels = [ r'$m_j=0$', r'$m_j=1$' ]
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   s0, s1,
+                   labels=labels,
+                   clabel=r'Torsion stress (GeV/fm$^3$)',
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    fig.savefig('torsion3D.pdf')
+    return
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Two-dimensional density/quiver plots
 
 def eigenvectors():
     # Parameters for this visualization (fixed)
-    bmax = 2; nff='ba'; wf='av18'; nbq = 21; nbh = 101
+    bmax = 2; nff='ba'; wf='av18'; nbq = 20; nbh = 101
     # Density objects for quiver (small) and heat map (large)
     Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
     Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
     # Prepare figure
     nrows,ncols=2,2
-    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*9,nrows*7.11), layout='constrained')
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
     ax0p = axes[0,0]
     ax0m = axes[0,1]
     ax1p = axes[1,0]
@@ -208,6 +265,9 @@ def eigenvectors():
     # Remove x axes from top two panels for economic use of space
     for ax in [ax0p, ax0m]:
         ax.get_xaxis().set_visible(False)
+    # Remove y axes from right two panels for the same reason
+    for ax in [ax0m, ax1m]:
+        ax.get_yaxis().set_visible(False)
     # Make the colorbar
     norm = mpl.colors.Normalize(vmin=-vmax, vmax=vmax)
     cbar = fig.colorbar(
@@ -217,7 +277,7 @@ def eigenvectors():
             )
     cbar.set_label(r'Pressure (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('eigenvectors.pdf')
+    fig.savefig('eigenvectors.pdf', bbox_inches="tight")
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
