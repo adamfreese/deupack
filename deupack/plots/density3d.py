@@ -90,7 +90,7 @@ def density3d(ax, x, y, z, values,
     # Create the 3D meshed grids
     x_, y_, z_ = np.meshgrid(x, y, z, indexing='ij')
     # Plot a 3D scatter with adjusted alphas
-    ax.scatter(x_, y_, z_, c=colors_flattened, zorder=3, **kwargs)
+    ax.scatter(x_, y_, z_, c=colors_flattened, zorder=3, rasterized=True, **kwargs)
     # Project onto 2D planes if requested
     if(projections):
         if(axi_x < 0):
@@ -179,7 +179,7 @@ def projection2d(ax, x, y, z, values, axis, axi=0,
     # Plot surfaces to emulate pcolormesh as best as possible
     ax.plot_surface(x_, y_, z_,
                     facecolors=colors, rstride=1, cstride=1,
-                    shade=False, zorder=1)
+                    shade=False, zorder=1, rasterized=True)
     # Reset the x, y or z limits in case they were moved
     set_lim((axmin, axmax))
     return

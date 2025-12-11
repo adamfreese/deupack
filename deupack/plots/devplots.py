@@ -446,7 +446,7 @@ def plot_mass_3d(nff='ba', wf='av18', nb=101, bmax=2):
                    decay=4, opacity=0.69, cmap=cmr.voltage_r,
                    projections=True, divergent=False, s=1)
     t_B = time.time()
-    fig.savefig('mass3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    fig.savefig('mass3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
     t_C = time.time()
     print("Time to calculate mass densities: {:.3f} s".format(t_A-t_0))
     print("Time to plot mass densities:      {:.3f} s".format(t_B-t_A))
@@ -474,7 +474,7 @@ def plot_mass_3d(nff='ba', wf='av18', nb=101, bmax=2):
 #                   clabel=r'Two-dimensional momentum densities (GeV/fm$^2$)',
 #                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
 #                   projections=True, divergent=False, s=1)
-#    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+#    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
 #    return
 
 def plot_normal_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
@@ -509,8 +509,7 @@ def plot_normal_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('normal_stress3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    fig.savefig('normal_stress3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
     t_C = time.time()
     print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
@@ -539,8 +538,7 @@ def plot_shear_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('shear_stress3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    fig.savefig('shear_stress3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
     t_C = time.time()
     print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
@@ -572,8 +570,7 @@ def plot_torsion_3d(nff='ba', wf='av18', nb=101, bmax=2):
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('torsion3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    fig.savefig('torsion3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
     t_C = time.time()
     print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
@@ -612,8 +609,7 @@ def plot_eigenpressures_3d(nff='ba', wf='av18', nb=101, bmax=2):
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     t_B = time.time()
-    ### Save as png, because pdf is insanely large
-    fig.savefig('eigenpressures3D_{}_{}_{:d}_{:.2f}.png'.format(wf,nff,nb,bmax), dpi=150)
+    fig.savefig('eigenpressures3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
     t_C = time.time()
     print("Time to calculate (or load) pressures: {:.3f} s".format(t_A-t_0))
     print("Time to plot pressures:                {:.3f} s".format(t_B-t_A))
@@ -653,5 +649,5 @@ def plot_potential_energy(nb=60, bmax=2.0):
                    decay=2, opacity=0.07, cmap=cmr.iceburn,
                    projections=False, divergent=True, s=1,
                    vmax=5)
-    fig.savefig('potential.png', dpi=150)
+    fig.savefig('potential.pdf')
     return
