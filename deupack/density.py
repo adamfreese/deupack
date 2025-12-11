@@ -246,16 +246,16 @@ class Density:
         pr = self.radial_pressure(pol=pol)
         pt = self.lateral_pressure(pol=pol)
         s = self.symmetric_shear(pol=pol)
-        #return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
-        return 0.5*(pr + pt + (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
+        return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
+        #return 0.5*(pr + pt + (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
 
     def pseudolateral_pressure(self, pol='U'):
         ''' Eigenpressure closest to the lateral direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
         pt = self.lateral_pressure(pol=pol)
         s = self.symmetric_shear()
-        #return 0.5*(pr+pt - np.sqrt((pr-pt)**2+4*s**2))
-        return 0.5*(pr + pt - (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
+        return 0.5*(pr+pt - np.sqrt((pr-pt)**2+4*s**2))
+        #return 0.5*(pr + pt - (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
 
     # Unit eigenvectors of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -268,8 +268,8 @@ class Density:
         pt = self.lateral_pressure(pol=pol)
         s  = self.symmetric_shear( pol=pol)
         sgn = np.sign(s)
-        R  = np.sqrt( 0.5*(1 + np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
-        Th = np.sqrt( 0.5*(1 - np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        R  = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         Z = R*np.cos(self.theta) - sgn*Th*np.sin(self.theta)
         X = (R*np.sin(self.theta) + sgn*Th*np.cos(self.theta))*np.cos(self.phi)
         Y = (R*np.sin(self.theta) + sgn*Th*np.cos(self.theta))*np.sin(self.phi)
@@ -284,8 +284,8 @@ class Density:
         pt = self.lateral_pressure(pol=pol)
         s  = self.symmetric_shear( pol=pol)
         sgn = np.sign(s)
-        R  = np.sqrt( 0.5*(1 - np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
-        Th = np.sqrt( 0.5*(1 + np.abs(pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         Z = R*np.cos(self.theta) + sgn*Th*np.sin(self.theta)
         X = (R*np.sin(self.theta) - sgn*Th*np.cos(self.theta))*np.cos(self.phi)
         Y = (R*np.sin(self.theta) - sgn*Th*np.cos(self.theta))*np.sin(self.phi)
