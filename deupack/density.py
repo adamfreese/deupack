@@ -74,7 +74,28 @@ class Density:
             return self.mass_density(pol='U') - 1/3*self.mass_density(pol='T')
         else:
             self._pol_error(pol)
-        return
+
+    def momentum_density(self, pol='U'):
+        ''' Phi component of the momentum density, in GeV/fm**3. '''
+        if(pol=='U' or pol=='T' or pol==0):
+            return np.zeros(self.b.shape)
+        elif(pol==1 or pol==-1):
+            b_dep = self._momentum_bessel()
+            theta_dep = np.sin(self.theta)
+            return b_dep * theta_dep * pol
+        else:
+            self._pol_error(pol)
+
+    def flux_density(self, pol='U'):
+        ''' Phi component of the mass flux density, in GeV/fm**3. '''
+        if(pol=='U' or pol=='T' or pol==0):
+            return np.zeros(self.b.shape)
+        elif(pol==1 or pol==-1):
+            b_dep = self._flux_bessel()
+            theta_dep = np.sin(self.theta)
+            return b_dep * theta_dep * pol
+        else:
+            self._pol_error(pol)
 
     def radial_pressure(self, pol='U'):
         ''' Radial pressure in GeV/fm**3. '''
@@ -102,7 +123,6 @@ class Density:
             return self.radial_pressure(pol='U') - 1/3*self.radial_pressure(pol='T')
         else:
             self._pol_error(pol)
-        return
 
     def lateral_pressure(self, pol='U'):
         ''' Lateral pressure in GeV/fm**3. '''
@@ -139,7 +159,6 @@ class Density:
             return self.lateral_pressure(pol='U') - 1/3*self.lateral_pressure(pol='T')
         else:
             self._pol_error(pol)
-        return
 
     def azimuthal_pressure(self, pol='U'):
         ''' Lateral pressure in GeV/fm**3. '''
@@ -175,7 +194,6 @@ class Density:
             return self.azimuthal_pressure(pol='U') - 1/3*self.azimuthal_pressure(pol='T')
         else:
             self._pol_error(pol)
-        return
 
     def symmetric_shear(self, pol='U'):
         ''' Symmetric shear in the r-theta directions, in GeV/fm**3. '''
@@ -305,7 +323,7 @@ class Density:
             np.save(path, self.bessel_aT)
         return self.bessel_aT
 
-    def _momentum_bessel(self, b):
+    def _momentum_bessel(self):
         ''' Momentum density (sans sxb factor).
         Uses internal spatial variables.
         '''
@@ -320,7 +338,7 @@ class Density:
                 np.save(path, self.bessel_k)
         return self.bessel_k
 
-    def _flux_bessel(self, b):
+    def _flux_bessel(self):
         ''' Mass flux density (sans sxb factor).
         Uses internal spatial variables.
         '''

@@ -430,7 +430,6 @@ def eigenvectors(nff='ba', wf='av18'):
 def plot_mass_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
     D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
-    ###b = np.linspace(-bmax, bmax, nb)
     M0 = D.mass_density(pol=0)
     M1 = D.mass_density(pol=1)
     t_A = time.time()
@@ -453,29 +452,23 @@ def plot_mass_3d(nff='ba', wf='av18', nb=101, bmax=2):
     print("Time to save plots:               {:.3f} s".format(t_C-t_B))
     return
 
-# TODO: redo this with refactored density class
-#def plot_momentum_3d(nff='ba', wf='av18',
-#                     nb=101,
-#                     bmax=2.0):
-#    D = Density(nff=nff, wf=wf)
-#    b = np.linspace(-bmax, bmax, nb)
-#    M1_vec = D.momentum_3D(b,b,b)
-#    φhat = make_phihat(b,b,b)
-#    M1 = np.einsum('xyzi,xyzi->xyz', M1_vec, φhat)
-#    M0 = M1*0
-#    # Prepare figure
-#    nrows,ncols=1,2
-#    fig = plt.figure(figsize=(ncols*11,nrows*11))
-#    labels = [r'$m_j=0$', r'$m_j=1$']
-#    multidensity3d(fig, b, b, b,
-#                   nrows, ncols,
-#                   M0, M1,
-#                   labels=labels,
-#                   clabel=r'Two-dimensional momentum densities (GeV/fm$^2$)',
-#                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
-#                   projections=True, divergent=False, s=1)
-#    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
-#    return
+def plot_momentum_3d(nff='ba', wf='av18', nb=101, bmax=2.0):
+    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    p = D.momentum_density(pol=1)
+    f = D.flux_density(pol=1)
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*11,nrows*11))
+    labels = [r'Momentum density ($m_j=1$)', r'Mass flux density ($m_j=1$)']
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   p, f,
+                   labels=labels,
+                   clabel=r'Density (GeV/fm$^3$)',
+                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
+                   projections=True, divergent=False, s=1)
+    fig.savefig('momentum3D_{}_{}_{:d}_{:.2f}.pdf'.format(wf,nff,nb,bmax))
+    return
 
 def plot_normal_stress_3d(nff='ba', wf='av18', nb=101, bmax=2):
     t_0 = time.time()
