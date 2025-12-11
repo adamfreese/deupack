@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import cmasher as cmr
 
 from .. import mff
+from ..density import Density
+from .density3d import multidensity3d
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)
@@ -125,6 +127,33 @@ def antisymmetric():
     legend.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('antisymmetric.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Three-dimensional density plots
+
+def mass_density(nff='ba', wf='av18', nb=101, bmax=2):
+    # Compute densities
+    nb = 101; bmax = 2; nff = 'ba'; wf='av18'
+    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    M0 = D.mass_density(pol=0)
+    M1 = D.mass_density(pol=1)
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*11,nrows*11))
+    labels = [r'$m_j=0$', r'$m_j=\pm1$']
+    # Use custom routine from density3d.py
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   M0, M1,
+                   labels=labels,
+                   clabel=r'Mass density (GeV/fm$^3$)',
+                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
+                   projections=True, divergent=False, s=1
+                   )
+    # Save as a png, because the PDF is > 400 MB
+    #fig.savefig('mass3D.png', dpi=150)
+    fig.savefig('mass3D.pdf')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
