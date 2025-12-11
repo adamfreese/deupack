@@ -151,9 +151,73 @@ def mass_density(nff='ba', wf='av18', nb=101, bmax=2):
                    decay=4, opacity=0.69, cmap=cmr.voltage_r,
                    projections=True, divergent=False, s=1
                    )
-    # Save as a png, because the PDF is > 400 MB
-    #fig.savefig('mass3D.png', dpi=150)
     fig.savefig('mass3D.pdf')
+    return
+
+def momentum_density(nff='ba', wf='av18', nb=101, bmax=2):
+    # Compute densities
+    nb = 101; bmax = 2; nff = 'ba'; wf='av18'
+    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    p = D.momentum_density(pol=1)
+    f = D.flux_density(pol=1)
+    # Prepare figure
+    nrows,ncols=1,2
+    fig = plt.figure(figsize=(ncols*11,nrows*11))
+    labels = [r'Momentum density ($m_j=1$)', r'Mass flux density ($m_j=1$)']
+    # Use custom routine from density3d.py
+    multidensity3d(fig, D.x, D.x, D.x,
+                   nrows, ncols,
+                   p, f,
+                   labels=labels,
+                   clabel=r'$\phi$ projection of density (GeV/fm$^3$)',
+                   decay=4, opacity=0.69, cmap=cmr.voltage_r,
+                   projections=True, divergent=False, s=1
+                   )
+    fig.savefig('momentum3D.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Two-dimensional density/quiver plots
+
+def eigenvectors():
+    # Parameters for this visualization (fixed)
+    bmax = 2; nff='ba'; wf='av18'; nbq = 21; nbh = 101
+    # Density objects for quiver (small) and heat map (large)
+    Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
+    Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
+    # Prepare figure
+    nrows,ncols=2,2
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*9,nrows*7.11), layout='constrained')
+    ax0p = axes[0,0]
+    ax0m = axes[0,1]
+    ax1p = axes[1,0]
+    ax1m = axes[1,1]
+    for ax in [ax0p, ax0m, ax1p, ax1m]:
+        ax.set_aspect('equal')
+    vmax = np.max([
+        abs(Dh.pseudoradial_pressure(pol=0)).max(),
+        abs(Dh.pseudoradial_pressure(pol=1)).max(),
+        abs(Dh.pseudolateral_pressure(pol=0)).max(),
+        abs(Dh.pseudolateral_pressure(pol=1)).max()
+        ])
+    # Call the panel code four times
+    _ = _eigenvector_panel(ax0p, Dq, Dh, '+', 0, vmax, r'Pseudoradial,  $m_j=0$')
+    _ = _eigenvector_panel(ax0m, Dq, Dh, '-', 0, vmax, r'Pseudolateral, $m_j=0$')
+    _ = _eigenvector_panel(ax1p, Dq, Dh, '+', 1, vmax, r'Pseudoradial,  $m_j=1$')
+    _ = _eigenvector_panel(ax1m, Dq, Dh, '-', 1, vmax, r'Pseudolateral, $m_j=1$')
+    # Remove x axes from top two panels for economic use of space
+    for ax in [ax0p, ax0m]:
+        ax.get_xaxis().set_visible(False)
+    # Make the colorbar
+    norm = mpl.colors.Normalize(vmin=-vmax, vmax=vmax)
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.fusion_r),
+            ax = axes[:, 1],
+            orientation='vertical',
+            )
+    cbar.set_label(r'Pressure (GeV/fm$^3$)', size=36)
+    fig.patch.set_alpha(0)
+    fig.savefig('eigenvectors.pdf')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -200,7 +264,7 @@ def _select_mff(name, dl2, wf='av18', nff='ba'):
         F = dl2 * 0
     return F
 
-# Panel plots ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Panel plots for MFFs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # TODO: there's a lot of repeated code; this could be modularized
 
@@ -335,3 +399,58 @@ def _group_comparison_panel(ax, name):
         ax.set_ylim((-0.69,1.37))
     ax.set_xlim((1e-6,10))
     return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Utilities for 2D plots
+
+def _doublequiver(ax, x, y, vx, vy):
+    quiver_kwargs_white = {
+            'color' : 'white',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'tail',
+            'scale' : x.shape[0]/x.max(),
+            'width' : 0.004
+            }
+    quiver_kwargs_black = {
+            'color' : 'black',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'tail',
+            'scale' : 5/4*x.shape[0]/x.max(),
+            'width' : 0.003
+            }
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_white)
+    ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs_white)
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_black)
+    ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs_black)
+    return
+
+def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
+    if(mode=='+'):
+        X, Y, Z = Dq.e_plus(pol=pol)
+        P = Dh.pseudoradial_pressure(pol=pol)
+    elif(mode=='-'):
+        X, Y, Z = Dq.e_minus(pol=pol)
+        P = Dh.pseudolateral_pressure(pol=pol)
+    else:
+        raise ValueError("Invalid mode: {}; expected + or -.".format(mode))
+    # Slice at y=0
+    bq = Dq.x
+    nbq = bq.shape[0]
+    x = X[:,nbq//2,:]
+    z = Z[:,nbq//2,:]
+    bh = Dh.x
+    nbh = bh.shape[0]
+    p = P[:,nbh//2,:]
+    # Heat map first
+    c = ax.pcolormesh(bh, bh, p.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
+    # Quiver plot next
+    _doublequiver(ax, bq, bq, x, z)
+    # Finish up
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax.set_xlabel(r'$x$ (fm)')
+    ax.set_ylabel(r'$z$ (fm)')
+    return c
