@@ -33,6 +33,9 @@ AD = 0
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Wave function and derivatives
 
+def zero(r):
+    return 0
+
 def u(r):
     ''' Radial dependence of S-wave. '''
     if(r < rmax):

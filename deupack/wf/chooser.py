@@ -12,6 +12,10 @@ from . import CDbonn as cdbonn_mod
 WAVEFUNCTIONS = {
         'av18': (av18_mod.u, av18_mod.w, av18_mod.u1, av18_mod.w1,
                  av18_mod.u2, av18_mod.w2, av18_mod.u3, av18_mod.w3),
+        'av18-s-only': (av18_mod.u, av18_mod.zero, av18_mod.u1, av18_mod.zero,
+                 av18_mod.u2, av18_mod.zero, av18_mod.u3, av18_mod.zero),
+        'av18-d-only': (av18_mod.zero, av18_mod.w, av18_mod.zero, av18_mod.w1,
+                 av18_mod.zero, av18_mod.w2, av18_mod.zero, av18_mod.w3),
         'paris': (paris_mod.u, paris_mod.w, paris_mod.u1, paris_mod.w1,
                   paris_mod.u2, paris_mod.w2, paris_mod.u3, paris_mod.w3),
         'cdbonn': (cdbonn_mod.u, cdbonn_mod.w, cdbonn_mod.u1, cdbonn_mod.w1,
