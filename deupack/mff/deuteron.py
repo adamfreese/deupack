@@ -23,21 +23,32 @@ from .nucleon.chooser import choose_nff
 # The user interfaces for the form factors
 # Add optional wf parameter (last arg) that overrides u/w function arguments if provided.
 
-def AU(k, wf='av18', nff='mit'):
+def AU(k, wf='av18', nff='ba'):
     ''' The mechanical form factor AU.
-
-    k should be a float or numpy array of momentum transfer values in GeV.
-    k=0 will automatically be pushed to 1e-6 to avoid division by zero.
-
-    Pass wf='av18' or wf='paris' to select wavefunction.
-
-    Pass nff='ba', 'mab', 'hz' or 'mit' to select nucleon form factors.
+    ----------
+    Input:
+        - k : float or numpy.array
+            float one-dimensional array of k values in GeV
+        - wf : string
+            Deuteron wave function to use
+            Available: av18, paris, cdbonn
+            Default: av18
+        - nff : string
+            Nucleon mechanical form factors to use
+            Available: ba, mab, hz, point
+            Default: ba
+    Output:
+        numpy.array with form factor values
+    Notes:
+        Some form factors have multiple options for formulas.
+        These are meant for consistency checks.
+        The default formula in each case is the fastest to evaluate.
     '''
     u, w, *_ = choose_wf(wf)
     AN, *_ = choose_nff(nff)
     return _AU(k, u=u, w=w, AN=AN)
 
-def AT(k, wf='av18', nff='mit'):
+def AT(k, wf='av18', nff='ba'):
     ''' The mechanical form factor AT.
     See docstring of AU for more info.
     '''
@@ -45,7 +56,7 @@ def AT(k, wf='av18', nff='mit'):
     AN, *_ = choose_nff(nff)
     return _AT(k, u=u, w=w, AN=AN)
 
-def DU(k, wf='av18', nff='mit'):
+def DU(k, wf='av18', nff='ba'):
     ''' The mechanical form factor DU.
     See docstring of AU for more info.
     '''
@@ -53,7 +64,7 @@ def DU(k, wf='av18', nff='mit'):
     AN, JN, DN, *_ = choose_nff(nff)
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT1(k, wf='av18', nff='mit'):
+def DT1(k, wf='av18', nff='ba'):
     ''' The mechanical form factor DT1.
     See docstring of AU for more info.
     '''
@@ -61,7 +72,7 @@ def DT1(k, wf='av18', nff='mit'):
     AN, JN, DN, *_ = choose_nff(nff)
     return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
-def DT2(k, wf='av18', nff='mit'):
+def DT2(k, wf='av18', nff='ba'):
     ''' The mechanical form factor DT2.
     See docstring of AU for more info.
     '''
@@ -69,7 +80,7 @@ def DT2(k, wf='av18', nff='mit'):
     AN, JN, *_ = choose_nff(nff)
     return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
-def cU(k, wf='av18', nff='mit'):
+def cU(k, wf='av18', nff='ba'):
     ''' The mechanical form factor cU.
     See docstring of AU for more info.
     '''
@@ -82,7 +93,7 @@ def cU(k, wf='av18', nff='mit'):
         rmin = 1e-2
     return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
 
-def cT1(k, wf='av18', nff='mit', formula='cT1'):
+def cT1(k, wf='av18', nff='ba', formula='cT1'):
     ''' The mechanical form factor cT1.
     See docstring of AU for more info.
     '''
@@ -90,7 +101,7 @@ def cT1(k, wf='av18', nff='mit', formula='cT1'):
     AN, JN, _, cN, _ = choose_nff(nff)
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN, formula=formula)
 
-def cT2(k, wf='av18', nff='mit', formula='cT2'):
+def cT2(k, wf='av18', nff='ba', formula='cT2'):
     ''' The mechanical form factor cT2.
     See docstring of AU for more info.
     '''
@@ -103,7 +114,7 @@ def cT2(k, wf='av18', nff='mit', formula='cT2'):
         rmin =  1e-2
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, rmin=rmin, formula=formula)
 
-def J(k, wf='av18', nff='mit', formula='form1'):
+def J(k, wf='av18', nff='ba', formula='form1'):
     ''' The mechanical form factor J.
     See docstring of AU for more info.
     '''
@@ -111,7 +122,7 @@ def J(k, wf='av18', nff='mit', formula='form1'):
     AN, JN, *_ = choose_nff(nff)
     return _J(k, u=u, w=w, u1=u1, w1=w1, AN=AN, JN=JN, formula=formula)
 
-def S(k, wf='av18', nff='mit'):
+def S(k, wf='av18', nff='ba'):
     ''' The mechanical form factor S.
     See docstring of AU for more info.
     '''
@@ -119,7 +130,7 @@ def S(k, wf='av18', nff='mit'):
     _, _, _, _, SN = choose_nff(nff)
     return _S(k, u=u, w=w, SN=SN)
 
-def sbar(k, wf='av18', nff='mit', formula='sbar'):
+def sbar(k, wf='av18', nff='ba', formula='sbar'):
     ''' The mechanical form factor S.
     See docstring of AU for more info.
     '''
@@ -668,7 +679,7 @@ def _DT1_zero_integrand(r, u, w, u1, w1, u2, w2):
     term3 = 12*np.sqrt(2)*r**2*u(r)*w(r)
     return (mN/hbar)**2*(term1+term2+term3) / 315
 
-def DT1_zero(wf='av18', nff='mit'):
+def DT1_zero(wf='av18', nff='ba'):
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     _, _, DN, *_ = choose_nff(nff)
     DN0 = 2*DN(0)
