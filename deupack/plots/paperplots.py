@@ -210,7 +210,7 @@ def pressure():
     fig.savefig('pressure3D.pdf')
     return
 
-def torsion(nff='ba', wf='av18', nb=101, bmax=2):
+def torsion():
     # Fixed parameters for the visualization
     nff='ba'; wf='av18'; nb=101; bmax=2
     # Get the torsion
@@ -232,6 +232,44 @@ def torsion(nff='ba', wf='av18', nb=101, bmax=2):
                    projections=True, divergent=True, s=1)
     fig.savefig('torsion3D.pdf')
     return
+
+def s_d_interference():
+    # Fixed parameters for the visualization
+    nff='ba'; nb=101; bmax=2
+    wf_f = 'av18'
+    wf_s = 'av18-s-only'
+    wf_d = 'av18-d-only'
+    # Get the full, S-only and D-only contributions to mass density
+    D_F = Density(nff=nff, wf=wf_f, nb=nb, bmax=bmax)
+    D_S = Density(nff=nff, wf=wf_s, nb=nb, bmax=bmax)
+    D_D = Density(nff=nff, wf=wf_d, nb=nb, bmax=bmax)
+    M0_F = D_F.mass_density(pol=0)
+    M0_S = D_S.mass_density(pol=0)
+    M0_D = D_D.mass_density(pol=0)
+    M1_F = D_F.mass_density(pol=1)
+    M1_S = D_S.mass_density(pol=1)
+    M1_D = D_D.mass_density(pol=1)
+    # Get interference from removing S-only and D-only
+    M0_I = M0_F - M0_S - M0_D
+    M1_I = M1_F - M1_S - M1_D
+    # Make some labels
+    labels = [
+            r'S-wave ($m_j=0$)', r'D-wave ($m_j=0$)', r'Interference ($m_j=0$)',
+            r'S-wave ($m_j=1$)', r'D-wave ($m_j=1$)', r'Interference ($m_j=1$)'
+            ]
+    # Prepare figure
+    nrows,ncols=2,3
+    fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    multidensity3d(fig, D_F.x, D_F.x, D_F.x,
+                   nrows, ncols,
+                   M0_S, M0_D, M0_I, M1_S, M1_D, M1_I,
+                   labels=labels,
+                   clabel=r'Mass density contribution (GeV/fm$^3$)',
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   projections=True, divergent=True, s=1)
+    fig.savefig('s_d_interference.pdf')
+    return
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Two-dimensional density/quiver plots
