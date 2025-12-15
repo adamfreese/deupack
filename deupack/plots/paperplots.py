@@ -19,6 +19,22 @@ mpl.rc('text.latex', preamble=r"\usepackage{bm,amsmath,amssymb,amsfonts,mathrsfs
 plt.rcParams["axes.formatter.use_mathtext"] = True
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# One-shot routine to generate all plots used in the paper
+# NOTE: will be slow, especially on the first run
+
+def make_paper_plots():
+    # TODO: docstring
+    group_comparison()
+    # TODO: other MFF plots (need Alan's modifications for nicer lengends)
+    mass_density()
+    s_d_interference()
+    momentum_density()
+    eigenvectors()
+    pressure()
+    torsion()
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # MFF plots
 
 def group_comparison():
