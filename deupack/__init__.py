@@ -1,5 +1,5 @@
 from . import constants
-from . import mff
+from . import emtff
 from . import plots
 from . import wf
 

@@ -17,9 +17,9 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_peggmffs():
+def make_peggffs():
     ''' Convert Panteleeva et al.'s MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffs()
+    df = read_emtffs()
     t = df['t']
     E0 = df['E0']
     E2 = df['E2']
@@ -45,9 +45,9 @@ def make_peggmffs():
 
 
 
-def make_peggmffsLO():
+def make_peggffsLO():
     ''' Convert Panteleeva et al.'s MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffsLO()
+    df = read_emtffsLO()
     t = df['t']
     E0 = df['E0']
     E2 = df['E2']
@@ -72,7 +72,7 @@ def make_peggmffsLO():
     return new_df
 
 
-def read_mffs():
+def read_emtffs():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/pegg'
     # c8 and c9 provided by Julia Panteleeva (private communication)
@@ -105,7 +105,7 @@ def read_mffs():
 
 
 
-def read_mffsLO():
+def read_emtffsLO():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/pegg'
     # c8 and c9 provided by Julia Panteleeva (private communication)

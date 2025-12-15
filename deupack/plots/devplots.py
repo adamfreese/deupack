@@ -3,9 +3,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import cmasher as cmr
 
-from .. import mff
+from .. import emtff
 from ..density import *
-from ..mff.nucleon.chooser import choose_nff
+from ..emtff.nucleon.chooser import choose_nff
 from ..wf.av18 import VmeanU, VmeanT
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
@@ -118,29 +118,29 @@ namelabel = {
         'sbar'   : r'$\bar{s}(\varDelta^2)$'
         }
 
-def select_mff(name, dl2, wf='av18', nff='mit'):
+def select_emtff(name, dl2, wf='av18', nff='mit'):
     if(name=='AU'):
-        F = mff.AU(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.AU(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='AT'):
-        F = mff.AT(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.AT(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='J'):
-        F = mff.J(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.J(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DU'):
-        F = mff.DU(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.DU(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DT1'):
-        F = mff.DT1(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.DT1(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='DT2'):
-        F = mff.DT2(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.DT2(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cU'):
-        F = mff.cU(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.cU(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cT1'):
-        F = mff.cT1(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.cT1(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='cT2'):
-        F = mff.cT2(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.cT2(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='S'):
-        F = mff.S(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.S(np.sqrt(dl2), wf=wf, nff=nff)
     elif(name=='sbar'):
-        F = mff.sbar(np.sqrt(dl2), wf=wf, nff=nff)
+        F = emtff.sbar(np.sqrt(dl2), wf=wf, nff=nff)
     else:
         F = dl2 * 0
     return F
@@ -150,10 +150,10 @@ def select_mff(name, dl2, wf='av18', nff='mit'):
 
 def plot_one_nff(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    F_mit = select_mff(name, dl2, nff='mit')
-    F_hz  = select_mff(name, dl2, nff='hz')
-    F_ba  = select_mff(name, dl2, nff='ba')
-    F_point  = select_mff(name, dl2, nff='point')
+    F_mit = select_emtff(name, dl2, nff='mit')
+    F_hz  = select_emtff(name, dl2, nff='hz')
+    F_ba  = select_emtff(name, dl2, nff='ba')
+    F_point  = select_emtff(name, dl2, nff='point')
     # Plot
     ax.plot(dl2, F_mit, '-',  linewidth=2, color='xkcd:true green',  label=r'MIT')
     ax.plot(dl2, F_hz,  '--', linewidth=2, color='xkcd:rich purple', label=r'He and Zahed')
@@ -169,8 +169,8 @@ def plot_one_nff(ax, name):
 
 def plot_one_wf(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    F_av18  = select_mff(name, dl2, wf='av18')
-    F_paris = select_mff(name, dl2, wf='paris')
+    F_av18  = select_emtff(name, dl2, wf='av18')
+    F_paris = select_emtff(name, dl2, wf='paris')
     # Plot
     ax.plot(dl2, F_av18,  '-',  linewidth=2, color='xkcd:true green',  label=r'AV18')
     ax.plot(dl2, F_paris, '--', linewidth=2, color='xkcd:rich purple', label=r'Paris')
@@ -183,19 +183,19 @@ def plot_one_wf(ax, name):
     return
 
 def plot_one_group(ax, name):
-    # MFF from other papers
-    df_wc = mff.wim.make_wimffs()
-    fc_hz = mff.hz.make_hzmffs()
-    df_jp = mff.pegg.make_peggmffs()
+    # EMTFF from other papers
+    df_wc = emtff.wim.make_wimffs()
+    fc_hz = emtff.hz.make_hzffs()
+    df_jp = emtff.pegg.make_peggffs()
     F_wc = df_wc[name]
     F_hz = fc_hz[name]
     F_jp = df_jp[name]
     dl2_wc = df_wc['Delta2']
     dl2_hz = fc_hz['Delta2']
     dl2_jp = df_jp['Delta2']
-    # Our MFF
+    # Our EMTFF
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    F = select_mff(name, dl2, nff='hz') # Use HZ NFFs for apples-to-apples comparison
+    F = select_emtff(name, dl2, nff='hz') # Use HZ NFFs for apples-to-apples comparison
     # Plot
     ax.plot(dl2,    F,    '-',  linewidth=2, color='xkcd:true green', label=r'Ours')
     ax.plot(dl2_wc, F_wc, '--', linewidth=2, color='xkcd:rich purple',label=r'Freese and Cosyn')
@@ -208,15 +208,15 @@ def plot_one_group(ax, name):
     ax.set_xscale('log')
     if(name=='DT1'):
         ax.set_ylim((-560,560))
-        ##ax.plot(dl2, dl2*0 + mff.DT1_zero(nff='hz'), linewidth=1, color='black') # test forward limit
+        ##ax.plot(dl2, dl2*0 + emtff.DT1_zero(nff='hz'), linewidth=1, color='black') # test forward limit
     if(name=='DT2'):
         ax.set_ylim((-0.69,1.37))
-        ##ax.plot(dl2, dl2*0 + mff.DT2_zero(), linewidth=1, color='black') # test forward limit
+        ##ax.plot(dl2, dl2*0 + emtff.DT2_zero(), linewidth=1, color='black') # test forward limit
     ax.set_xlim((1e-6,10))
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Plot nucleon MFFs...
+# Plot nucleon EMTFFs...
 
 def plot_DN():
     k = np.linspace(0, 1, 101)
@@ -247,10 +247,10 @@ def plot_DN():
 
 def plot_cT2():
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    cT2_Adam  = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2')
-    cT2_Alan  = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan')
-    # cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
-    # cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    cT2_Adam  = emtff.cT2(np.sqrt(dl2), nff='point', formula='cT2')
+    cT2_Alan  = emtff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan')
+    # cT2_Adam3 = emtff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
+    # cT2_Alan3 = emtff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
     #
     nrows,ncols=1,1
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -270,10 +270,10 @@ def plot_cT2():
 
 def plot_cT1():
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    cT1_Adam = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1')
-    cT1_Alan = mff.cT1(np.sqrt(dl2), nff='point', formula='cT1Alan')
-    cT1_alnt = mff.cT1(np.sqrt(dl2), nff='point', formula='alannote')
-    cT1_papr = mff.cT1(np.sqrt(dl2), nff='point', formula='paper')
+    cT1_Adam = emtff.cT1(np.sqrt(dl2), nff='point', formula='cT1')
+    cT1_Alan = emtff.cT1(np.sqrt(dl2), nff='point', formula='cT1Alan')
+    cT1_alnt = emtff.cT1(np.sqrt(dl2), nff='point', formula='alannote')
+    cT1_papr = emtff.cT1(np.sqrt(dl2), nff='point', formula='paper')
     #
     nrows,ncols=1,1
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -294,10 +294,10 @@ def plot_cT1():
 
 def plot_sbar():
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    sbar_Adam  = mff.sbar(np.sqrt(dl2), nff='point', formula='sbar')
-    sbar_Alan  = mff.sbar(np.sqrt(dl2), nff='point', formula='sbarAlan')
-    # cT2_Adam3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
-    # cT2_Alan3 = mff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
+    sbar_Adam  = emtff.sbar(np.sqrt(dl2), nff='point', formula='sbar')
+    sbar_Alan  = emtff.sbar(np.sqrt(dl2), nff='point', formula='sbarAlan')
+    # cT2_Adam3 = emtff.cT2(np.sqrt(dl2), nff='point', formula='cT2Adam3')
+    # cT2_Alan3 = emtff.cT2(np.sqrt(dl2), nff='point', formula='cT2Alan3')
     #
     nrows,ncols=1,1
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -315,8 +315,8 @@ def plot_sbar():
 
 def plot_J():
     dl2 = np.geomspace(1e-6, 1e1, 666)
-    J_form1 = mff.J(np.sqrt(dl2), nff='point', formula='form1')
-    J_form2 = mff.J(np.sqrt(dl2), nff='point', formula='form2')
+    J_form1 = emtff.J(np.sqrt(dl2), nff='point', formula='form1')
+    J_form2 = emtff.J(np.sqrt(dl2), nff='point', formula='form2')
     #
     nrows,ncols=1,1
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')

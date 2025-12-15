@@ -1,7 +1,7 @@
 # point.py
 # Created 2025.11.11 by Alan Sosa
 #
-# This contains point like fermion MFFs
+# This contains point like fermion EMTFFs
 
 
 def AN(k):

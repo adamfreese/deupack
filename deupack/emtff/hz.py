@@ -17,9 +17,9 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_hzmffs():
-    ''' Convert He and Zahed's MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffs()
+def make_hzffs():
+    ''' Convert He and Zahed's GFFs into those of Cosyn, Freese and Sosa. '''
+    df = read_emtffs()
     t = df['t']
     A = df['A']
     Q = df['Q']
@@ -44,9 +44,9 @@ def make_hzmffs():
     return new_df
 
 
-def make_hzmffsIA():
-    ''' Convert He and Zahed's MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffsIA()
+def make_hzffsIA():
+    ''' Convert He and Zahed's GFFs into those of Cosyn, Freese and Sosa. '''
+    df = read_emtffsIA()
     t = df['t']
     A = df['A']
     Q = df['Q']
@@ -70,7 +70,7 @@ def make_hzmffsIA():
         })
     return new_df
 
-def read_mffs():
+def read_emtffs():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/hz'
     df_A =  pd.read_csv(path / "data_A.txt",  header=None, sep='\s+')
@@ -97,7 +97,7 @@ def read_mffs():
         })
     return df
 
-def read_mffsIA():
+def read_emtffsIA():
     ''' Read EMT data from the tables Fangcheng provided. '''
     path = Path(__file__).parent.parent / 'data/hz'
     df_A =  pd.read_csv(path / "data_A_IA.txt",  header=None, sep='\s+')

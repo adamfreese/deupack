@@ -1,7 +1,7 @@
 # misc.py
 # Created 2025.09.30 by Adam Freese
 #
-# This file contains simple estimates for the nucleon mechanical form factors
+# This file contains simple estimates for the nucleon EMT form factors
 # that are absent from the other modules.
 
 def cN(k):

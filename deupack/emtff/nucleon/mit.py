@@ -1,7 +1,7 @@
 # mit.py
 # Created 2025.09.30 by Adam Freese
 #
-# This file contains formulas for the mechanical form factors of a nucelon,
+# This file contains formulas for the EMT form factors of a nucelon,
 # as calculated by:
 #   Daniel C. Hackett, Dimitra A. Pefkou, and Phiala E. Shanahan
 #   Physical Review Letters 132 (2024) 241904
