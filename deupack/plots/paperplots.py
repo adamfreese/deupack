@@ -23,15 +23,21 @@ plt.rcParams["axes.formatter.use_mathtext"] = True
 # NOTE: will be slow, especially on the first run
 
 def make_paper_plots():
-    # TODO: docstring
-    group_comparison()
-    # TODO: other MFF plots (need Alan's modifications for nicer lengends)
-    mass_density()
-    s_d_interference()
-    momentum_density()
-    eigenvectors()
-    pressure()
-    torsion()
+    ''' A one-shot routine to make all the plots appearing in Cosyn/Freese/Sosa.
+    This could take a long time to run, especially on the first call. Subsequent
+    calls will run faster because deupack will create caches of the EMTFFs and
+    their Bessel transforms, but the plots could still take time to render.
+    '''
+    group_comparison() # Figure 1
+    D()                # Figure 2
+    cbar()             # Figure 3
+    antisymmetric()    # Figure 4
+    mass_density()     # Figure 5
+    s_d_interference() # Figure 6
+    momentum_density() # Figure 7
+    eigenvectors()     # Figure 8
+    pressure()         # Figure 9
+    torsion()          # Figure 11
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,7 +84,6 @@ def group_comparison():
     return
 
 def D():
-    # TODO: change docstring depending on what we ultimately choose
     ''' Creates three-panel figure for the D-like form factors.
     Each panel has four curves, comparing two choices of wave function:
         (1) AV18
@@ -92,18 +97,23 @@ def D():
     ax_DU  = plt.subplot(nrows,ncols,1)
     ax_DT1 = plt.subplot(nrows,ncols,2)
     ax_DT2 = plt.subplot(nrows,ncols,3)
-    _3curve_panel(ax_DU,  'DU')
-    _3curve_panel(ax_DT1, 'DT1')
-    _3curve_panel(ax_DT2, 'DT2')
+    _4curve_panel(ax_DU,  'DU')
+    _4curve_panel(ax_DT1, 'DT1')
+    _4curve_panel(ax_DT2, 'DT2')
+    # Make custom legend handles
+    legend_elements = [
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:blue',   lw=2.6, label=r'AV18'),
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:orange', lw=2.6, label=r'CD-Bonn'),
+            mpl.lines.Line2D([0], [0], linestyle='--', color='black',      lw=2.6, label=r'Pointlike nucleons')
+            ]
     # Legend in DU panel, since it's the first
-    legend = ax_DU.legend(prop = { 'size' : 27 }, loc=6)
+    legend = ax_DU.legend(handles=legend_elements, prop = { 'size' : 27 }, loc=6)
     legend.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('D.pdf')
     return
 
 def cbar():
-    # TODO: change docstring depending on what we ultimately choose
     ''' Creates three-panel figure for the cbar-like form factors.
     Each panel has four curves, comparing two choices of wave function:
         (1) AV18
@@ -117,11 +127,17 @@ def cbar():
     ax_cU  = plt.subplot(nrows,ncols,1)
     ax_cT1 = plt.subplot(nrows,ncols,2)
     ax_cT2 = plt.subplot(nrows,ncols,3)
-    _2curve_panel(ax_cU,  'cU')
-    _2curve_panel(ax_cT1, 'cT1')
-    _2curve_panel(ax_cT2, 'cT2')
+    _4curve_panel(ax_cU,  'cU')
+    _4curve_panel(ax_cT1, 'cT1')
+    _4curve_panel(ax_cT2, 'cT2')
+    # Make custom legend handles
+    legend_elements = [
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:blue',   lw=2.6, label=r'AV18'),
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:orange', lw=2.6, label=r'CD-Bonn'),
+            mpl.lines.Line2D([0], [0], linestyle='--', color='black',      lw=2.6, label=r'Pointlike nucleons')
+            ]
     # Legend in cU panel, since it's the first
-    legend = ax_cU.legend(prop = { 'size' : 27 }, loc=2)
+    legend = ax_cU.legend(handles=legend_elements, prop = { 'size' : 27 }, loc=2)
     legend.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('cbar.pdf')
@@ -286,7 +302,6 @@ def s_d_interference():
     fig.savefig('s_d_interference.pdf')
     return
 
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Two-dimensional density/quiver plots
 
@@ -389,10 +404,10 @@ def _4curve_panel(ax, name):
     F_pt_18 = _select_mff(name, dl2, nff='point', wf='av18')
     F_ba_cd = _select_mff(name, dl2, nff='ba',    wf='cdbonn')
     F_pt_cd = _select_mff(name, dl2, nff='point', wf='cdbonn')
-    ax.plot(dl2, F_ba_18, '-',  linewidth=2.6, color='tab:blue',   label=r'AV18 + BA')
-    ax.plot(dl2, F_pt_18, '--', linewidth=2.6, color='tab:green',  label=r'AV18 + point')
-    ax.plot(dl2, F_ba_cd, '-.', linewidth=2.6, color='tab:orange', label=r'CDBonn + BA')
-    ax.plot(dl2, F_pt_cd, ':',  linewidth=2.6, color='tab:red',    label=r'CDBonn + point')
+    ax.plot(dl2, F_ba_18, '-',  linewidth=2.6, color='tab:blue')#,   label=r'AV18 + BA')
+    ax.plot(dl2, F_pt_18, '--', linewidth=2.6, color='tab:blue')#,   label=r'AV18 + point')
+    ax.plot(dl2, F_ba_cd, '-',  linewidth=2.6, color='tab:orange')#, label=r'CDBonn + BA')
+    ax.plot(dl2, F_pt_cd, '--', linewidth=2.6, color='tab:orange')#, label=r'CDBonn + point')
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
@@ -448,10 +463,9 @@ def _2curve_panel(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
     # 3 curve version
     F_domin = _select_mff(name, dl2, nff='ba')
-    F_holog = _select_mff(name, dl2, nff='hz')
     F_point = _select_mff(name, dl2, nff='point')
     ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Meson dominance')
-    ax.plot(dl2, F_point, '-.', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
+    ax.plot(dl2, F_point, '--', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
