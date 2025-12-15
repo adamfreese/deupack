@@ -77,11 +77,11 @@ def density3d(ax, x, y, z, values,
         # If we have negative values, we need to map the normed values onto [0,1]
         normed_values = (values + vmax) / (2*vmax)
         # We also need to make sure alpha is based on magnnitude
-        alphas = (clip(abs(values) / vmax)) ** decay
+        alphas = (clip(abs(values) / abs(values.max()))) ** decay
     else:
         normed_values = values / vmax
         # Create alpha values for each data point based on its intensity and the specified decay factor
-        alphas = (clip(values / vmax)) ** decay
+        alphas = (clip(values / values.max())) ** decay
     colors = cmap(clip(normed_values))
     alphas *= opacity
     colors[:, :, :, 3] = alphas  # add alpha values to RGB values
