@@ -18,8 +18,6 @@ from . import emtff
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density class
 
-# TODO: public-facing methods for momentum and mass flux densities
-
 class Density:
     ''' A class for the calculation of deuteron densities.
 
@@ -225,7 +223,6 @@ class Density:
 
     def torsion_shear(self, pol='U'):
         ''' Antisymmetric shear in the r-theta direction, in GeV/fm**3. '''
-        # TODO: check sign
         theta_dep = np.sin(self.theta) * np.cos(self.theta)
         b_dep = 3*self._shear_bessel_A()
         shear = theta_dep*b_dep
