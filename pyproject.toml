@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "Python package to calculate structure of the deuteron"
 authors = [
   {name = "Adam Freese", email = "afreese@jlab.org"},
-  {name = "Alan Sosa"}
+  {name = "Alan Sosa", email = "asosa090@fiu.edu"}
 ]
 maintainers = [
   {name = "Adam Freese", email = "afreese@jlab.org"}
