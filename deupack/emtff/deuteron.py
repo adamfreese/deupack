@@ -24,7 +24,7 @@ from .nucleon.chooser import choose_nff
 # Add optional wf parameter (last arg) that overrides u/w function arguments if provided.
 
 def AU(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor AU.
+    ''' The EMT form factor AU.
     ----------
     Input:
         - k : float or numpy.array
@@ -34,7 +34,7 @@ def AU(k, wf='av18', nff='ba'):
             Available: av18, paris, cdbonn
             Default: av18
         - nff : string
-            Nucleon mechanical form factors to use
+            Nucleon EMT form factors to use
             Available: ba, mab, hz, point
             Default: ba
     Output:
@@ -43,13 +43,21 @@ def AU(k, wf='av18', nff='ba'):
         Some form factors have multiple options for formulas.
         These are meant for consistency checks.
         The default formula in each case is the fastest to evaluate.
+        Form factors with a 'formula' option are:
+            - cU
+            - cT1
+            - cT2
+        The options for the formula are 'fast' (default) or 'paper'.
+        The latter uses the formula explicitly given in the paper.
+        The option is given only to demonstrate that the results are the same,
+        but the 'paper' formula is significantly slower.
     '''
     u, w, *_ = choose_wf(wf)
     AN, *_ = choose_nff(nff)
     return _AU(k, u=u, w=w, AN=AN)
 
 def AT(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor AT.
+    ''' The EMT form factor AT.
     See docstring of AU for more info.
     '''
     u, w, *_ = choose_wf(wf)
@@ -57,7 +65,7 @@ def AT(k, wf='av18', nff='ba'):
     return _AT(k, u=u, w=w, AN=AN)
 
 def DU(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor DU.
+    ''' The EMT form factor DU.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
@@ -65,7 +73,7 @@ def DU(k, wf='av18', nff='ba'):
     return _DU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
 def DT1(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor DT1.
+    ''' The EMT form factor DT1.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
@@ -73,40 +81,40 @@ def DT1(k, wf='av18', nff='ba'):
     return _DT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN, DN=DN)
 
 def DT2(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor DT2.
+    ''' The EMT form factor DT2.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, _, _ = choose_wf(wf)
     AN, JN, *_ = choose_nff(nff)
     return _DT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, AN=AN, JN=JN)
 
-def cU(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor cU.
+def cU(k, wf='av18', nff='ba', formula='fast'):
+    ''' The EMT form factor cU.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     AN, _, _, cN, _ = choose_nff(nff)
-    # Need to change rmin from 0 to 1e-2 for the Paris wf,
+    # Need to change rmin from 0 to 1e-2 for Yukawa parametrizations,
     # because of an instability at small r
     rmin = 0
     if(wf=='paris' or wf=='cdbonn'):
         rmin = 1e-2
-    return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin)
+    return _cU(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, cN=cN, rmin=rmin, formula=formula)
 
-def cT1(k, wf='av18', nff='ba', formula='cT1'):
-    ''' The mechanical form factor cT1.
+def cT1(k, wf='av18', nff='ba', formula='fast'):
+    ''' The EMT form factor cT1.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     AN, JN, _, cN, _ = choose_nff(nff)
     return _cT1(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, cN=cN, formula=formula)
 
-def cT2(k, wf='av18', nff='ba', formula='cT2'):
-    ''' The mechanical form factor cT2.
+def cT2(k, wf='av18', nff='ba', formula='fast'):
+    ''' The EMT form factor cT2.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
-    # Need to change rmin from 0 to 1e-2 for the Paris wf,
+    # Need to change rmin from 0 to 1e-2 for Yukawa parametrizations,
     # because of an instability at small r
     AN, JN, *_ = choose_nff(nff)
     rmin = 0
@@ -114,33 +122,32 @@ def cT2(k, wf='av18', nff='ba', formula='cT2'):
         rmin =  1e-2
     return _cT2(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, u3=u3, w3=w3, AN=AN, JN=JN, rmin=rmin, formula=formula)
 
-def J(k, wf='av18', nff='ba', formula='form1'):
-    ''' The mechanical form factor J.
+def J(k, wf='av18', nff='ba'):
+    ''' The EMT form factor J.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, *_ = choose_wf(wf)
     AN, JN, *_ = choose_nff(nff)
-    return _J(k, u=u, w=w, u1=u1, w1=w1, AN=AN, JN=JN, formula=formula)
+    return _J(k, u=u, w=w, u1=u1, w1=w1, AN=AN, JN=JN)
 
 def S(k, wf='av18', nff='ba'):
-    ''' The mechanical form factor S.
+    ''' The EMT form factor S.
     See docstring of AU for more info.
     '''
     u, w, *_ = choose_wf(wf)
     _, _, _, _, SN = choose_nff(nff)
     return _S(k, u=u, w=w, SN=SN)
 
-def sbar(k, wf='av18', nff='ba', formula='sbar'):
-    ''' The mechanical form factor S.
+def sbar(k, wf='av18', nff='ba'):
+    ''' The EMT form factor S.
     See docstring of AU for more info.
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     _, _, _, _, SN = choose_nff(nff)
-    return _sbar(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2,u3=u3,w3=w3, SN=SN, formula=formula)
-
+    return _sbar(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2,u3=u3,w3=w3, SN=SN)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the MFFs:
+# Under-the-hood implementation details for the EMTFFs:
 # 1. Integrands
 #    Parallelization of the integration requires the integrands to be defined
 #    as top-level (rather than nested) functions.
@@ -171,20 +178,8 @@ def _DU_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
     return intd
 
 def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
+    # TODO: nicer formatting
     kfm = k/hbar
-    ##A_piece = 48 * (mN/k)**2 / kfm**2 *AN(k) * jn(4,kfm*r/2)*(
-    ##        np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r) - 2*u1(r)*w1(r))
-    ##        - w(r)*w2(r) + w1(r)**2
-    ##        + ( np.sqrt(2)*(3*w(r)*u1(r)-5*u(r)*w1(r)) + w(r)*w1(r) )/r
-    ##        + 6*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**2
-    ##        )
-    ##J_piece = 96*(mN/k)**2/kfm * JN(k) * jn(3,kfm*r/2) * (
-    ##        np.sqrt(2)*(u(r)*w1(r)-w(r)*u1(r)) - (2*np.sqrt(2)*u(r)*w(r)-w(r)**2)/r
-    ##        )
-    ##D_piece = 24*mN**2/k**2 * DN(k) * jn(2,kfm*r/2)*(
-    ##        2*np.sqrt(2)*u(r)*w(r) - w(r)**2
-    ##        )
-    ##intd = A_piece + J_piece + D_piece
     intd = 24*mNfm**2*(
             kfm**2*r**2*(2*sqrt(2)*u(r) - w(r))*DN(k)*jn(2, kfm*r/2)*w(r)
             +
@@ -198,19 +193,8 @@ def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
     return intd
 
 def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
+    # TODO: nicer formatting
     kfm = k/hbar
-    ##A_piece = -12/kfm**3 * AN(k) * jn(3,kfm*r/2)*(
-    ##        ( (2*np.sqrt(2)*u2(r)-w2(r))*w(r) - (2*np.sqrt(2)*u1(r)-w1(r))*w1(r)) / r
-    ##        + ( 2*np.sqrt(2)*u(r)+5*w(r) )*w1(r)/r**2
-    ##        - 18*w(r)**2/r**3
-    ##        )
-    ##J_piece = -6/kfm**2 * JN(k) * jn(2,kfm*r/2)*(
-    ##        np.sqrt(2)*(u(r)*w2(r) - w(r)*u2(r))
-    ##        - 4*(np.sqrt(2)*u1(r) + w1(r))*w(r)/r
-    ##        -(2*np.sqrt(2)*u(r)*w(r) - w(r)**2)/r**2
-    ##        + 3*w(r)**2/r**2
-    ##        )
-    ##intd = A_piece + J_piece
     intd = 6*(
             kfm*r*(
                 sqrt(2)*r**2*(-u(r)*w2(r) + u2(r)*w(r))
@@ -226,16 +210,8 @@ def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
     return intd
 
 def _cU_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
+    # TODO: nicer formatting
     kfm = k/hbar
-    ##A1_piece = AN(k)/(2*kfm*(mN/hbar)**2) * jn(1,kfm*r/2)*(
-    ##        2*u1(r)*u2(r) + 2*w1(r)*w2(r)
-    ##        - 12*w(r)**2/r**3
-    ##        )
-    ##A02_piece = AN(k)/(12*(mN/hbar)**2)*(jn(0,kfm*r/2)-2*jn(2,kfm*r/2))*(
-    ##        u(r)*u2(r) + w(r)*w2(r)
-    ##        )
-    ##c_piece = 0.5*cN(k)*jn(0,kfm*r/2)*(u(r)**2 + w(r)**2)
-    ##intd = A1_piece + A02_piece + c_piece
     intd = (
             6*mNfm**2*r**2*(u(r)**2 + w(r)**2)*cN(k)*jn(0, kfm*r/2)
             +
@@ -256,42 +232,8 @@ def _cU_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
     return intd
 
 def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
+    # TODO: nicer formatting
     kfm = k/hbar
-    ##A3_piece = 6*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
-    ##        np.sqrt(2)*(2*u1(r)*w2(r) + 2*w1(r)*u2(r))
-    ##        - 2*w1(r)*w2(r)
-    ##        + 2*np.sqrt(2)*( u(r)*w2(r) - w(r)*u2(r) )/r
-    ##        - 6*np.sqrt(2)*( u(r)*w1(r) - w(r)*u1(r) )/r**2
-    ##        - 12*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**3
-    ##        )
-    ##A24_piece = 6*AN(k)/(14*kfm**2)*(3*jn(2,kfm*r/2)-4*jn(4,kfm*r/2))*(
-    ##            np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r))
-    ##            - w(r)*w2(r)
-    ##            )
-    ##c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
-    ##        2*np.sqrt(2)*u(r)*w(r) - w(r)**2
-    ##        )
-    ### TODO: determine whether this J piece is right or too big by a factor 2
-    ##J_piece = 6*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/kfm**2*(
-    ##        w(r)*u2(r) - u(r)*w2(r) + 6*u(r)*w(r)/r**2
-    ##        )
-    ##intd = A3_piece + A24_piece + c_piece + J_piece
-    ####intd = 6*(
-    ####        kfm*r*(
-    ####            mNfm**2*r**2*(2*sqrt(2)*u(r) - w(r))*cN(k)*w(r)
-    ####            + sqrt(2)*(r**2*(-u(r)*w2(r) + u2(r)*w(r)) + 6*u(r)*w(r))*JN(k)
-    ####            )*jn(2, kfm*r/2)
-    ####        -
-    ####        (
-    ####            r**3*(
-    ####                sqrt(2)*u(r)*w3(r) - sqrt(2)*u1(r)*w2(r) - sqrt(2)*u2(r)*w1(r)
-    ####                + sqrt(2)*u3(r)*w(r) - w(r)*w3(r) + w1(r)*w2(r)
-    ####                )
-    ####            + 2*sqrt(2)*r**2*(-u(r)*w2(r) + u2(r)*w(r))
-    ####            + 6*sqrt(2)*r*(-u(r)*w1(r) + u1(r)*w(r))
-    ####            + 12*(2*sqrt(2)*u(r) - w(r))*w(r)
-    ####            )*AN(k)*jn(3, kfm*r/2)
-    ####        )/(kfm**3*r**3)
     intd = (
             42*kfm*r*(
                 mNfm**2*r**2*(2*sqrt(2)*u(r) - w(r))*cN(k)*w(r)
@@ -318,96 +260,9 @@ def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
             )/(7*kfm**3*r**3)
     return intd
 
-def _cT1_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
-    kfm = k/hbar
-    A_piece = 6*AN(k)/kfm**3*jn(3,kfm*r/2)*(
-            np.sqrt(2)*(u1(r)*w2(r) + w1(r)*u2(r) - u(r)*w3(r) - w(r)*u3(r))
-            + w(r)*w3(r) - w1(r)*w2(r)
-            + 2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r))/r
-            + 6*np.sqrt(2)*(u(r)*w1(r)-w(r)*u1(r))/r**2
-            -12*(2*np.sqrt(2)*u(r)*w(r)-w(r)**2)/r**3
-            )
-    J_piece = 6*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/kfm**2*(
-            w(r)*u2(r) - u(r)*w2(r) + 6*u(r)*w(r)/r**2
-            )
-    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
-            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
-            )
-    return A_piece + J_piece + c_piece
-
-def _cT1_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
-    kfm = k/hbar
-    A3_piece = 6*AN(k)/kfm**3 * jn(3,kfm*r/2)*(
-            np.sqrt(2)*(2*u1(r)*w2(r) + 2*w1(r)*u2(r))
-            - 2*w1(r)*w2(r)
-            + 2*np.sqrt(2)*( u(r)*w2(r) - w(r)*u2(r) )/r
-            - 6*np.sqrt(2)*( u(r)*w1(r) - w(r)*u1(r) )/r**2
-            - 12*( 2*np.sqrt(2)*u(r)*w(r) - w(r)**2 )/r**3
-            )
-    A24_piece = 6*AN(k)/(14*kfm**2)*(3*jn(2,kfm*r/2)-4*jn(4,kfm*r/2))*(
-                np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r))
-                - w(r)*w2(r)
-                )
-    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
-            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
-            )
-    J3_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(3,kfm*r/2)*(
-           3*(r*u1(r)*w(r)-r*w1(r)*u(r)+2*w(r)*u(r))
-           )
-    J1_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(1,kfm*r/2)*(
-           2*(-r*u1(r)*w(r)+r*w1(r)*u(r)+3*w(r)*u(r))
-           )
-    # AF: added a factor 2 to the J piece; confirmed by Alan in an email
-    intd = A3_piece + A24_piece + c_piece + 2*(J1_piece + J3_piece)
-    return intd
-
-def _cT1_integrand_alannote(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
-    # AF: This replaces the A pieces in _cT1_integrandAlan with the formula in Alan's note
-    # ... though multiplied by 2, because I recall we agreed there was a factor 6 overall
-    kfm = k/hbar
-    A4_piece = 3*AN(k)/(14*kfm**2*r**2) * jn(4,kfm*r/2)*(
-            4*r**2*w1(r)*(2*np.sqrt(2)*u1(r) - w1(r))
-            - 4*r*w(r)*(np.sqrt(2)*r*u2(r) + 3*np.sqrt(2)*u1(r) - r*w2(r) + w1(r))
-            - 4*np.sqrt(2)*r*u(r)*(r*w2(r) - 5*w1(r))
-            - 48*np.sqrt(2)*u(r)*w(r)
-            + 24*w(r)**2
-            )
-    A2_piece = 3*AN(k)/(14*kfm**2*r**2) * jn(2,kfm*r/2)*(
-            - 3*r**2*w1(r)*(2*np.sqrt(2)*u1(r) - w1(r))
-            + r*w(r)*(3*np.sqrt(2)*r*u2(r) + 2*np.sqrt(2)*u1(r) - 3*r*w2(r) - 4*w1(r))
-            + 3*np.sqrt(2)*r*u(r)*(r*w2(r) + 2*w1(r))
-            - 20*np.sqrt(2)*u(r)*w(r)
-            + 10*w(r)**2
-            )
-    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
-            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
-            )
-    J3_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(3,kfm*r/2)*(
-           3*(r*u1(r)*w(r)-r*w1(r)*u(r)+2*w(r)*u(r))
-           )
-    J1_piece = 3*JN(k)/(5*np.sqrt(2)*r*kfm)*jn(1,kfm*r/2)*(
-           2*(-r*u1(r)*w(r)+r*w1(r)*u(r)+3*w(r)*u(r))
-           )
-    # AF: added a factor 2 to the J piece; confirmed by Alan in an email
-    intd = 2*(A4_piece + A2_piece) + c_piece + 2*(J1_piece + J3_piece)
-    return intd
-
 def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
+    # TODO: nicer formatting
     kfm = k/hbar
-    ##A2_piece = jn(2,kfm*r/2)*(
-    ##        2*(w1(r)*w2(r) - np.sqrt(2)*(w1(r)*u2(r) + u1(r)*w2(r))) / r
-    ##        + (2*np.sqrt(2)*u(r) - w(r))*w2(r) / r**2
-    ##        + 12*np.sqrt(2)*w(r)*u1(r) / r**3
-    ##        - 12*( np.sqrt(2)*u(r)*w(r) + w(r)**2 ) / r**4
-    ##        )
-    ##A13_piece = kfm*(2*jn(1,kfm*r/2) - 3*jn(3,kfm*r/2))/10*(
-    ##        w2(r) - 2*np.sqrt(2)*u2(r)
-    ##        ) * w(r) / r
-    ##intd = 3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_piece + A13_piece)
-    ##J_piece = 3*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/(2*mN/hbar)**2*(
-    ##        u(r)*w2(r) - w(r)*u2(r) - 6*u(r)*w(r)/r**2
-    ##        )
-    ##intd += J_piece
     intd = (
             -30*sqrt(2)*kfm*r*(r**2*(-u(r)*w2(r) + u2(r)*w(r)) + 6*u(r)*w(r))*JN(k)*jn(2, kfm*r/2)
             +
@@ -435,83 +290,12 @@ def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
             )/(40*kfm*mNfm**2*r**3)
     return intd
 
-def _cT2_integrandAlan(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
-    kfm = k/hbar
-    A0_term = jn(0,kfm*r/2)*(
-            -7*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
-            -7*r*w(r)*(-np.sqrt(2)*r*u2(r)+7*np.sqrt(2)*u1(r)+r*w2(r)-w1(r))
-            +7*np.sqrt(2)*r*u(r)*(r*w2(r)+5*w1(r))+49*np.sqrt(2)*u(r)*w(r)+161./2.*w(r)**2
-            )
-    A2_term = jn(2,kfm*r/2)*(
-            5*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
-            +5*r*w(r)*(-np.sqrt(2)*r*u2(r)+4*np.sqrt(2)*u1(r)+r*w2(r)-w1(r))
-            -5*np.sqrt(2)*r*u(r)*(r*w2(r)+2*w1(r))+10*np.sqrt(2)*u(r)*w(r)+100*w(r)**2
-            )
-    A4_term = jn(4,kfm*r/2)*(
-            12*r**2*w1(r)*(2*np.sqrt(2)*u1(r)-w1(r))
-            -144*np.sqrt(2)*u(r)*w(r)+72*w(r)**2
-            -12*r*w(r)*(np.sqrt(2)*r*u2(r)+3*np.sqrt(2)*u1(r)-r*w2(r)+w1(r))
-            +12*np.sqrt(2)*r*u(r)*(5*w1(r)-r*w2(r))
-            )
-    intd = -AN(k)/(140*mN**2*r**2)*hbar**2 * (A0_term + A2_term+A4_term)
-    # J terms (confirmed)
-    J3_piece = -3*JN(k)*k*hbar/(20*np.sqrt(2)*mN**2*r)*jn(3,kfm*r/2)*(
-           3*(r*u1(r)*w(r) - r*u(r)*w1(r)+2*u(r)*w(r))
-           )
-    J1_piece = -3*JN(k)*k*hbar/(20*np.sqrt(2)*mN**2*r)*jn(1,kfm*r/2)*(
-           2*(-r*u1(r)*w(r) + r*u(r)*w1(r)+3*u(r)*w(r))
-           )
-    
-    intd += J1_piece + J3_piece
-    return intd
-
-def _cT2_integrandAlan3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
-    # missing J terms; will deprecate since cross-checks were passed
-    kfm = k/hbar
-    A2_term = 10.*jn(2,kfm*r/2)/(kfm*r)*(
-            r**3*w1(r)*(np.sqrt(2.)*u2(r)-w2(r))+r**3*np.sqrt(2.)*u1(r)*w2(r)
-            +12*w(r)**2-r**3*np.sqrt(2)*u(r)*w3(r)+6*r*np.sqrt(2)*u(r)*w1(r)
-            -r*w(r)*(6*np.sqrt(2)*u1(r)+np.sqrt(2)*r**2*u3(r)-r**2*w3(r))
-            )
-    A13_term = (
-                ( 2*jn(3,kfm*r/2) - 3*jn(1,kfm*r/2))*np.sqrt(2)*r**2*(
-                    u(r)*w2(r) - w(r)*u2(r)
-                    )
-                + (jn(1,kfm*r/2) - 4*jn(3,kfm*r/2))*(
-                    6*np.sqrt(2)*u(r)*w(r)
-                    )
-                )
-    intd = -3*AN(k)/(10.0*mN**2*k*r**3)*hbar**3 * (A2_term + A13_term)
-    return intd
-
-def _cT2_integrandAdam3(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
-    # missing J terms; will deprecate since cross-checks were passed
-    kfm = k/hbar
-    A2_term = jn(2,kfm*r/2)*(
-            (2*np.sqrt(2)*(w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
-            +(2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r)))/r**2
-            +12*np.sqrt(2)*w(r)*u1(r)/r**3
-            -12*(np.sqrt(2)*u(r)*w(r)+w(r)**2)/r**4
-            )
-    intd =  3*AN(k)/(mN**2*k**2)*hbar**4 * (A2_term)
-    return intd
-
 def _J_integrand(r, k, u, w, u1, w1, AN, JN):
     kfm = k/hbar
     A_piece = 9/2*AN(k)/kfm * jn(1,kfm*r/2) * w(r)**2/r
     J0_piece = JN(k)*jn(0,kfm*r/2)*(u(r)**2 - w(r)**2/2)
     J2_piece = JN(k)*jn(2,kfm*r/2)*(w(r)**2 + np.sqrt(2)*u(r)*w(r))/2
     intd = A_piece + J0_piece + J2_piece
-    return intd
-
-def _J_integrand_alt(r, k, u, w, u1, w1, AN, JN):
-    kfm = k/hbar
-    A_piece = 9/2*AN(k)/kfm * jn(1,kfm*r/2) * w(r)**2/r
-    J_piece = JN(k)*jn(1,kfm*r/2)/kfm*(
-            4*w(r)*w1(r) - 4*u(r)*u1(r) + np.sqrt(2)*(u(r)*w1(r)+u1(r)*w(r))
-            + (4*u(r)**2 - w(r)**2 + np.sqrt(2)*u(r)*w(r))/r
-            )
-    intd = A_piece + J_piece
     return intd
 
 def _S_integrand(r, k, u, w, SN):
@@ -521,27 +305,57 @@ def _S_integrand(r, k, u, w, SN):
     intd = S0_piece + S2_piece
     return intd
 
-def _sbar_integrandAdam(r, k, u, w,u1,w1,u2,w2, SN):
+def _sbar_integrand(r, k, u, w, u1, w1, u2, w2, SN):
     kfm = k/hbar
     intd = 6*np.sqrt(2)*SN(k)/kfm**2*jn(2,kfm*r/2)*(
             u(r)*w2(r) - u2(r)*w(r) - 6*u(r)*w(r)/r**2
             )
     return intd
 
-def _sbar_integrandAlan(r, k, u, w,u1,w1 ,u2,w2,SN):
-    kfm = k/hbar
-    J3_piece = 3*SN(k)/(5*np.sqrt(2)*kfm*r)*jn(3,kfm*r/2)*(
-           3*(r*u1(r)*w(r) - r*u(r)*w1(r)+2*u(r)*w(r))
-           )
-    J1_piece = 3*SN(k)/(5*np.sqrt(2)*kfm*r)*jn(1,kfm*r/2)*(
-           2*(-r*u1(r)*w(r) + r*u(r)*w1(r)+3*u(r)*w(r))
-           )
-    intd = J1_piece + J3_piece
-    return intd
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The formulas for cbarU, cbarT1 and cbarT2 given in the paper
 
+def _cU_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, cN):
+    kfm = k/hbar
+    A_piece = AN(k)*jn(1, kfm*r/2)/(2*mNfm**2*kfm) * (
+            u1(r)*u2(r) + w1(r)*w2(r)
+            - u(r)*u3(r) - w(r)*w3(r) - 12*w(r)**2/r**3
+            )
+    c_piece = cN(k)*jn(0, kfm*r/2) * (u(r)**2 + w(r)**2)/2
+    return A_piece + c_piece
+
+def _cT1_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
+    kfm = k/hbar
+    A_piece = 6*AN(k)/kfm**3*jn(3,kfm*r/2)*(
+            np.sqrt(2)*(u1(r)*w2(r) + w1(r)*u2(r) - u(r)*w3(r) - w(r)*u3(r))
+            + w(r)*w3(r) - w1(r)*w2(r)
+            + 2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r))/r
+            + 6*np.sqrt(2)*(u(r)*w1(r)-w(r)*u1(r))/r**2
+            -12*(2*np.sqrt(2)*u(r)*w(r)-w(r)**2)/r**3
+            )
+    J_piece = 6*np.sqrt(2)*JN(k)*jn(2,kfm*r/2)/kfm**2*(
+            w(r)*u2(r) - u(r)*w2(r) + 6*u(r)*w(r)/r**2
+            )
+    c_piece = 6*mN**2/k**2 * cN(k) * jn(2,kfm*r/2)*(
+            2*np.sqrt(2)*u(r)*w(r) - w(r)**2
+            )
+    return A_piece + J_piece + c_piece
+
+def _cT2_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
+    kfm = k/hbar
+    A_piece = 3*AN(k)/(mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
+            (2*np.sqrt(2)*(w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
+            +(2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r)))/r**2
+            +12*np.sqrt(2)*w(r)*u1(r)/r**3
+            -12*(np.sqrt(2)*u(r)*w(r)+w(r)**2)/r**4
+            )
+    J_piece = 3*np.sqrt(2)/(4*mNfm**2)*jn(2,kfm*r/2)*JN(k)*(
+            u(r)*w2(r) - w(r)*u2(r) - 6*u(r)*w(r)/r**2
+            )
+    return A_piece + J_piece
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the MFFs:
+# Under-the-hood implementation details for the EMTFFs:
 # 2. Integration
 #    quad_vec achieves good speed for parallel calculation of form factors
 #    at multiple k values. It's also parallelizable.
@@ -549,6 +363,7 @@ def _sbar_integrandAlan(r, k, u, w,u1,w1 ,u2,w2,SN):
 def _AU(k, u, w, AN, rmin=0, rmax=np.inf):
     integral = quad_vec(_AU_integrand, rmin, rmax,
                         args=(k,u,w,AN),
+                        workers=8
                         )[0]
     return integral * 2
 
@@ -556,6 +371,7 @@ def _AT(k, u, w, AN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_AT_integrand, rmin, rmax,
                         args=(k,u,w,AN),
+                        workers=8
                         )[0]
     return integral * 2
 
@@ -563,6 +379,7 @@ def _DU(k, u, w, u1, w1, u2, w2, AN, JN, DN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DU_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
+                        workers=8
                         )[0]
     return integral * 2
 
@@ -570,6 +387,7 @@ def _DT1(k, u, w, u1, w1, u2, w2, AN, JN, DN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DT1_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN, DN),
+                        workers=8
                         )[0]
     return integral * 2
 
@@ -577,60 +395,57 @@ def _DT2(k, u, w, u1, w1, u2, w2, AN, JN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_DT2_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, u2, w2, AN, JN),
+                        workers=8
                         )[0]
     return integral * 2
 
-def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf):
+def _cU(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN, rmin=0, rmax=np.inf, formula='fast'):
     k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_cU_integrand, rmin, np.inf,
+    if(formula=='fast'):
+        integrand = _cU_integrand
+    elif(formula=='paper'):
+        integrand = _cU_integrand_paper
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, cN),
+                        workers=8
                         )[0]
     return integral * 2
 
-def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf, formula='cT1'):
+def _cT1(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN, rmin=0, rmax=np.inf, formula='fast'):
     k = regulate_zero(k) # avoid division by zero
-    if(formula=='cT1'):
+    if(formula=='fast'):
         integrand = _cT1_integrand
-    elif(formula=='cT1Alan'):
-        integrand = _cT1_integrandAlan
     elif(formula=='paper'):
         integrand = _cT1_integrand_paper
-    elif(formula=='alannote'):
-        integrand = _cT1_integrand_alannote
     else:
         raise ValueError("{} is not a valid formula key.".format(formula))
     integral = quad_vec(integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN),
+                        workers=8
                         )[0]
     return integral * 2
 
-def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, rmin=0, rmax=np.inf, formula='cT2'):
+def _cT2(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, rmin=0, rmax=np.inf, formula='fast'):
     k = regulate_zero(k) # avoid division by zero
-    if(formula=='cT2'):
+    if(formula=='fast'):
         integrand = _cT2_integrand
-    elif(formula=='cT2Adam3'):
-        integrand = _cT2_integrandAdam3
-    elif(formula=='cT2Alan3'):
-        integrand = _cT2_integrandAlan3
-    elif(formula=='cT2Alan'):
-        integrand = _cT2_integrandAlan
+    elif(formula=='paper'):
+        integrand = _cT2_integrand_paper
     else:
         raise ValueError("{} is not a valid formula key.".format(formula))
     integral = quad_vec(integrand, rmin, np.inf,
                         args=(k, u, w, u1, w1, u2, w2, u3, w3, AN, JN),
+                        workers=8
                         )[0]
     return integral * 2
 
-def _J(k, u, w, u1, w1, AN, JN, rmin=0, rmax=np.inf, formula='form1'):
+def _J(k, u, w, u1, w1, AN, JN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    if(formula=='form1'):
-        integrand = _J_integrand
-    elif(formula=='form2'):
-        integrand = _J_integrand_alt
-    else:
-        raise ValueError("{} is not a valid formula key.".format(formula))
-    integral = quad_vec(integrand, rmin, rmax,
+    integral = quad_vec(_J_integrand, rmin, rmax,
                         args=(k, u, w, u1, w1, AN, JN),
+                        workers=8
                         )[0]
     return integral * 2
 
@@ -638,20 +453,15 @@ def _S(k, u, w, SN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_S_integrand, rmin, rmax,
                         args=(k, u, w, SN),
+                        workers=8
                         )[0]
     return integral * 2
 
-
-def _sbar(k, u, w, u1, w1, u2, w2, u3, w3,SN, rmin=0, rmax=np.inf, formula='sbar'):
+def _sbar(k, u, w, u1, w1, u2, w2, u3, w3,SN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
-    if(formula=='sbar'):
-        integrand = _sbar_integrandAdam
-    elif(formula=='sbarAlan'):
-        integrand = _sbar_integrandAlan
-    else:
-        raise ValueError("{} is not a valid formula key.".format(formula))
-    integral = quad_vec(integrand, rmin, np.inf,
+    integral = quad_vec(_sbar_integrand, rmin, np.inf,
                         args=( k, u, w,u1,w1 ,u2,w2,SN),
+                        workers=8
                         )[0]
     return integral * 2
 
@@ -669,39 +479,3 @@ def regulate_zero(X):
     else:
         X[X==0] = epsilon
     return X
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Temporary stuff for internal cross-checks
-
-def _DT1_zero_integrand(r, u, w, u1, w1, u2, w2):
-    term1 = np.sqrt(2)*r**3*( 24*u(r)*w1(r) - 24*w(r)*u1(r) )
-    term2 = r**4*(4*np.sqrt(2)*u(r)*w2(r) + 4*np.sqrt(2)*w(r)*u2(r) - 4*w(r)*w2(r))
-    term3 = 12*np.sqrt(2)*r**2*u(r)*w(r)
-    return (mN/hbar)**2*(term1+term2+term3) / 315
-
-def DT1_zero(wf='av18', nff='ba'):
-    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
-    _, _, DN, *_ = choose_nff(nff)
-    DN0 = 2*DN(0)
-    Qd = AT(0, wf=wf, nff=nff)
-    integral = quad_vec(_DT1_zero_integrand, 0, np.inf,
-                        args=(u, w, u1, w1, u2, w2),
-                        )[0]
-    result = (2*DN0 - 5/7)*Qd + integral
-    return result
-
-def _DT2_zero_integrand(r, u, w, u1, w1, u2, w2):
-    return -(
-            3*w(r)**2
-            + 4*r**2*(
-                np.sqrt(2)*(u(r)*w2(r) + w(r)*u2(r)) - w(r)*w2(r)
-                )
-            + 12*np.sqrt(2)*r*u(r)*w1(r)
-            ) / 70
-
-def DT2_zero(wf='av18'):
-    u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
-    integral = quad_vec(_DT2_zero_integrand, 0, np.inf,
-                        args=(u, w, u1, w1, u2, w2),
-                        )[0]
-    return integral
