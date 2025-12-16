@@ -213,19 +213,19 @@ def pressure():
     nff='ba'; wf='av18'; nb=101; bmax=2
     # Get the pressures
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    pr0 = D.pseudoradial_pressure( pol=0)
-    pθ0 = D.pseudolateral_pressure(pol=0)
-    pφ0 = D.azimuthal_pressure(    pol=0)
-    pr1 = D.pseudoradial_pressure( pol=1)
-    pθ1 = D.pseudolateral_pressure(pol=1)
-    pφ1 = D.azimuthal_pressure(    pol=1)
+    pr0 = D.isoradial_pressure(pol=0)
+    pθ0 = D.isopolar_pressure( pol=0)
+    pφ0 = D.azimuthal_pressure(pol=0)
+    pr1 = D.isoradial_pressure(pol=1)
+    pθ1 = D.isopolar_pressure( pol=1)
+    pφ1 = D.azimuthal_pressure(pol=1)
     # Make some labels
     labels = [
-            r'$m_j=0$, pseudoradial pressure',
-            r'$m_j=0$, pseudolateral pressure',
+            r'$m_j=0$, isoradial pressure',
+            r'$m_j=0$, isopolar pressure',
             r'$m_j=0$, azimuthal pressure',
-            r'$m_j=1$, pseudoradial pressure',
-            r'$m_j=1$, pseudolateral pressure',
+            r'$m_j=1$, isoradial pressure',
+            r'$m_j=1$, isopolar pressure',
             r'$m_j=1$, azimuthal pressure'
             ]
     # Prepare figure
@@ -321,16 +321,16 @@ def eigenvectors():
     for ax in [ax0p, ax0m, ax1p, ax1m]:
         ax.set_aspect('equal')
     vmax = np.max([
-        abs(Dh.pseudoradial_pressure(pol=0)).max(),
-        abs(Dh.pseudoradial_pressure(pol=1)).max(),
-        abs(Dh.pseudolateral_pressure(pol=0)).max(),
-        abs(Dh.pseudolateral_pressure(pol=1)).max()
+        abs(Dh.isoradial_pressure(pol=0)).max(),
+        abs(Dh.isoradial_pressure(pol=1)).max(),
+        abs(Dh.isopolar_pressure( pol=0)).max(),
+        abs(Dh.isopolar_pressure( pol=1)).max()
         ])
     # Call the panel code four times
-    _ = _eigenvector_panel(ax0p, Dq, Dh, '+', 0, vmax, r'Pseudoradial,  $m_j=0$')
-    _ = _eigenvector_panel(ax0m, Dq, Dh, '-', 0, vmax, r'Pseudolateral, $m_j=0$')
-    _ = _eigenvector_panel(ax1p, Dq, Dh, '+', 1, vmax, r'Pseudoradial,  $m_j=1$')
-    _ = _eigenvector_panel(ax1m, Dq, Dh, '-', 1, vmax, r'Pseudolateral, $m_j=1$')
+    _ = _eigenvector_panel(ax0p, Dq, Dh, '+', 0, vmax, r'Isoradial,  $m_j=0$')
+    _ = _eigenvector_panel(ax0m, Dq, Dh, '-', 0, vmax, r'Isopolar, $m_j=0$')
+    _ = _eigenvector_panel(ax1p, Dq, Dh, '+', 1, vmax, r'Isoradial,  $m_j=1$')
+    _ = _eigenvector_panel(ax1m, Dq, Dh, '-', 1, vmax, r'Isopolar, $m_j=1$')
     # Remove x axes from top two panels for economic use of space
     for ax in [ax0p, ax0m]:
         ax.get_xaxis().set_visible(False)
@@ -347,6 +347,62 @@ def eigenvectors():
     cbar.set_label(r'Pressure (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
     fig.savefig('eigenvectors.pdf', bbox_inches="tight")
+    return
+
+def forces():
+    # TODO ... work in progress
+    # Parameters for this visualization (fixed)
+    bmax = 2; nff='ba'; wf='av18'; nbq = 20; nbh = 101
+    # Density objects for quiver (small) and heat map (large)
+    Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
+    Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
+    # Get force vectors for the quiver plot ... sliced down to y=0
+    fr0 = Dq.radial_force(pol=0)[:,nbq//2,:]
+    fr1 = Dq.radial_force(pol=1)[:,nbq//2,:]
+    fθ0 = Dq.polar_force( pol=0)[:,nbq//2,:]
+    fθ1 = Dq.polar_force( pol=1)[:,nbq//2,:]
+    theta = Dq.theta[:,nbq//2,:]
+    phi = Dq.phi[:,nbq//2,:]
+    fz0 = fr0*np.cos(theta) - fθ0*np.sin(theta)
+    fx0 = (fr0*np.sin(theta) + fθ0*np.cos(theta)) * np.cos(phi)
+    fz1 = fr1*np.cos(theta) - fθ1*np.sin(theta)
+    fx1 = (fr1*np.sin(theta) + fθ1*np.cos(theta)) * np.cos(phi)
+    # Magnitude and direction
+    f0 = np.sqrt(fx0**2 + fz0**2)
+    f1 = np.sqrt(fx1**2 + fz1**2)
+    fz0 /= f0
+    fx0 /= f0
+    fz1 /= f1
+    fx1 /= f1
+    # Force magntiude for heat map
+    fr0 = Dh.radial_force(pol=0)[:,nbh//2,:]
+    fr1 = Dh.radial_force(pol=1)[:,nbh//2,:]
+    fθ0 = Dh.polar_force( pol=0)[:,nbh//2,:]
+    fθ1 = Dh.polar_force( pol=1)[:,nbh//2,:]
+    f0 = np.sqrt(fr0**2 + fθ0**2)
+    f1 = np.sqrt(fr1**2 + fθ1**2)
+    # Prepare figure
+    nrows,ncols=1,2
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
+    ax0 = axes[0]
+    ax1 = axes[1]
+    # Heat map
+    vmax = np.max([f0.max(), f1.max()])
+    c0 = ax0.pcolormesh(Dh.x, Dh.x, f0.T, vmin=0, vmax=vmax, cmap=cmr.voltage_r, shading='gouraud')
+    c1 = ax1.pcolormesh(Dh.x, Dh.x, f1.T, vmin=0, vmax=vmax, cmap=cmr.voltage_r, shading='gouraud')
+    # Quiver plot
+    quiver_kwargs = {
+            'color' : 'white',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'mid',
+            'scale' : Dq.x.shape[0]/Dq.x.max(),
+            'width' : 0.003
+            }
+    ax0.quiver(Dq.x, Dq.x, fx0.T, fz0.T, **quiver_kwargs)
+    ax1.quiver(Dq.x, Dq.x, fx1.T, fz1.T, **quiver_kwargs)
+    fig.patch.set_alpha(0)
+    fig.savefig('forces.pdf', bbox_inches="tight")
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -557,10 +613,10 @@ def _doublequiver(ax, x, y, vx, vy):
 def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
     if(mode=='+'):
         X, Y, Z = Dq.e_plus(pol=pol)
-        P = Dh.pseudoradial_pressure(pol=pol)
+        P = Dh.isoradial_pressure(pol=pol)
     elif(mode=='-'):
         X, Y, Z = Dq.e_minus(pol=pol)
-        P = Dh.pseudolateral_pressure(pol=pol)
+        P = Dh.isopolar_pressure(pol=pol)
     else:
         raise ValueError("Invalid mode: {}; expected + or -.".format(mode))
     # Slice at y=0

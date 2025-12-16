@@ -122,7 +122,7 @@ class Density:
         else:
             self._pol_error(pol)
 
-    def lateral_pressure(self, pol='U'):
+    def polar_pressure(self, pol='U'):
         ''' Lateral pressure in GeV/fm**3. '''
         if(pol=='U'):
             return self._pressure_bessel_U() - 1/3*self._shear_bessel_U()
@@ -152,9 +152,9 @@ class Density:
             theta_dep1 = 3/2*np.cos(self.theta)**2 - 1/2
             return theta_dep1*b_dep1 + b_dep0
         elif(pol==0):
-            return self.lateral_pressure(pol='U') + 2/3*self.lateral_pressure(pol='T')
+            return self.polar_pressure(pol='U') + 2/3*self.polar_pressure(pol='T')
         elif(pol==1 or pol==-1):
-            return self.lateral_pressure(pol='U') - 1/3*self.lateral_pressure(pol='T')
+            return self.polar_pressure(pol='U') - 1/3*self.polar_pressure(pol='T')
         else:
             self._pol_error(pol)
 
@@ -238,31 +238,61 @@ class Density:
             self._pol_error(pol)
         return shear
 
-    def pseudoradial_pressure(self, pol='U'):
+    def isoradial_pressure(self, pol='U'):
         ''' Eigenpressure closest to the radial direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
-        pt = self.lateral_pressure(pol=pol)
+        pt = self.polar_pressure(pol=pol)
         s = self.symmetric_shear(pol=pol)
         return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
-        #return 0.5*(pr + pt + (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
 
-    def pseudolateral_pressure(self, pol='U'):
-        ''' Eigenpressure closest to the lateral direction, in GeV/fm**3. '''
+    def isopolar_pressure(self, pol='U'):
+        ''' Eigenpressure closest to the polar direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
-        pt = self.lateral_pressure(pol=pol)
+        pt = self.polar_pressure(pol=pol)
         s = self.symmetric_shear()
         return 0.5*(pr+pt - np.sqrt((pr-pt)**2+4*s**2))
-        #return 0.5*(pr + pt - (pr-pt)*np.sqrt(1+4*s**2/(pr-pt)**2))
+
+    def radial_force(self, pol='U'):
+        ''' Radial force density, in GeV/fm**4. '''
+        if(pol=='U'):
+            return self._force_bessel_0()
+        elif(pol=='T'):
+            b_dep = self._force_bessel_2() + 3/5*self._force_bessel_3()
+            theta_dep = -(3/2*np.cos(self.theta)**2 - 1/2)
+            return b_dep*theta_dep
+        elif(pol==0):
+            return self.radial_force(pol='U') + 2/3*self.radial_force(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.radial_force(pol='U') - 1/3*self.radial_force(pol='T')
+        else:
+            self._pol_error(pol)
+
+    def polar_force(self, pol='U'):
+        ''' Polar force density, in GeV/fm**4. '''
+        theta_dep = 3/2 * np.sin(self.theta) * np.cos(self.theta)
+        b_dep = self._force_bessel_2() - 2/5*self._force_bessel_3()
+        force = theta_dep*b_dep
+        if(pol=='U'):
+            force *= 0
+        elif(pol=='T'):
+            pass
+        elif(pol==0):
+            force *= 2/3
+        elif(pol==1 or pol==-1):
+            force *= -1/3
+        else:
+            self._pol_error(pol)
+        return force
 
     # Unit eigenvectors of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def e_plus(self, pol='U'):
         ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
-        components of the pseudoradial eigenvector of the symmetric stress
+        components of the isoradial eigenvector of the symmetric stress
         tensor.
         '''
         pr = self.radial_pressure( pol=pol)
-        pt = self.lateral_pressure(pol=pol)
+        pt = self.polar_pressure(pol=pol)
         s  = self.symmetric_shear( pol=pol)
         sgn = np.sign(s)
         R  = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
@@ -274,11 +304,11 @@ class Density:
 
     def e_minus(self, pol='U'):
         ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
-        components of the pseudoradial eigenvector of the symmetric stress
+        components of the isoradial eigenvector of the symmetric stress
         tensor.
         '''
         pr = self.radial_pressure( pol=pol)
-        pt = self.lateral_pressure(pol=pol)
+        pt = self.polar_pressure(pol=pol)
         s  = self.symmetric_shear( pol=pol)
         sgn = np.sign(s)
         R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
@@ -482,6 +512,51 @@ class Density:
                 np.save(path, self.bessel_sA)
         return self.bessel_sA
 
+    def _force_bessel_0(self):
+        ''' The quantity f0, defined as a Bessel transform.
+        Uses internal spatial variables.
+        '''
+        if(self.bessel_f0 is None):
+            path = self._cache_path_bessel('f0')
+            if(path.is_file()):
+                self.bessel_f0 = np.load(path)
+            else:
+                self.bessel_f0 = quad_vec(_f0_integrand, self.kmin, self.kmax,
+                                           args=(self.b, self.cU),
+                                           workers=8)[0]
+                np.save(path, self.bessel_f0)
+        return self.bessel_f0
+
+    def _force_bessel_2(self):
+        ''' The quantity f2, defined as a Bessel transform.
+        Uses internal spatial variables.
+        '''
+        if(self.bessel_f2 is None):
+            path = self._cache_path_bessel('f2')
+            if(path.is_file()):
+                self.bessel_f2 = np.load(path)
+            else:
+                self.bessel_f2 = quad_vec(_f2_integrand, self.kmin, self.kmax,
+                                           args=(self.b, self.cT1, self.cT2, self.sbar),
+                                           workers=8)[0]
+                np.save(path, self.bessel_f2)
+        return self.bessel_f2
+
+    def _force_bessel_3(self):
+        ''' The quantity f3, defined as a Bessel transform.
+        Uses internal spatial variables.
+        '''
+        if(self.bessel_f3 is None):
+            path = self._cache_path_bessel('f3')
+            if(path.is_file()):
+                self.bessel_f3 = np.load(path)
+            else:
+                self.bessel_f3 = quad_vec(_f3_integrand, self.kmin, self.kmax,
+                                           args=(self.b, self.cT1, self.sbar),
+                                           workers=8)[0]
+                np.save(path, self.bessel_f3)
+        return self.bessel_f3
+
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _initialize_space(self):
@@ -511,6 +586,9 @@ class Density:
         self.bessel_pT2  = None
         self.bessel_sT2  = None
         self.bessel_sA   = None
+        self.bessel_f0   = None
+        self.bessel_f2   = None
+        self.bessel_f3   = None
         return
 
     def _cache_path(self):
@@ -704,4 +782,27 @@ def _shearT1_integrand_direct(k, b, DT1, norder):
     unique = (-1)**(norder//2) * k**2/(8*mN**2)
     bessel = jn(norder, k*b/hbar)
     form = k**2/(8*mN)*DT1(k)
+    return common * unique * bessel * form
+
+# Integrands for force distributions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _f0_integrand(k, b, cU):
+    common = k**2/(2*np.pi**2*hbar**3)
+    unique = 2*mN*k/hbar # aiming for GeV/fm**4
+    bessel = jn(1, k*b/hbar)
+    form = cU(k)
+    return common * unique * bessel * form
+
+def _f2_integrand(k, b, cT1, cT2, sbar):
+    common = k**2/(2*np.pi**2*hbar**3)
+    unique = -2*mN*k/hbar # aiming for GeV/fm**4
+    bessel = jn(1, k*b/hbar)
+    form = cT2(k) - k**2/(8*mN**2)*sbar(k) + k**2/(20*mN**2)*(cT1(k)+sbar(k))
+    return common * unique * bessel * form
+
+def _f3_integrand(k, b, cT1, sbar):
+    common = k**2/(2*np.pi**2*hbar**3)
+    unique = 2*mN*k/hbar # aiming for GeV/fm**4
+    bessel = jn(3, k*b/hbar)
+    form = k**2/(8*mN**2)*(cT1(k)+sbar(k))
     return common * unique * bessel * form
