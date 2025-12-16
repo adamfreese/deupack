@@ -4,6 +4,8 @@
 # This module reads in Bob's data file for the deuteron wave function
 # and creates functions for the coordinate-space S- and D-waves,
 # as well as their derivatives.
+#
+# It additionally implements the T=0, S=1 part of the AV18 potential.
 
 import numpy as np
 import pandas as pd
