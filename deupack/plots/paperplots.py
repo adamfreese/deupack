@@ -349,42 +349,6 @@ def eigenvectors():
     fig.savefig('eigenvectors.pdf', bbox_inches="tight")
     return
 
-def forces():
-    # TODO ... work in progress
-    # Parameters for this visualization (fixed)
-    #bmax = 2; nff='ba'; wf='av18'; nbq = 20; nbh = 101
-    # A test using pointlike nucleons ... does it make sense?
-    bmax = 2; nff='point'; wf='av18'; nbq = 21; nbh = 101
-    # Density objects for quiver (small) and heat map (large)
-    Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
-    Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
-    # Prepare figure
-    nrows,ncols=1,2
-    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
-    ax0 = axes[0]
-    ax1 = axes[1]
-    vmax = np.max([
-        abs(Dh.radial_force(pol=0)).max(),
-        abs(Dh.radial_force(pol=1)).max(),
-        abs(Dh.polar_force( pol=0)).max(),
-        abs(Dh.polar_force( pol=1)).max()
-        ])
-    _ = _force_panel(ax0, Dq, Dh, pol=0, vmax=vmax, label=r'$m_j=0$')
-    _ = _force_panel(ax1, Dq, Dh, pol=1, vmax=vmax, label=r'$m_j=\pm 1$')
-    # Remove y axes from right panel to save space
-    ax1.get_yaxis().set_visible(False)
-    # Make the colorbar
-    norm = mpl.colors.Normalize(vmin=0, vmax=vmax)
-    cbar = fig.colorbar(
-            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
-            ax = axes[1],
-            orientation='vertical',
-            )
-    cbar.set_label(r'Force density (GeV/fm$^4$)', size=36)
-    fig.patch.set_alpha(0)
-    fig.savefig('forces.pdf', bbox_inches="tight")
-    return
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Utilities for EMTFF plots
 
@@ -567,27 +531,6 @@ def _group_comparison_panel(ax, name):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Utilities for 2D plots
 
-def _singlequiver(ax, x, y, vx, vy):
-    quiver_kwargs_white = {
-            'color' : 'white',
-            'angles' : 'xy',
-            'scale_units' : 'xy',
-            'pivot' : 'mid',
-            'scale' : 3/4*x.shape[0]/x.max(),
-            'width' : 0.004
-            }
-    quiver_kwargs_black = {
-            'color' : 'black',
-            'angles' : 'xy',
-            'scale_units' : 'xy',
-            'pivot' : 'mid',
-            'scale' : x.shape[0]/x.max(),
-            'width' : 0.003
-            }
-    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_white)
-    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_black)
-    return
-
 def _doublequiver(ax, x, y, vx, vy):
     quiver_kwargs_white = {
             'color' : 'white',
@@ -632,50 +575,6 @@ def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
     c = ax.pcolormesh(bh, bh, p.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
     # Quiver plot next
     _doublequiver(ax, bq, bq, x, z)
-    # Finish up
-    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
-    textxy = (0.05,0.09)
-    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
-    ax.set_xlabel(r'$x$ (fm)')
-    ax.set_ylabel(r'$z$ (fm)')
-    return c
-
-def _force_panel(ax, Dq, Dh, pol, vmax, label):
-    # First, calculate the quivers for force directions
-    bq = Dq.x
-    nbq = bq.shape[0]
-    # Get force vectors for the quiver plot ... sliced down to y=0
-    fr = Dq.radial_force(pol=pol)[:,nbq//2,:]
-    fθ = Dq.polar_force( pol=pol)[:,nbq//2,:]
-    # Pull out the angular dependence
-    theta = Dq.theta[:,nbq//2,:]
-    phi = Dq.phi[:,nbq//2,:]
-    # Force in Cartesian coordinates
-    fz = (fr*np.cos(theta) - fθ*np.sin(theta))
-    fx = (fr*np.sin(theta) + fθ*np.cos(theta)) * np.cos(phi)
-    # Divide out magnitude to get unit vector in desired direction
-    f = np.sqrt(fx**2 + fz**2)
-    fz /= f
-    fx /= f
-    # Next, get the fine-grained force magnitude for the heat map
-    bh = Dh.x
-    nbh = bh.shape[0]
-    fr = Dh.radial_force(pol=pol)[:,nbh//2,:]
-    fθ = Dh.polar_force( pol=pol)[:,nbh//2,:]
-    f = np.sqrt(fr**2 + fθ**2)
-    # Plot the heat map
-    c = ax.pcolormesh(bh, bh, f.T, vmin=0, vmax=vmax, cmap=cmr.voltage_r, shading='gouraud')
-    # Plot the arrows ... TODO, separate method
-    ##quiver_kwargs = {
-    ##        'color' : 'black',
-    ##        'angles' : 'xy',
-    ##        'scale_units' : 'xy',
-    ##        'pivot' : 'mid',
-    ##        'scale' : nbq/bq.max(),
-    ##        'width' : 0.003
-    ##        }
-    ##ax.quiver(Dq.x, Dq.x, fx.T, fz.T, **quiver_kwargs)
-    _singlequiver(ax, bq, bq, fx, fz)
     # Finish up
     bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
     textxy = (0.05,0.09)

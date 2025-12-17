@@ -16,6 +16,188 @@ plt.rcParams["axes.formatter.use_mathtext"] = True
 from .density3d import density3d, multidensity3d
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Force plot (since it's under active development
+
+def forces(
+        bmax=1,
+        nb=101,
+        nbq=21,
+        wf='av18',
+        nff='point',
+        decor='quivers',
+        pols='01'
+        ):
+    if(decor=='quivers'):
+        _forces_via_quivers(bmax=bmax, nff=nff, wf=wf, nbq=nbq, nbh=nb, pols=pols)
+    elif(decor=='streamlines'):
+        _forces_via_streamlines(bmax=bmax, nff=nff, wf=wf, nb=nb)
+    else:
+        raise ValueError("{} is not a valid decor option.".format(decor))
+    return
+
+# Two ideas for showing force directions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _forces_via_streamlines(bmax=1, nff='ba', wf='av18', nb=101, pols='01'):
+    # TODO ... work in progress
+    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    # Prepare figure
+    nrows,ncols=1,2
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
+    ax0 = axes[0]
+    ax1 = axes[1]
+    norm = mpl.colors.LogNorm(vmin=1e-4, vmax=1)
+    if(pols=='01'):
+        _ = _force_panel_stream(ax0, D, pol=0, norm=norm, label=r'$m_j=0$')
+        _ = _force_panel_stream(ax1, D, pol=1, norm=norm, label=r'$m_j=\pm 1$')
+    elif(pols=='UT'):
+        _ = _force_panel_stream(ax0, D, pol='U', norm=norm, label=r'Unpolarized')
+        _ = _force_panel_stream(ax1, D, pol='T', norm=norm, label=r'Tensor-polarized')
+    else:
+        raise ValueError("{} is not a valid pols option.".format(pols))
+    # Remove y axes from right panel to save space
+    ax1.get_yaxis().set_visible(False)
+    # Make the colorbar
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
+            ax = axes[1],
+            orientation='vertical',
+            )
+    cbar.set_label(r'Force density (GeV/fm$^4$)', size=36)
+    fig.patch.set_alpha(0)
+    fig.savefig('forces.pdf', bbox_inches="tight")
+    return
+
+def _forces_via_quivers(bmax=1, nff='ba', wf='av18', nbq=21, nbh=101, pols='01'):
+    # TODO ... work in progress
+    # Density objects for quiver (small) and heat map (large)
+    Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
+    Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
+    # Prepare figure
+    nrows,ncols=1,2
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
+    ax0 = axes[0]
+    ax1 = axes[1]
+    norm = mpl.colors.LogNorm(vmin=1e-4, vmax=1)
+    if(pols=='01'):
+        _ = _force_panel(ax0, Dq, Dh, pol=0, norm=norm, label=r'$m_j=0$')
+        _ = _force_panel(ax1, Dq, Dh, pol=1, norm=norm, label=r'$m_j=\pm 1$')
+    elif(pols=='UT'):
+        _ = _force_panel(ax0, Dq, Dh, pol='U', norm=norm, label=r'Unpolarized')
+        _ = _force_panel(ax1, Dq, Dh, pol='T', norm=norm, label=r'Tensor-polarized')
+    else:
+        raise ValueError("{} is not a valid pols option.".format(pols))
+    # Remove y axes from right panel to save space
+    ax1.get_yaxis().set_visible(False)
+    # Make the colorbar
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
+            ax = axes[1],
+            orientation='vertical',
+            )
+    cbar.set_label(r'Force density (GeV/fm$^4$)', size=36)
+    fig.patch.set_alpha(0)
+    fig.savefig('forces.pdf', bbox_inches="tight")
+    return
+
+# Helpers for both methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _singlequiver(ax, x, y, vx, vy):
+    quiver_kwargs_white = {
+            'color' : 'white',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'mid',
+            'scale' : 3/4*x.shape[0]/x.max(),
+            'width' : 1/(10*x.shape[0])
+            }
+    quiver_kwargs_black = {
+            'color' : 'black',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'mid',
+            'scale' : x.shape[0]/x.max(),
+            'width' : 0.75/(10*x.shape[0])
+            }
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_white)
+    ## ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_black)
+    return
+
+def _force_panel(ax, Dq, Dh, pol, norm, label):
+    # First, calculate the quivers for force directions
+    bq = Dq.x
+    nbq = bq.shape[0]
+    # Get force vectors for the quiver plot ... sliced down to y=0
+    fr = Dq.radial_force(pol=pol)[:,nbq//2,:]
+    fθ = Dq.polar_force( pol=pol)[:,nbq//2,:]
+    # Pull out the angular dependence
+    theta = Dq.theta[:,nbq//2,:]
+    phi = Dq.phi[:,nbq//2,:]
+    # Force in Cartesian coordinates
+    fz = (fr*np.cos(theta) - fθ*np.sin(theta))
+    fx = (fr*np.sin(theta) + fθ*np.cos(theta)) * np.cos(phi)
+    # Divide out magnitude to get unit vector in desired direction
+    f = np.sqrt(fx**2 + fz**2)
+    fz /= f
+    fx /= f
+    # Next, get the fine-grained force magnitude for the heat map
+    bh = Dh.x
+    nbh = bh.shape[0]
+    fr = Dh.radial_force(pol=pol)[:,nbh//2,:]
+    fθ = Dh.polar_force( pol=pol)[:,nbh//2,:]
+    f = np.sqrt(fr**2 + fθ**2)
+    # Plot the heat map
+    c = ax.pcolormesh(bh, bh, f.T, norm=norm, cmap=cmr.voltage_r, shading='gouraud')
+    _singlequiver(ax, bq, bq, fx, fz)
+    # Finish up
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax.set_xlabel(r'$x$ (fm)')
+    ax.set_ylabel(r'$z$ (fm)')
+    return c
+
+def _force_panel_stream(ax, D, pol, norm, label):
+    # First, calculate the quivers for force directions
+    b = D.x
+    nb = b.shape[0]
+    # Get force vectors ... sliced down to y=0
+    fr = D.radial_force(pol=pol)[:,nb//2,:]
+    fθ = D.polar_force( pol=pol)[:,nb//2,:]
+    # Pull out the angular dependence
+    theta = D.theta[:,nb//2,:]
+    phi = D.phi[:,nb//2,:]
+    # Force in Cartesian coordinates
+    fz = (fr*np.cos(theta) - fθ*np.sin(theta))
+    fx = (fr*np.sin(theta) + fθ*np.cos(theta)) * np.cos(phi)
+    # Divide out magnitude to get unit vector in desired direction
+    f = np.sqrt(fx**2 + fz**2)
+    fz /= f
+    fx /= f
+    # Next, get the fine-grained force magnitude for the heat map
+    # Plot the heat map
+    c = ax.pcolormesh(b, b, f.T, norm=norm, cmap=cmr.voltage_r, shading='gouraud')
+    # Plot the streamlines ... TODO
+    s = ax.streamplot(b, b, fx.T, fz.T,
+                      color='white',
+                      arrowsize=1.7, arrowstyle='->',
+                      broken_streamlines=False,
+                      density=0.5
+                      )
+    # Tune the alphas for better visibility
+    s.lines.set_alpha(0.31)
+    for x in ax.get_children():
+        if type(x)==mpl.patches.FancyArrowPatch:
+            x.set_alpha(0.53)
+    # Finish up
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax.set_xlabel(r'$x$ (fm)')
+    ax.set_ylabel(r'$z$ (fm)')
+    return c
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Routines to make specific plots
 
 def plot_nff_comparisons():
