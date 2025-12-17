@@ -144,7 +144,7 @@ def sbar(k, wf='av18', nff='ba'):
     '''
     u, w, u1, w1, u2, w2, u3, w3 = choose_wf(wf)
     _, _, _, _, SN = choose_nff(nff)
-    return _sbar(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2,u3=u3,w3=w3, SN=SN)
+    return _sbar(k, u=u, w=w, u1=u1, w1=w1, u2=u2, w2=w2, SN=SN)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Under-the-hood implementation details for the EMTFFs:
@@ -457,10 +457,10 @@ def _S(k, u, w, SN, rmin=0, rmax=np.inf):
                         )[0]
     return integral * 2
 
-def _sbar(k, u, w, u1, w1, u2, w2, u3, w3,SN, rmin=0, rmax=np.inf):
+def _sbar(k, u, w, u1, w1, u2, w2, SN, rmin=0, rmax=np.inf):
     k = regulate_zero(k) # avoid division by zero
     integral = quad_vec(_sbar_integrand, rmin, np.inf,
-                        args=( k, u, w,u1,w1 ,u2,w2,SN),
+                        args=(k, u, w, u1, w1, u2, w2, SN),
                         workers=8
                         )[0]
     return integral * 2
