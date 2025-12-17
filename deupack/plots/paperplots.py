@@ -352,55 +352,35 @@ def eigenvectors():
 def forces():
     # TODO ... work in progress
     # Parameters for this visualization (fixed)
-    bmax = 2; nff='ba'; wf='av18'; nbq = 20; nbh = 101
+    #bmax = 2; nff='ba'; wf='av18'; nbq = 20; nbh = 101
+    # A test using pointlike nucleons ... does it make sense?
+    bmax = 2; nff='point'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
     Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
     Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
-    # Get force vectors for the quiver plot ... sliced down to y=0
-    fr0 = Dq.radial_force(pol=0)[:,nbq//2,:]
-    fr1 = Dq.radial_force(pol=1)[:,nbq//2,:]
-    fθ0 = Dq.polar_force( pol=0)[:,nbq//2,:]
-    fθ1 = Dq.polar_force( pol=1)[:,nbq//2,:]
-    theta = Dq.theta[:,nbq//2,:]
-    phi = Dq.phi[:,nbq//2,:]
-    fz0 = fr0*np.cos(theta) - fθ0*np.sin(theta)
-    fx0 = (fr0*np.sin(theta) + fθ0*np.cos(theta)) * np.cos(phi)
-    fz1 = fr1*np.cos(theta) - fθ1*np.sin(theta)
-    fx1 = (fr1*np.sin(theta) + fθ1*np.cos(theta)) * np.cos(phi)
-    # Magnitude and direction
-    f0 = np.sqrt(fx0**2 + fz0**2)
-    f1 = np.sqrt(fx1**2 + fz1**2)
-    fz0 /= f0
-    fx0 /= f0
-    fz1 /= f1
-    fx1 /= f1
-    # Force magntiude for heat map
-    fr0 = Dh.radial_force(pol=0)[:,nbh//2,:]
-    fr1 = Dh.radial_force(pol=1)[:,nbh//2,:]
-    fθ0 = Dh.polar_force( pol=0)[:,nbh//2,:]
-    fθ1 = Dh.polar_force( pol=1)[:,nbh//2,:]
-    f0 = np.sqrt(fr0**2 + fθ0**2)
-    f1 = np.sqrt(fr1**2 + fθ1**2)
     # Prepare figure
     nrows,ncols=1,2
     fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
     ax0 = axes[0]
     ax1 = axes[1]
-    # Heat map
-    vmax = np.max([f0.max(), f1.max()])
-    c0 = ax0.pcolormesh(Dh.x, Dh.x, f0.T, vmin=0, vmax=vmax, cmap=cmr.voltage_r, shading='gouraud')
-    c1 = ax1.pcolormesh(Dh.x, Dh.x, f1.T, vmin=0, vmax=vmax, cmap=cmr.voltage_r, shading='gouraud')
-    # Quiver plot
-    quiver_kwargs = {
-            'color' : 'white',
-            'angles' : 'xy',
-            'scale_units' : 'xy',
-            'pivot' : 'mid',
-            'scale' : Dq.x.shape[0]/Dq.x.max(),
-            'width' : 0.003
-            }
-    ax0.quiver(Dq.x, Dq.x, fx0.T, fz0.T, **quiver_kwargs)
-    ax1.quiver(Dq.x, Dq.x, fx1.T, fz1.T, **quiver_kwargs)
+    vmax = np.max([
+        abs(Dh.radial_force(pol=0)).max(),
+        abs(Dh.radial_force(pol=1)).max(),
+        abs(Dh.polar_force( pol=0)).max(),
+        abs(Dh.polar_force( pol=1)).max()
+        ])
+    _ = _force_panel(ax0, Dq, Dh, pol=0, vmax=vmax, label=r'$m_j=0$')
+    _ = _force_panel(ax1, Dq, Dh, pol=1, vmax=vmax, label=r'$m_j=\pm 1$')
+    # Remove y axes from right panel to save space
+    ax1.get_yaxis().set_visible(False)
+    # Make the colorbar
+    norm = mpl.colors.Normalize(vmin=0, vmax=vmax)
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
+            ax = axes[1],
+            orientation='vertical',
+            )
+    cbar.set_label(r'Force density (GeV/fm$^4$)', size=36)
     fig.patch.set_alpha(0)
     fig.savefig('forces.pdf', bbox_inches="tight")
     return
@@ -587,6 +567,27 @@ def _group_comparison_panel(ax, name):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Utilities for 2D plots
 
+def _singlequiver(ax, x, y, vx, vy):
+    quiver_kwargs_white = {
+            'color' : 'white',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'mid',
+            'scale' : 3/4*x.shape[0]/x.max(),
+            'width' : 0.004
+            }
+    quiver_kwargs_black = {
+            'color' : 'black',
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'mid',
+            'scale' : x.shape[0]/x.max(),
+            'width' : 0.003
+            }
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_white)
+    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_black)
+    return
+
 def _doublequiver(ax, x, y, vx, vy):
     quiver_kwargs_white = {
             'color' : 'white',
@@ -631,6 +632,50 @@ def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
     c = ax.pcolormesh(bh, bh, p.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
     # Quiver plot next
     _doublequiver(ax, bq, bq, x, z)
+    # Finish up
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax.set_xlabel(r'$x$ (fm)')
+    ax.set_ylabel(r'$z$ (fm)')
+    return c
+
+def _force_panel(ax, Dq, Dh, pol, vmax, label):
+    # First, calculate the quivers for force directions
+    bq = Dq.x
+    nbq = bq.shape[0]
+    # Get force vectors for the quiver plot ... sliced down to y=0
+    fr = Dq.radial_force(pol=pol)[:,nbq//2,:]
+    fθ = Dq.polar_force( pol=pol)[:,nbq//2,:]
+    # Pull out the angular dependence
+    theta = Dq.theta[:,nbq//2,:]
+    phi = Dq.phi[:,nbq//2,:]
+    # Force in Cartesian coordinates
+    fz = (fr*np.cos(theta) - fθ*np.sin(theta))
+    fx = (fr*np.sin(theta) + fθ*np.cos(theta)) * np.cos(phi)
+    # Divide out magnitude to get unit vector in desired direction
+    f = np.sqrt(fx**2 + fz**2)
+    fz /= f
+    fx /= f
+    # Next, get the fine-grained force magnitude for the heat map
+    bh = Dh.x
+    nbh = bh.shape[0]
+    fr = Dh.radial_force(pol=pol)[:,nbh//2,:]
+    fθ = Dh.polar_force( pol=pol)[:,nbh//2,:]
+    f = np.sqrt(fr**2 + fθ**2)
+    # Plot the heat map
+    c = ax.pcolormesh(bh, bh, f.T, vmin=0, vmax=vmax, cmap=cmr.voltage_r, shading='gouraud')
+    # Plot the arrows ... TODO, separate method
+    ##quiver_kwargs = {
+    ##        'color' : 'black',
+    ##        'angles' : 'xy',
+    ##        'scale_units' : 'xy',
+    ##        'pivot' : 'mid',
+    ##        'scale' : nbq/bq.max(),
+    ##        'width' : 0.003
+    ##        }
+    ##ax.quiver(Dq.x, Dq.x, fx.T, fz.T, **quiver_kwargs)
+    _singlequiver(ax, bq, bq, fx, fz)
     # Finish up
     bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
     textxy = (0.05,0.09)
