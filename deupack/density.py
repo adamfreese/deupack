@@ -31,11 +31,11 @@ class Density:
     def __init__(self,
                  wf='av18',
                  nff='ba',
-                 nk=200,
-                 nb=201,
+                 nk=600,
+                 nb=101,
                  bmax=2,    # fm
                  kmin=1e-6, # GeV
-                 kmax=10    # GeV
+                 kmax=20    # GeV
                  ):
         self.wf   = wf
         self.nff  = nff
