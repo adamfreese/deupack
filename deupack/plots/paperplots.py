@@ -247,9 +247,8 @@ def torsion():
     nff='ba'; wf='av18'; nb=101; bmax=2
     # Get the torsion
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
-    s = D.torsion_shear(pol='T')
-    s0 =  2/3*s
-    s1 = -1/3*s
+    s0 = D.torsion_shear(pol=0)
+    s1 = D.torsion_shear(pol=1)
     # Make some labels
     labels = [ r'$m_j=0$', r'$m_j=1$' ]
     # Prepare figure

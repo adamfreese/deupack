@@ -67,9 +67,9 @@ class Density:
             theta_dep = 3/2*np.cos(self.theta)**2 - 1/2
             return b_dep*theta_dep
         elif(pol==0):
-            return self.mass_density(pol='U') + 2/3*self.mass_density(pol='T')
-        elif(pol==1 or pol==-1):
             return self.mass_density(pol='U') - 1/3*self.mass_density(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.mass_density(pol='U') + 1/6*self.mass_density(pol='T')
         else:
             self._pol_error(pol)
 
@@ -101,24 +101,24 @@ class Density:
             return self._pressure_bessel_U() + 2/3*self._shear_bessel_U()
         elif(pol=='T'):
             b_dep = (
-                    self._pressure_bessel_T1()
-                    +
-                    2/15*self._shear_bessel_T1(0)
-                    +
-                    4/21*self._shear_bessel_T1(2)
-                    +
-                    12/35*self._shear_bessel_T1(4)
-                    +
-                    self._pressure_bessel_T2()
-                    +
-                    2/3*self._shear_bessel_T2()
+                    -2*self._pressure_bessel_T1()
+                    -
+                    4/15*self._shear_bessel_T1(0)
+                    -
+                    8/21*self._shear_bessel_T1(2)
+                    -
+                    24/35*self._shear_bessel_T1(4)
+                    -
+                    2*self._pressure_bessel_T2()
+                    -
+                    4/3*self._shear_bessel_T2()
                     )
             theta_dep = 3/2*np.cos(self.theta)**2 - 1/2
             return b_dep*theta_dep
         elif(pol==0):
-            return self.radial_pressure(pol='U') + 2/3*self.radial_pressure(pol='T')
-        elif(pol==1 or pol==-1):
             return self.radial_pressure(pol='U') - 1/3*self.radial_pressure(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.radial_pressure(pol='U') + 1/6*self.radial_pressure(pol='T')
         else:
             self._pol_error(pol)
 
@@ -128,33 +128,34 @@ class Density:
             return self._pressure_bessel_U() - 1/3*self._shear_bessel_U()
         elif(pol=='T'):
             b_dep1 = (
-                    self._pressure_bessel_T1()
-                    -
-                    2/15*self._shear_bessel_T1(0)
-                    -
-                    1/5*self._shear_bessel_T1(4)
-                    -
-                    self._pressure_bessel_T2()
-                    -
-                    2/3*self._shear_bessel_T2()
+                    -2*self._pressure_bessel_T1()
+                    +
+                    4/15*self._shear_bessel_T1(0)
+                    +
+                    2/5*self._shear_bessel_T1(4)
+                    +
+                    2*self._pressure_bessel_T2()
+                    +
+                    4/3*self._shear_bessel_T2()
                     )
             b_dep0 = (
-                    1/15*self._shear_bessel_T1(0)
                     -
-                    2/21*self._shear_bessel_T1(2)
+                    2/15*self._shear_bessel_T1(0)
                     +
-                    1/35*self._shear_bessel_T1(4)
-                    +
-                    1/2*self._pressure_bessel_T2()
+                    4/21*self._shear_bessel_T1(2)
                     -
-                    2/3*self._shear_bessel_T2()
+                    2/35*self._shear_bessel_T1(4)
+                    -
+                    self._pressure_bessel_T2()
+                    +
+                    4/3*self._shear_bessel_T2()
                     )
             theta_dep1 = 3/2*np.cos(self.theta)**2 - 1/2
             return theta_dep1*b_dep1 + b_dep0
         elif(pol==0):
-            return self.polar_pressure(pol='U') + 2/3*self.polar_pressure(pol='T')
-        elif(pol==1 or pol==-1):
             return self.polar_pressure(pol='U') - 1/3*self.polar_pressure(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.polar_pressure(pol='U') + 1/6*self.polar_pressure(pol='T')
         else:
             self._pol_error(pol)
 
@@ -164,32 +165,32 @@ class Density:
             return self._pressure_bessel_U() - 1/3*self._shear_bessel_U()
         elif(pol=='T'):
             b_dep1 = (
-                    self._pressure_bessel_T1()
                     -
-                    4/21*self._shear_bessel_T1(2)
-                    -
-                    1/7*self._shear_bessel_T1(4)
-                    -
-                    2*self._shear_bessel_T2()
+                    2*self._pressure_bessel_T1()
+                    +
+                    8/21*self._shear_bessel_T1(2)
+                    +
+                    2/7*self._shear_bessel_T1(4)
+                    +
+                    4*self._shear_bessel_T2()
                     )
             b_dep0 = (
+                    2/15*self._shear_bessel_T1(0)
                     -
-                    1/15*self._shear_bessel_T1(0)
+                    4/21*self._shear_bessel_T1(2)
                     +
-                    2/21*self._shear_bessel_T1(2)
-                    -
-                    1/35*self._shear_bessel_T1(4)
-                    -
-                    1/2*self._pressure_bessel_T2()
+                    2/35*self._shear_bessel_T1(4)
                     +
-                    2/3*self._shear_bessel_T2()
+                    self._pressure_bessel_T2()
+                    -
+                    4/3*self._shear_bessel_T2()
                     )
             theta_dep1 = 3/2*np.cos(self.theta)**2 - 1/2
             return theta_dep1*b_dep1 + b_dep0
         elif(pol==0):
-            return self.azimuthal_pressure(pol='U') + 2/3*self.azimuthal_pressure(pol='T')
-        elif(pol==1 or pol==-1):
             return self.azimuthal_pressure(pol='U') - 1/3*self.azimuthal_pressure(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.azimuthal_pressure(pol='U') + 1/6*self.azimuthal_pressure(pol='T')
         else:
             self._pol_error(pol)
 
@@ -197,16 +198,15 @@ class Density:
         ''' Symmetric shear in the r-theta directions, in GeV/fm**3. '''
         theta_dep = np.sin(self.theta) * np.cos(self.theta)
         b_dep = (
-                -
-                1/5*self._shear_bessel_T1(0)
-                -
-                1/7*self._shear_bessel_T1(2)
+                2/5*self._shear_bessel_T1(0)
                 +
-                12/35*self._shear_bessel_T1(4)
+                2/7*self._shear_bessel_T1(2)
                 -
-                3/2*self._pressure_bessel_T2()
-                -
-                self._shear_bessel_T2()
+                24/35*self._shear_bessel_T1(4)
+                +
+                3*self._pressure_bessel_T2()
+                +
+                2*self._shear_bessel_T2()
                 )
         shear = theta_dep*b_dep
         if(pol=='U'):
@@ -214,9 +214,9 @@ class Density:
         elif(pol=='T'):
             pass
         elif(pol==0):
-            shear *= 2/3
-        elif(pol==1 or pol==-1):
             shear *= -1/3
+        elif(pol==1 or pol==-1):
+            shear *= 1/6
         else:
             self._pol_error(pol)
         return shear
@@ -224,16 +224,16 @@ class Density:
     def torsion_shear(self, pol='U'):
         ''' Antisymmetric shear in the r-theta direction, in GeV/fm**3. '''
         theta_dep = np.sin(self.theta) * np.cos(self.theta)
-        b_dep = 3*self._shear_bessel_A()
+        b_dep = -6*self._shear_bessel_A()
         shear = theta_dep*b_dep
         if(pol=='U'):
             shear *= 0
         elif(pol=='T'):
             pass
         elif(pol==0):
-            shear *= 2/3
-        elif(pol==1 or pol==-1):
             shear *= -1/3
+        elif(pol==1 or pol==-1):
+            shear *= 1/6
         else:
             self._pol_error(pol)
         return shear
@@ -258,18 +258,18 @@ class Density:
             return self._force_bessel_0()
         elif(pol=='T'):
             b_dep = self._force_bessel_2() + 3/5*self._force_bessel_3()
-            theta_dep = -(3/2*np.cos(self.theta)**2 - 1/2)
+            theta_dep = (3*np.cos(self.theta)**2 - 1)
             return b_dep*theta_dep
         elif(pol==0):
-            return self.radial_force(pol='U') + 2/3*self.radial_force(pol='T')
-        elif(pol==1 or pol==-1):
             return self.radial_force(pol='U') - 1/3*self.radial_force(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.radial_force(pol='U') + 1/6*self.radial_force(pol='T')
         else:
             self._pol_error(pol)
 
     def polar_force(self, pol='U'):
         ''' Polar force density, in GeV/fm**4. '''
-        theta_dep = 3/2 * np.sin(self.theta) * np.cos(self.theta)
+        theta_dep = -3 * np.sin(self.theta) * np.cos(self.theta)
         b_dep = self._force_bessel_2() - 2/5*self._force_bessel_3()
         force = theta_dep*b_dep
         if(pol=='U'):
@@ -277,9 +277,9 @@ class Density:
         elif(pol=='T'):
             pass
         elif(pol==0):
-            force *= 2/3
-        elif(pol==1 or pol==-1):
             force *= -1/3
+        elif(pol==1 or pol==-1):
+            force *= 1/6
         else:
             self._pol_error(pol)
         return force
@@ -698,7 +698,7 @@ def _massU_integrand(k, b, AU):
 
 def _massT_integrand(k, b, AT):
     common = k**2/(2*np.pi**2*hbar**3)
-    unique = -k**2/(4*mN)
+    unique = k**2/(2*mN)
     bessel = jn(2, k*b/hbar)
     form = AT(k)
     return common * unique * bessel * form
