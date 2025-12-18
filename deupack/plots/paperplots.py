@@ -100,18 +100,15 @@ def D():
     _4curve_panel(ax_DU,  'DU')
     _4curve_panel(ax_DT1, 'DT1')
     _4curve_panel(ax_DT2, 'DT2')
-    # Make custom legend handles
-
-
+    # Legends in DU panel, since it's the first
     leg1 = ax_DU.legend(prop={'size': 24},loc=(0.02,0.7))
+    leg1.get_frame().set_facecolor('#f8f8f8')
     ax_DU.add_artist(leg1)
-
-
+    # Make custom legend handles
     legend_elements = [
-            mpl.lines.Line2D([0], [0], linestyle='-',  color='black',   lw=2.6, label=r'Holography'),
-            mpl.lines.Line2D([0], [0], linestyle='--', color='black',      lw=2.6, label=r'Pointlike nucleons')
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='black', lw=2.6, label=r'Dipole nucleons'),
+            mpl.lines.Line2D([0], [0], linestyle='--', color='black', lw=2.6, label=r'Point nucleons')
             ]
-    # Legend in DU panel, since it's the first
     legend = ax_DU.legend(handles=legend_elements, prop = { 'size' : 27 }, loc=6)
     legend.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
@@ -135,21 +132,15 @@ def cbar():
     _4curve_panel(ax_cU,  'cU')
     _4curve_panel(ax_cT1, 'cT1')
     _4curve_panel(ax_cT2, 'cT2')
-
-
-
+    # Legends in cU panel, since it's the first
     leg1 = ax_cU.legend(prop={'size': 24},loc=2)
+    leg1.get_frame().set_facecolor('#f8f8f8')
     ax_cU.add_artist(leg1)
-
-
-
-
     # Make custom legend handles
     legend_elements = [
-            mpl.lines.Line2D([0], [0], linestyle='-',  color='black',   lw=2.6, label=r'Holography'),
-            mpl.lines.Line2D([0], [0], linestyle='--', color='black',      lw=2.6, label=r'Pointlike nucleons')
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='black', lw=2.6, label=r'Dipole nucleons'),
+            mpl.lines.Line2D([0], [0], linestyle='--', color='black', lw=2.6, label=r'Point nucleons')
             ]
-    # Legend in cU panel, since it's the first
     legend = ax_cU.legend(handles=legend_elements, prop = { 'size' : 27 }, loc=6)
     legend.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
@@ -476,7 +467,7 @@ def _2curve_panel(ax, name):
     # 3 curve version
     F_domin = _select_emtff(name, dl2, nff='ba')
     F_point = _select_emtff(name, dl2, nff='point')
-    ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Meson dominance')
+    ax.plot(dl2, F_domin, '-',  linewidth=2.6, color='tab:blue',   label=r'Dipole nucleons')
     ax.plot(dl2, F_point, '--', linewidth=2.6, color='tab:orange', label=r'Point nucleons')
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
