@@ -101,9 +101,14 @@ def D():
     _4curve_panel(ax_DT1, 'DT1')
     _4curve_panel(ax_DT2, 'DT2')
     # Make custom legend handles
+
+
+    leg1 = ax_DU.legend(prop={'size': 24},loc=(0.02,0.7))
+    ax_DU.add_artist(leg1)
+
+
     legend_elements = [
-            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:blue',   lw=2.6, label=r'AV18'),
-            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:orange', lw=2.6, label=r'CD-Bonn'),
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='black',   lw=2.6, label=r'Holography'),
             mpl.lines.Line2D([0], [0], linestyle='--', color='black',      lw=2.6, label=r'Pointlike nucleons')
             ]
     # Legend in DU panel, since it's the first
@@ -130,14 +135,22 @@ def cbar():
     _4curve_panel(ax_cU,  'cU')
     _4curve_panel(ax_cT1, 'cT1')
     _4curve_panel(ax_cT2, 'cT2')
+
+
+
+    leg1 = ax_cU.legend(prop={'size': 24},loc=2)
+    ax_cU.add_artist(leg1)
+
+
+
+
     # Make custom legend handles
     legend_elements = [
-            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:blue',   lw=2.6, label=r'AV18'),
-            mpl.lines.Line2D([0], [0], linestyle='-',  color='tab:orange', lw=2.6, label=r'CD-Bonn'),
+            mpl.lines.Line2D([0], [0], linestyle='-',  color='black',   lw=2.6, label=r'Holography'),
             mpl.lines.Line2D([0], [0], linestyle='--', color='black',      lw=2.6, label=r'Pointlike nucleons')
             ]
     # Legend in cU panel, since it's the first
-    legend = ax_cU.legend(handles=legend_elements, prop = { 'size' : 27 }, loc=2)
+    legend = ax_cU.legend(handles=legend_elements, prop = { 'size' : 27 }, loc=6)
     legend.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('cbar.pdf')
@@ -399,13 +412,13 @@ def _select_emtff(name, dl2, wf='av18', nff='ba'):
 def _4curve_panel(ax, name):
     dl2 = np.geomspace(1e-6, 1e1, 666)
     # 4 curve version
-    F_ba_18 = _select_emtff(name, dl2, nff='ba',    wf='av18')
+    F_ba_18 = _select_emtff(name, dl2, nff='hz',    wf='av18')
     F_pt_18 = _select_emtff(name, dl2, nff='point', wf='av18')
-    F_ba_cd = _select_emtff(name, dl2, nff='ba',    wf='cdbonn')
+    F_ba_cd = _select_emtff(name, dl2, nff='hz',    wf='cdbonn')
     F_pt_cd = _select_emtff(name, dl2, nff='point', wf='cdbonn')
-    ax.plot(dl2, F_ba_18, '-',  linewidth=2.6, color='tab:blue')#,   label=r'AV18 + BA')
+    ax.plot(dl2, F_ba_18, '-',  linewidth=2.6, color='tab:blue',label='AV18')#,   label=r'AV18 + BA')
     ax.plot(dl2, F_pt_18, '--', linewidth=2.6, color='tab:blue')#,   label=r'AV18 + point')
-    ax.plot(dl2, F_ba_cd, '-',  linewidth=2.6, color='tab:orange')#, label=r'CDBonn + BA')
+    ax.plot(dl2, F_ba_cd, '-',  linewidth=2.6, color='tab:orange',label='CDBonn')#, label=r'CDBonn + BA')
     ax.plot(dl2, F_pt_cd, '--', linewidth=2.6, color='tab:orange')#, label=r'CDBonn + point')
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
