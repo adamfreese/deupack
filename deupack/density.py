@@ -108,9 +108,9 @@ class Density:
                     8/21*self._shear_bessel_T1(2)
                     -
                     24/35*self._shear_bessel_T1(4)
-                    -
+                    +
                     2*self._pressure_bessel_T2()
-                    -
+                    +
                     4/3*self._shear_bessel_T2()
                     )
             theta_dep = 3/2*np.cos(self.theta)**2 - 1/2
@@ -133,9 +133,9 @@ class Density:
                     4/15*self._shear_bessel_T1(0)
                     +
                     2/5*self._shear_bessel_T1(4)
-                    +
+                    -
                     2*self._pressure_bessel_T2()
-                    +
+                    -
                     4/3*self._shear_bessel_T2()
                     )
             b_dep0 = (
@@ -145,9 +145,9 @@ class Density:
                     4/21*self._shear_bessel_T1(2)
                     -
                     2/35*self._shear_bessel_T1(4)
-                    -
-                    self._pressure_bessel_T2()
                     +
+                    self._pressure_bessel_T2()
+                    -
                     4/3*self._shear_bessel_T2()
                     )
             theta_dep1 = 3/2*np.cos(self.theta)**2 - 1/2
@@ -171,7 +171,7 @@ class Density:
                     8/21*self._shear_bessel_T1(2)
                     +
                     2/7*self._shear_bessel_T1(4)
-                    +
+                    -
                     4*self._shear_bessel_T2()
                     )
             b_dep0 = (
@@ -180,9 +180,9 @@ class Density:
                     4/21*self._shear_bessel_T1(2)
                     +
                     2/35*self._shear_bessel_T1(4)
-                    +
-                    self._pressure_bessel_T2()
                     -
+                    self._pressure_bessel_T2()
+                    +
                     4/3*self._shear_bessel_T2()
                     )
             theta_dep1 = 3/2*np.cos(self.theta)**2 - 1/2
@@ -203,9 +203,9 @@ class Density:
                 2/7*self._shear_bessel_T1(2)
                 -
                 24/35*self._shear_bessel_T1(4)
-                +
+                -
                 3*self._pressure_bessel_T2()
-                +
+                -
                 2*self._shear_bessel_T2()
                 )
         shear = theta_dep*b_dep
@@ -795,9 +795,9 @@ def _f0_integrand(k, b, cU):
 
 def _f2_integrand(k, b, cT1, cT2, sbar):
     common = k**2/(2*np.pi**2*hbar**3)
-    unique = -2*mN*k/hbar # aiming for GeV/fm**4
+    unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(1, k*b/hbar)
-    form = cT2(k) - k**2/(8*mN**2)*sbar(k) + k**2/(20*mN**2)*(cT1(k)+sbar(k))
+    form = cT2(k) + k**2/(8*mN**2)*sbar(k) - k**2/(20*mN**2)*(cT1(k)+sbar(k))
     return common * unique * bessel * form
 
 def _f3_integrand(k, b, cT1, sbar):

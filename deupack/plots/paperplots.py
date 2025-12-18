@@ -514,10 +514,10 @@ def _group_comparison_panel(ax, name):
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
     ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
     bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.5')
-    if(name=='AU' or name=='AT' or name=='J'):
-        textxy = (0.74,0.88)
-    else:
+    if(name=='DU'):
         textxy = (0.74,0.08)
+    else:
+        textxy = (0.74,0.88)
     ax.annotate(
             _namelabel[name], xy=textxy, xycoords='axes fraction',
             bbox=bbox
@@ -527,7 +527,7 @@ def _group_comparison_panel(ax, name):
     if(name=='DT1'):
         ax.set_ylim((-560,560))
     if(name=='DT2'):
-        ax.set_ylim((-0.69,1.37))
+        ax.set_ylim((-1.37,0.69))
     ax.set_xlim((1e-6,10))
     return
 

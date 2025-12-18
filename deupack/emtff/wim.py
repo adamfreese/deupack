@@ -44,7 +44,7 @@ def make_wimffs(remove_G7=False):
     else:
         G7 = 0
     DT1 = 4*Md**2/t**2*( df['tD_-+'] + Md**2*G7)
-    DT2 = -(A11 - 2*J11) - 2*Md**2/t*(A11 - A00 + G7/2)
+    DT2 = (A11 - 2*J11) + 2*Md**2/t*(A11 - A00 + G7/2)
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,

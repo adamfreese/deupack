@@ -195,7 +195,7 @@ def _DT1_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN, DN):
 def _DT2_integrand(r, k, u, w, u1, w1, u2, w2, AN, JN):
     # TODO: nicer formatting
     kfm = k/hbar
-    intd = 6*(
+    intd = -6*(
             kfm*r*(
                 sqrt(2)*r**2*(-u(r)*w2(r) + u2(r)*w(r))
                 + 4*r*(sqrt(2)*u1(r) + w1(r))*w(r)
@@ -263,7 +263,7 @@ def _cT1_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
 def _cT2_integrand(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
     # TODO: nicer formatting
     kfm = k/hbar
-    intd = (
+    intd = -(
             -30*sqrt(2)*kfm*r*(r**2*(-u(r)*w2(r) + u2(r)*w(r)) + 6*u(r)*w(r))*JN(k)*jn(2, kfm*r/2)
             +
             (
@@ -343,13 +343,13 @@ def _cT1_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN, cN):
 
 def _cT2_integrand_paper(r, k, u, w, u1, w1, u2, w2, u3, w3, AN, JN):
     kfm = k/hbar
-    A_piece = 3*AN(k)/(mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
+    A_piece = -3*AN(k)/(mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
             (2*np.sqrt(2)*(w(r)*u3(r)-u1(r)*w2(r))-w(r)*w3(r)+w1(r)*w2(r))/r
             +(2*np.sqrt(2)*(u(r)*w2(r)-w(r)*u2(r)))/r**2
             +12*np.sqrt(2)*w(r)*u1(r)/r**3
             -12*(np.sqrt(2)*u(r)*w(r)+w(r)**2)/r**4
             )
-    J_piece = 3*np.sqrt(2)/(4*mNfm**2)*jn(2,kfm*r/2)*JN(k)*(
+    J_piece = -3*np.sqrt(2)/(4*mNfm**2)*jn(2,kfm*r/2)*JN(k)*(
             u(r)*w2(r) - w(r)*u2(r) - 6*u(r)*w(r)/r**2
             )
     return A_piece + J_piece
