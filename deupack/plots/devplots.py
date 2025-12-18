@@ -166,13 +166,13 @@ def _force_panel_stream(ax, D, pol, norm, label):
     # Pull out the angular dependence
     theta = D.theta[:,nb//2,:]
     phi = D.phi[:,nb//2,:]
-    # Force in Cartesian coordinates
+    # Force in Cartesian coordinates, and its magnitude
     fz = (fr*np.cos(theta) - fθ*np.sin(theta))
     fx = (fr*np.sin(theta) + fθ*np.cos(theta)) * np.cos(phi)
-    # Divide out magnitude to get unit vector in desired direction
     f = np.sqrt(fx**2 + fz**2)
-    fz /= f
-    fx /= f
+    ## # Divide out magnitude to get unit vector in desired direction
+    ## fz /= f
+    ## fx /= f
     # Next, get the fine-grained force magnitude for the heat map
     # Plot the heat map
     c = ax.pcolormesh(b, b, f.T, norm=norm, cmap=cmr.voltage_r, shading='gouraud')
