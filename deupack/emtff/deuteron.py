@@ -307,7 +307,7 @@ def _S_integrand(r, k, u, w, SN):
 
 def _sbar_integrand(r, k, u, w, u1, w1, u2, w2, SN):
     kfm = k/hbar
-    intd = 6*np.sqrt(2)*SN(k)/kfm**2*jn(2,kfm*r/2)*(
+    intd = -6*np.sqrt(2)*SN(k)/kfm**2*jn(2,kfm*r/2)*(
             u(r)*w2(r) - u2(r)*w(r) - 6*u(r)*w(r)/r**2
             )
     return intd

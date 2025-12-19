@@ -223,7 +223,7 @@ class Density:
     def torsion_shear(self, pol='U'):
         ''' Antisymmetric shear in the r-theta direction, in GeV/fm**3. '''
         theta_dep = np.sin(self.theta) * np.cos(self.theta)
-        b_dep = -6*self._shear_bessel_A()
+        b_dep = 6*self._shear_bessel_A()
         shear = theta_dep*b_dep
         if(pol=='U'):
             shear *= 0
@@ -796,12 +796,12 @@ def _f2_integrand(k, b, cT1, cT2, sbar):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(1, k*b/hbar)
-    form = cT2(k) + k**2/(8*mN**2)*sbar(k) - k**2/(20*mN**2)*(cT1(k)+sbar(k))
+    form = cT2(k) - k**2/(8*mN**2)*sbar(k) - k**2/(20*mN**2)*(cT1(k)-sbar(k))
     return common * unique * bessel * form
 
 def _f3_integrand(k, b, cT1, sbar):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(3, k*b/hbar)
-    form = k**2/(8*mN**2)*(cT1(k)+sbar(k))
+    form = k**2/(8*mN**2)*(cT1(k)-sbar(k))
     return common * unique * bessel * form
