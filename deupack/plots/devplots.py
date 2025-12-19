@@ -20,12 +20,12 @@ from .density3d import density3d, multidensity3d
 # Force plot (since it's under active development
 
 def forces(
-        bmax=1,
+        bmax=1.4,
         nb=101,
         nbq=21,
         wf='av18',
-        nff='point',
-        decor='quivers',
+        nff='ba',
+        decor='streamlines',
         pols='01'
         ):
     if(decor=='quivers'):
@@ -189,10 +189,10 @@ def _force_panel_stream(ax, D, pol, norm, label):
                       density=0.55
                       )
     # Tune the alphas for better visibility
-    s.lines.set_alpha(0.31)
+    s.lines.set_alpha(0.37)
     for x in ax.get_children():
         if type(x)==mpl.patches.FancyArrowPatch:
-            x.set_alpha(0.53)
+            x.set_alpha(0.59)
     # Finish up
     bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
     textxy = (0.05,0.09)
