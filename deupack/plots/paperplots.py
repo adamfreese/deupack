@@ -7,6 +7,7 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
 import cmasher as cmr
 
 from .. import emtff
@@ -38,6 +39,7 @@ def make_paper_plots():
     eigenvectors()     # Figure 8
     pressure()         # Figure 9
     torsion()          # Figure 11
+    # TODO: finalize a force plot for Figure 12
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,7 +312,7 @@ def s_d_interference():
 
 def eigenvectors():
     # Parameters for this visualization (fixed)
-    bmax = 2; nff='ba'; wf='av18'; nbq = 20; nbh = 101
+    bmax = 1.6; nff='ba'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
     Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
     Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
@@ -535,26 +537,19 @@ def _group_comparison_panel(ax, name):
 # Utilities for 2D plots
 
 def _doublequiver(ax, x, y, vx, vy):
-    quiver_kwargs_white = {
+    quiver_kwargs = {
             'color' : 'white',
+            'alpha' : 0.7,
             'angles' : 'xy',
             'scale_units' : 'xy',
             'pivot' : 'tail',
             'scale' : x.shape[0]/x.max(),
-            'width' : 0.004
-            }
-    quiver_kwargs_black = {
-            'color' : 'black',
-            'angles' : 'xy',
-            'scale_units' : 'xy',
-            'pivot' : 'tail',
-            'scale' : 5/4*x.shape[0]/x.max(),
             'width' : 0.003
             }
-    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_white)
-    ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs_white)
-    ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs_black)
-    ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs_black)
+    q1 = ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs)
+    q2 = ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs)
+    for q in [q1, q2]:
+        q.set_path_effects([pe.Stroke(linewidth=3, foreground='black', alpha=0.3), pe.Normal()])
     return
 
 def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
