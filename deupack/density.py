@@ -101,7 +101,7 @@ class Density:
             return self._pressure_bessel_U() + 2/3*self._shear_bessel_U()
         elif(pol=='T'):
             b_dep = (
-                    -2*self._pressure_bessel_T1()
+                    2*self._pressure_bessel_T1()
                     -
                     4/15*self._shear_bessel_T1(0)
                     -
@@ -128,7 +128,7 @@ class Density:
             return self._pressure_bessel_U() - 1/3*self._shear_bessel_U()
         elif(pol=='T'):
             b_dep1 = (
-                    -2*self._pressure_bessel_T1()
+                    2*self._pressure_bessel_T1()
                     +
                     4/15*self._shear_bessel_T1(0)
                     +
@@ -165,7 +165,6 @@ class Density:
             return self._pressure_bessel_U() - 1/3*self._shear_bessel_U()
         elif(pol=='T'):
             b_dep1 = (
-                    -
                     2*self._pressure_bessel_T1()
                     +
                     8/21*self._shear_bessel_T1(2)
@@ -772,7 +771,7 @@ def _shearA_integrand(k, b, sbar):
 
 def _pressureT1_integrand_direct(k, b, DT1, cT1):
     common = k**2/(2*np.pi**2*hbar**3)
-    unique = +k**2/(8*mN**2)
+    unique = -k**2/(8*mN**2)
     bessel = jn(2, k*b/hbar)
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
