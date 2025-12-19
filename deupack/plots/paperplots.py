@@ -527,7 +527,8 @@ def _group_comparison_panel(ax, name):
     if(name=='DT1'):
         ax.set_ylim((-560,560))
     if(name=='DT2'):
-        ax.set_ylim((-1.37,0.69))
+        #ax.set_ylim((-1.37,0.69))
+        ax.set_ylim((-0.17,0.59))
     ax.set_xlim((1e-6,10))
     return
 
