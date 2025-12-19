@@ -185,8 +185,8 @@ def _force_panel_stream(ax, D, pol, norm, label):
     s = ax.streamplot(b, b, fx.T, fz.T,
                       color='white',
                       arrowsize=1.7, arrowstyle='->',
-                      broken_streamlines=False,
-                      density=0.55
+                      broken_streamlines=True,
+                      density=1.5
                       )
     # Tune the alphas for better visibility
     s.lines.set_alpha(0.37)
