@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
 import cmasher as cmr
 
 from .. import emtff
@@ -205,9 +206,10 @@ def _force_panel_stream(ax, D, pol, norm, label):
 
 def eigenvectors_alt():
     # Parameters for this visualization (fixed)
-    bmax = 2; nff='ba'; wf='av18'; nb = 100
+    bmax = 1.6; nff='ba'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
-    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
+    Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
     # Prepare figure
     nrows,ncols=2,2
     fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
@@ -218,16 +220,16 @@ def eigenvectors_alt():
     for ax in [ax0p, ax0m, ax1p, ax1m]:
         ax.set_aspect('equal')
     vmax = np.max([
-        abs(D.isoradial_pressure(pol=0)).max(),
-        abs(D.isoradial_pressure(pol=1)).max(),
-        abs(D.isopolar_pressure( pol=0)).max(),
-        abs(D.isopolar_pressure( pol=1)).max()
+        abs(Dh.isoradial_pressure(pol=0)).max(),
+        abs(Dh.isoradial_pressure(pol=1)).max(),
+        abs(Dh.isopolar_pressure( pol=0)).max(),
+        abs(Dh.isopolar_pressure( pol=1)).max()
         ])
     # Call the panel code four times
-    _ = _eigenvector_panel(ax0p, D, '+', 0, vmax, r'Isoradial,  $m_j=0$')
-    _ = _eigenvector_panel(ax0m, D, '-', 0, vmax, r'Isopolar, $m_j=0$')
-    _ = _eigenvector_panel(ax1p, D, '+', 1, vmax, r'Isoradial,  $m_j=1$')
-    _ = _eigenvector_panel(ax1m, D, '-', 1, vmax, r'Isopolar, $m_j=1$')
+    _ = _eigenvector_panel(ax0p, Dq, Dh, '+', 0, vmax, r'Isoradial,  $m_j=0$')
+    _ = _eigenvector_panel(ax0m, Dq, Dh, '-', 0, vmax, r'Isopolar, $m_j=0$')
+    _ = _eigenvector_panel(ax1p, Dq, Dh, '+', 1, vmax, r'Isoradial,  $m_j=1$')
+    _ = _eigenvector_panel(ax1m, Dq, Dh, '-', 1, vmax, r'Isopolar, $m_j=1$')
     # Remove x axes from top two panels for economic use of space
     for ax in [ax0p, ax0m]:
         ax.get_xaxis().set_visible(False)
@@ -246,38 +248,47 @@ def eigenvectors_alt():
     fig.savefig('eigenvectors.pdf', bbox_inches="tight")
     return
 
-def _eigenvector_panel(ax, D, mode, pol, vmax, label):
+def _doublequiver(ax, x, y, vx, vy):
+    quiver_kwargs = {
+            'color' : 'white',
+            'alpha' : 0.7,
+            'angles' : 'xy',
+            'scale_units' : 'xy',
+            'pivot' : 'tail',
+            'scale' : x.shape[0]/x.max(),
+            'width' : 0.003
+            }
+    q1 = ax.quiver(x, y,  vx.T,  vy.T, **quiver_kwargs)
+    q2 = ax.quiver(x, y, -vx.T, -vy.T, **quiver_kwargs)
+    for q in [q1, q2]:
+        q.set_path_effects([pe.Stroke(linewidth=3, foreground='black', alpha=0.3), pe.Normal()])
+    return
+
+def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
     if(mode=='+'):
-        X, Y, Z = D.e_plus(pol=pol)
-        P = D.isoradial_pressure(pol=pol)
+        X, Y, Z = Dq.e_plus(pol=pol)
+        P = Dh.isoradial_pressure(pol=pol)
     elif(mode=='-'):
-        X, Y, Z = D.e_minus(pol=pol)
-        P = D.isopolar_pressure(pol=pol)
+        X, Y, Z = Dq.e_minus(pol=pol)
+        P = Dh.isopolar_pressure(pol=pol)
     else:
         raise ValueError("Invalid mode: {}; expected + or -.".format(mode))
     # Slice at y=0
-    b = D.x
-    nb = b.shape[0]
-    x = X[:,nb//2,:]
-    z = Z[:,nb//2,:]
-    p = P[:,nb//2,:]
-    # ...
-    x *= p
-    z *= p
+    bq = Dq.x
+    nbq = bq.shape[0]
+    x = X[:,nbq//2,:]
+    z = Z[:,nbq//2,:]
+    # Normalization fix, because we're slightly off y=0
+    N = np.sqrt(x**2 + z**2)
+    x /= N
+    z /= N
+    bh = Dh.x
+    nbh = bh.shape[0]
+    p = P[:,nbh//2,:]
     # Heat map first
-    c = ax.pcolormesh(b, b, p.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
-    # Streamline plot next
-    s = ax.streamplot(b, b, x.T, z.T,
-                      color='black',
-                      arrowsize=1.7, arrowstyle='<|-|>',
-                      broken_streamlines=False,
-                      density=0.4
-                      )
-    # Tune the alphas for better visibility
-    s.lines.set_alpha(0.31)
-    for x in ax.get_children():
-        if type(x)==mpl.patches.FancyArrowPatch:
-            x.set_alpha(0.53)
+    c = ax.pcolormesh(bh, bh, p.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
+    # Quiver plot next
+    _doublequiver(ax, bq, bq, x, z)
     # Finish up
     bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
     textxy = (0.05,0.09)
