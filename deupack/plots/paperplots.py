@@ -39,7 +39,7 @@ def make_paper_plots():
     eigenvectors()     # Figure 8
     pressure()         # Figure 9
     torsion()          # Figure 11
-    # TODO: finalize a force plot for Figure 12
+    forces()           # Figure 12
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -308,7 +308,7 @@ def s_d_interference():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Two-dimensional density/quiver plots
+# Two-dimensional density/quiver/streamline plots
 
 def eigenvectors():
     # Parameters for this visualization (fixed)
@@ -352,6 +352,38 @@ def eigenvectors():
     cbar.set_label(r'Pressure (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
     fig.savefig('eigenvectors.pdf', bbox_inches="tight")
+    return
+
+def forces():
+    # Fixed parameters
+    nff = 'ba'; wf = 'av18'; bmax = 1.4; nb = 101
+    D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
+    # Get vmax
+    vmax = np.max([
+        abs(D.radial_force(pol=0)).max(),
+        abs(D.polar_force( pol=0)).max(),
+        abs(D.radial_force(pol=1)).max(),
+        abs(D.polar_force( pol=1)).max()
+        ])
+    # Prepare figure
+    nrows,ncols=1,2
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
+    ax0 = axes[0]
+    ax1 = axes[1]
+    norm = mpl.colors.LogNorm(vmin=1e-3*vmax, vmax=vmax)
+    _ = _force_panel_stream(ax0, D, pol=0, norm=norm, label=r'$m_j=0$')
+    _ = _force_panel_stream(ax1, D, pol=1, norm=norm, label=r'$m_j=\pm 1$')
+    # Remove y axes from right panel to save space
+    ax1.get_yaxis().set_visible(False)
+    # Make the colorbar
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
+            ax = axes[1],
+            orientation='vertical',
+            )
+    cbar.set_label(r'Force density (GeV/fm$^4$)', size=36)
+    fig.patch.set_alpha(0)
+    fig.savefig('forces.pdf', bbox_inches="tight")
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -573,6 +605,43 @@ def _eigenvector_panel(ax, Dq, Dh, mode, pol, vmax, label):
     c = ax.pcolormesh(bh, bh, p.T, vmin=-vmax, vmax=vmax, cmap=cmr.fusion_r, shading='gouraud')
     # Quiver plot next
     _doublequiver(ax, bq, bq, x, z)
+    # Finish up
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax.set_xlabel(r'$x$ (fm)')
+    ax.set_ylabel(r'$z$ (fm)')
+    return c
+
+def _force_panel_stream(ax, D, pol, norm, label):
+    # First, calculate the quivers for force directions
+    b = D.x
+    nb = b.shape[0]
+    # Get force vectors ... sliced down to y=0
+    fr = D.radial_force(pol=pol)[:,nb//2,:]
+    fθ = D.polar_force( pol=pol)[:,nb//2,:]
+    # Pull out the angular dependence
+    theta = D.theta[:,nb//2,:]
+    phi = D.phi[:,nb//2,:]
+    # Force in Cartesian coordinates, and its magnitude
+    fz = (fr*np.cos(theta) - fθ*np.sin(theta))
+    fx = (fr*np.sin(theta) + fθ*np.cos(theta)) * np.cos(phi)
+    f = np.sqrt(fx**2 + fz**2)
+    # Next, get the fine-grained force magnitude for the heat map
+    # Plot the heat map
+    c = ax.pcolormesh(b, b, f.T, norm=norm, cmap=cmr.voltage_r, shading='gouraud')
+    # Plot the streamlines
+    s = ax.streamplot(b, b, fx.T, fz.T,
+                      color='white',
+                      arrowsize=1.7, arrowstyle='->',
+                      broken_streamlines=True,
+                      density=1.5
+                      )
+    # Tune the alphas for better visibility
+    s.lines.set_alpha(0.37)
+    for x in ax.get_children():
+        if type(x)==mpl.patches.FancyArrowPatch:
+            x.set_alpha(0.59)
     # Finish up
     bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
     textxy = (0.05,0.09)
