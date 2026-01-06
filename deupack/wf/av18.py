@@ -12,183 +12,118 @@ import pandas as pd
 from pathlib import Path
 from scipy.interpolate import CubicSpline
 
-#from numba import jit # experimental
+from .dwf import *
 
-from ..constants import kappa
 from ..constants import hbar, alphaQED, mu_p, mu_n
 from ..constants import mN, mp, mn, mr, Ed, mpi, mpi_0, mpi_p
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Global variables (set when make_wf is run)
 
-# These will be filled with cubic spline objects
-u_cs  = None
-w_cs  = None
-u1_cs = None
-w1_cs = None
-
-# Parameters for r above the interpolation range
-rmax = 0 # maximum r at which the cubic spline should be used
-AS = 0
-AD = 0
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Wave function and derivatives
-
-def zero(r):
-    return 0
-
-def u(r):
-    ''' Radial dependence of S-wave. '''
-    if(r < rmax):
-        return u_cs(r)
-    else:
-        return AS*u_asy(r)
-
-def w(r):
-    ''' Radial dependence of D-wave. '''
-    if(r<rmax):
-        return w_cs(r)
-    else:
-        return AD*w_asy(r)
-
-def u1(r):
-    ''' First derivative of S-wave. '''
-    if(r < rmax):
-        return u1_cs(r)
-    else:
-        return AS*u1_asy(r)
-
-def u2(r):
-    ''' Second derivative of S-wave.
-    Basically just uses the AV18 potential and the Schrodinger equation
-    to get this from u(r) and w(r).
+class dwf_av18(DWF):
+    ''' Initializes a class object for the AV18 deuteron wave function, using
+    data from Robert Wiringa at:
+        https://www.phy.anl.gov/theory/research/av18/deut.wf
+    for r <= 15 fm, and the expected asymptotic form of the wave function for
+    r > 15 fm.
     '''
-    return mN*(Ed+Vc(r))/hbar**2*u(r) + np.sqrt(8)*mN*Vt(r)*w(r)/hbar**2
 
-def u3(r):
-    ''' Third derivative of S-wave.  May become deprecated. '''
-    if(r < rmax):
-        return u1_cs(r,2)
-    else:
-        return AS*u3_asy(r)
+    def __init__(self):
+        super().__init__()
+        self._make_wf()
+        return
 
-def w1(r):
-    ''' First derivative of D-wave. '''
-    if(r < rmax):
-        return w1_cs(r)
-    else:
-        return AD*w1_asy(r)
+    # S-wave ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def w2(r):
-    ''' Second derivative of D-wave.
-    Basically just uses the AV18 potential and the Schrodinger equation
-    to get this from u(r) and w(r).
-    '''
-    return (mN*(Ed+Vw(r))/hbar**2 + 6/r**2)*w(r) + np.sqrt(8)*mN*Vt(r)*u(r)/hbar**2
+    def u(self, r):
+        ''' Radial dependence of S-wave. '''
+        if(r < self.rmax):
+            return self.u_cs(r)
+        else:
+            return self.AS*u_asy(r)
 
-def w3(r):
-    ''' Third derivative of D-wave.  May become deprecated. '''
-    if(r < rmax):
-        return w1_cs(r,2)
-    else:
-        return AD*w3_asy(r)
+    def u1(self, r):
+        ''' First derivative of S-wave. '''
+        if(r < self.rmax):
+            return self.u1_cs(r)
+        else:
+            return self.AS*u1_asy(r)
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Asymptotic forms
-# These are likely to go into a shared module if other wave functions are added
+    def u2(self, r):
+        ''' Second derivative of S-wave.
+        Basically just uses the AV18 potential and the Schrodinger equation
+        to get this from u(r) and w(r).
+        '''
+        return mN*(Ed+Vc(r))/hbar**2*self.u(r) + np.sqrt(8)*mN*Vt(r)*self.w(r)/hbar**2
 
-def u_asy(r):
-    ''' Asymptotic form of the S-wave for large r. '''
-    return np.exp(-kappa*r)
+    def u3(self, r):
+        ''' Third derivative of S-wave.  May become deprecated. '''
+        if(r < self.rmax):
+            return self.u1_cs(r,2)
+        else:
+            return self.AS*u3_asy(r)
 
-def u1_asy(r):
-    ''' Asymptotic form of the first derivative of the S-wave for large r. '''
-    return -kappa * np.exp(-kappa*r)
+    # D-wave ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def u2_asy(r):
-    ''' Asymptotic form of the second derivative of the S-wave for large r. '''
-    return kappa**2 * np.exp(-kappa*r)
+    def w(self, r):
+        ''' Radial dependence of D-wave. '''
+        if(r < self.rmax):
+            return self.w_cs(r)
+        else:
+            return self.AD*w_asy(r)
 
-def u3_asy(r):
-    ''' Asymptotic form of the third derivative of the S-wave for large r. '''
-    return -kappa**3 * np.exp(-kappa*r)
+    def w1(self, r):
+        ''' First derivative of D-wave. '''
+        if(r < self.rmax):
+            return self.w1_cs(r)
+        else:
+            return self.AD*w1_asy(r)
 
-def w_asy(r):
-    ''' Asymptotic form of the D-wave for large r. '''
-    result = np.exp(-kappa*r)*(1 + 3/(kappa*r) + 3/(kappa*r)**2)
-    return result
+    def w2(self, r):
+        ''' Second derivative of D-wave.
+        Basically just uses the AV18 potential and the Schrodinger equation
+        to get this from u(r) and w(r).
+        '''
+        return (mN*(Ed+Vw(r))/hbar**2 + 6/r**2)*self.w(r) + np.sqrt(8)*mN*Vt(r)*self.u(r)/hbar**2
 
-def w1_asy(r):
-    ''' Asymptotic form of the first derivative of the D-wave for large r. '''
-    result = -kappa * np.exp(-kappa*r)*(
-            1 + 3/(kappa*r) + 6/(kappa*r)**2 + 6/(kappa*r)**3
-            )
-    return result
+    def w3(self, r):
+        ''' Third derivative of D-wave.  May become deprecated. '''
+        if(r < self.rmax):
+            return self.w1_cs(r,2)
+        else:
+            return self.AD*w3_asy(r)
 
-def w2_asy(r):
-    ''' Asymptotic form of the second derivative of the D-wave for large r. '''
-    result = kappa**2 * np.exp(-kappa*r)*(
-            1 + 3/(kappa*r) + 9/(kappa*r)**2 + 18/(kappa*r)**3 + 18/(kappa*r)**4
-            )
-    return result
+    # Initialization stuff ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def w3_asy(r):
-    ''' Asymptotic form of the third derivative of the D-wave for large r. '''
-    result = -kappa**3 * np.exp(-kappa*r)*(
-            1 + 3/(kappa*r) + 12/(kappa*r)**2 + 36/(kappa*r)**3
-            + 72/(kappa*r)**4 + 72/(kappa*r)**5
-            )
-    return result
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Helper routines
-
-def read_wf_data():
-    ''' Read wave function data from the table Bob provided.
-    (Currently just r space. I'll make a k-space one when/if that's called for.)
-    '''
-    path = Path(__file__).parent.parent / 'data/av18r.csv'
-    df = pd.read_csv(path, sep='\s+', comment='#')
-    return df
-
-def make_wf():
-    ''' Sets variables and creates cubic spline objects from the data in
-    Bob's wave function tables, so that the methods in this module
-    can be used to estimate the deuteron wave function.
-    '''
-    # Global variables that will be filled by this method
-    global rmax
-    global AS
-    global AD
-    global u_cs
-    global w_cs
-    global u1_cs
-    global w1_cs
-    # First, read in the data
-    df = read_wf_data()
-    # Next, add a row for r=0
-    df0 = pd.DataFrame({
-        'r' : 0.0, 'u' : 0.0, 'w' : 0.0, 'dw/dr' : 0.0,
-        'du/dr' : df['u'][0] / df['r'][0]
-        }, index=[0])
-    df = pd.concat([df0, df]).reset_index(drop=True)
-    # Helpful to have these arrays instead of needing to call df
-    r = df['r'].to_numpy()
-    u = df['u'].to_numpy()
-    w = df['w'].to_numpy()
-    # Third, interpolate the data
-    u_cs  = CubicSpline(r, u)
-    w_cs  = CubicSpline(r, w)
-    u1_cs = CubicSpline(r, df['du/dr'])
-    w1_cs = CubicSpline(r, df['dw/dr'])
-    # Make note of the maximum r for the splines
-    rmax = r.max()
-    # Now, get constants for asymptotic behavior at very large r
-    AS = (u[-1] / u_asy(r[-1]))
-    AD = (w[-1] / w_asy(r[-1]))
-    # Done here
-    return
+    def _make_wf(self):
+        ''' Sets variables and creates cubic spline objects from the data in
+        Bob's wave function tables, so that the methods in this module can be
+        used to estimate the deuteron wave function.
+        '''
+        # First, read in the data
+        path = Path(__file__).parent.parent / 'data/av18r.csv'
+        df = pd.read_csv(path, sep='\s+', comment='#')
+        # Next, add a row for r=0
+        df0 = pd.DataFrame({
+            'r' : 0.0, 'u' : 0.0, 'w' : 0.0, 'dw/dr' : 0.0,
+            'du/dr' : df['u'][0] / df['r'][0]
+            }, index=[0])
+        df = pd.concat([df0, df]).reset_index(drop=True)
+        # Helpful to have these arrays instead of needing to call df
+        r = df['r'].to_numpy()
+        u = df['u'].to_numpy()
+        w = df['w'].to_numpy()
+        # Third, interpolate the data
+        self.u_cs  = CubicSpline(r, u)
+        self.w_cs  = CubicSpline(r, w)
+        self.u1_cs = CubicSpline(r, df['du/dr'])
+        self.w1_cs = CubicSpline(r, df['dw/dr'])
+        # Make note of the maximum r for the splines
+        self.rmax = r.max()
+        # Now, get constants for asymptotic behavior at very large r
+        self.AS = (u[-1] / u_asy(r[-1]))
+        self.AD = (w[-1] / w_asy(r[-1]))
+        # Done here
+        return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Implementation of the AV18 potential itself
@@ -419,8 +354,3 @@ def _VmeanT(r):
 # np.where.
 VmeanU = np.vectorize(_VmeanU)
 VmeanT = np.vectorize(_VmeanT)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Run the wave function maker on initialization
-
-make_wf()

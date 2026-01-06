@@ -7,72 +7,26 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from . import yukawa
+from .yukawa import dwf_yukawa
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Global variables (set when get_params is run)
 
-# These will be filled with numpy arrays
-C_J=None
-D_J=None
-m_j=None
+class dwf_cdbonn(dwf_yukawa):
+    ''' Uses the sum-of-Yukawas parametrization of the CD Bonn wave function. '''
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Use the Yukawa form for the wave function
+    def __init__(self):
+        CJ, DJ, MJ = self._read_params_data()
+        super().__init__(CJ, DJ, MJ)
 
-def u(r):
-    return yukawa.u(r, C_J, m_j)
-
-def u1(r):
-    return yukawa.u1(r, C_J, m_j)
-
-def u2(r):
-    return yukawa.u2(r, C_J, m_j)
-
-def u3(r):
-    return yukawa.u3(r, C_J, m_j)
-
-def w(r):
-    return yukawa.w(r, D_J, m_j)
-
-def w1(r):
-    return yukawa.w1(r, D_J, m_j)
-
-def w2(r):
-    return yukawa.w2(r, D_J, m_j)
-
-def w3(r):
-    return yukawa.w3(r, D_J, m_j)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Parameter-reading methods
-
-def read_params_data():
-    ''' Read parameters used for analytic form of Paris wavefunction.
-    (Currently just r space. I'll make a k-space one when/if that's called for.)
-    '''
-    path = Path(__file__).parent.parent / 'data/CDbonn_parameters.csv'
-    # Read the CSV file with pandas using sep instead of delim_whitespace
-    df = pd.read_csv(path, skiprows=4, sep=r'\s+')
-    # Convert to numpy array and handle the missing D_J values
-    C_Js = df['C_J'].to_numpy()
-    D_Js = df['D_J'].to_numpy()  # Fill NaN values with 0
-    # Combine into a single array with 2 columns
-    params = np.column_stack((C_Js, D_Js))
-    return params
-
-def get_params():
-    global C_J, D_J, m_j  # Declare globals
-    # Read data
-    params = read_params_data()
-    C_J= params[:,0]
-    D_J= params[:,1]
-    alpha = 0.2315380
-    n_mj = len(C_J)
-    m_j = alpha + 0.9*np.arange(n_mj)  
-    return 
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Run the wave function maker on initialization
-
-get_params()
+    def _read_params_data(self):
+        ''' Read parameters used for analytic form of CD Bonn wavefunction. '''
+        path = Path(__file__).parent.parent / 'data/CDbonn_parameters.csv'
+        # Read the CSV file with pandas using sep instead of delim_whitespace
+        df = pd.read_csv(path, skiprows=4, sep=r'\s+')
+        # Convert to numpy array and handle the missing D_J values
+        CJ = df['C_J'].to_numpy()
+        DJ = df['D_J'].to_numpy()
+        alpha = 0.2315380
+        n_MJ = len(CJ)
+        MJ = alpha + 0.9*np.arange(n_MJ)
+        return CJ, DJ, MJ
