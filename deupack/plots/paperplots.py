@@ -633,15 +633,15 @@ def _force_panel_stream(ax, D, pol, norm, label):
     # Plot the streamlines
     s = ax.streamplot(b, b, fx.T, fz.T,
                       color='white',
-                      arrowsize=1.7, arrowstyle='->',
+                      arrowsize=1.7, arrowstyle='-|>',
                       broken_streamlines=True,
                       density=1.5
                       )
     # Tune the alphas for better visibility
-    s.lines.set_alpha(0.37)
+    s.lines.set_alpha(0.53)
     for x in ax.get_children():
         if type(x)==mpl.patches.FancyArrowPatch:
-            x.set_alpha(0.59)
+            x.set_alpha(0.69)
     # Finish up
     bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
     textxy = (0.05,0.09)
