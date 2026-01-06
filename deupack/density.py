@@ -321,122 +321,50 @@ class Density:
         ''' Unpolarized part of mass density; b dependence.
         Uses internal spatial variables.
         '''
-        if(self.bessel_aU is None):
-            path = self._cache_path_bessel('aU')
-            if(path.is_file()):
-                self.bessel_aU = np.load(path)
-            else:
-                self.bessel_aU = quad_vec(_massU_integrand, self.kmin, self.kmax,
-                                          args=(self.b, self.AU),
-                                          workers=8)[0]
-            np.save(path, self.bessel_aU)
-        return self.bessel_aU
+        return self._bessel_array('aU', _massU_integrand, self.AU)
 
     def _mass_bessel_T(self):
         ''' Tensor-polarized part of mass density; b dependence.
         Uses internal spatial variables.
         '''
-        if(self.bessel_aT is None):
-            path = self._cache_path_bessel('aT')
-            if(path.is_file()):
-                self.bessel_aT = np.load(path)
-            else:
-                self.bessel_aT = quad_vec(_massT_integrand, self.kmin, self.kmax,
-                                          args=(self.b, self.AT),
-                                          workers=8)[0]
-            np.save(path, self.bessel_aT)
-        return self.bessel_aT
+        return self._bessel_array('aT', _massT_integrand, self.AT)
 
     def _momentum_bessel(self):
         ''' Momentum density (sans sxb factor).
         Uses internal spatial variables.
         '''
-        if(self.bessel_k is None):
-            path = self._cache_path_bessel('k')
-            if(path.is_file()):
-                self.bessel_k = np.load(path)
-            else:
-                self.bessel_k = quad_vec(_momentum_integrand, self.kmin, self.kmax,
-                                         args=(self.b, self.J, self.S),
-                                         workers=8)[0]
-                np.save(path, self.bessel_k)
-        return self.bessel_k
+        return self._bessel_array('k', _momentum_integrand, self.J, self.S)
 
     def _flux_bessel(self):
         ''' Mass flux density (sans sxb factor).
         Uses internal spatial variables.
         '''
-        if(self.bessel_fm is None):
-            path = self._cache_path_bessel('fm')
-            if(path.is_file()):
-                self.bessel_fm = np.load(path)
-            else:
-                self.bessel_fm = quad_vec(_flux_integrand, self.kmin, self.kmax,
-                                          args=(self.b, self.J, self.S),
-                                          workers=8)[0]
-                np.save(path, self.bessel_fm)
-        return self.bessel_fm
+        return self._bessel_array('fm', _flux_integrand, self.J, self.S)
 
     def _pressure_bessel_U(self):
         ''' The quantity pU, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_pU is None):
-            path = self._cache_path_bessel('pU')
-            if(path.is_file()):
-                self.bessel_pU = np.load(path)
-            else:
-                self.bessel_pU =quad_vec(_pressureU_integrand, self.kmin, self.kmax,
-                                         args=(self.b, self.DU, self.cU),
-                                         workers=8)[0]
-                np.save(path, self.bessel_pU)
-        return self.bessel_pU
+        return self._bessel_array('pU', _pressureU_integrand, self.DU, self.cU)
 
     def _pressure_bessel_T1(self):
         ''' The quantity pT1-tilde, defined as a Bessel transform.
         This is from the alternate breakdown that avoids numerical derivatives.
         Uses internal spatial variables.
         '''
-        if(self.bessel_pT1 is None):
-            path = self._cache_path_bessel('pT1')
-            if(path.is_file()):
-                self.bessel_pT1 = np.load(path)
-            else:
-                self.bessel_pT1 = quad_vec(_pressureT1_integrand_direct, self.kmin, self.kmax,
-                                           args=(self.b, self.DT1, self.cT1),
-                                           workers=8)[0]
-                np.save(path, self.bessel_pT1)
-        return self.bessel_pT1
+        return self._bessel_array('pT1', _pressureT1_integrand_direct, self.DT1, self.cT1)
 
     def _pressure_bessel_T2(self):
         ''' The quantity pT2, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_pT2 is None):
-            path = self._cache_path_bessel('pT2')
-            if(path.is_file()):
-                self.bessel_pT2 = np.load(path)
-            else:
-                self.bessel_pT2 = quad_vec(_pressureT2_integrand, self.kmin, self.kmax,
-                                           args=(self.b, self.DT2, self.cT2),
-                                           workers=8)[0]
-                np.save(path, self.bessel_pT2)
-        return self.bessel_pT2
+        return self._bessel_array('pT2', _pressureT2_integrand, self.DT2, self.cT2)
 
     def _shear_bessel_U(self):
         ''' The quantity sU, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_sU is None):
-            path = self._cache_path_bessel('sU')
-            if(path.is_file()):
-                self.bessel_sU = np.load(path)
-            else:
-                self.bessel_sU = quad_vec(_shearU_integrand, self.kmin, self.kmax,
-                                          args=(self.b, self.DU),
-                                          workers=8)[0]
-                np.save(path, self.bessel_sU)
-        return self.bessel_sU
+        return self._bessel_array('sU', _shearU_integrand, self.DU)
 
     def _shear_bessel_T1(self, norder):
         ''' The quantity sT1-tilde, defined as a Bessel transform.
@@ -444,115 +372,40 @@ class Density:
         Uses internal spatial variables.
         norder should be 0, 2 or 4.
         '''
-        if(self.bessel_sT10 is None):
-            path0 = self._cache_path_bessel('sT10')
-            if(path0.is_file()):
-                self.bessel_sT10 = np.load(path0)
-            else:
-                self.bessel_sT10 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
-                                            args=(self.b, self.DT1, 0),
-                                            workers=8)[0]
-                np.save(path0, self.bessel_sT10)
-        if(self.bessel_sT12 is None):
-            path2 = self._cache_path_bessel('sT12')
-            if(path2.is_file()):
-                self.bessel_sT12 = np.load(path2)
-            else:
-                self.bessel_sT12 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
-                                            args=(self.b, self.DT1, 2),
-                                            workers=8)[0]
-                np.save(path2, self.bessel_sT12)
-        if(self.bessel_sT14 is None):
-            path4 = self._cache_path_bessel('sT14')
-            if(path4.is_file()):
-                self.bessel_sT14 = np.load(path4)
-            else:
-                self.bessel_sT14 = quad_vec(_shearT1_integrand_direct, self.kmin, self.kmax,
-                                            args=(self.b, self.DT1, 4),
-                                            workers=8)[0]
-                np.save(path4, self.bessel_sT14)
-        if(norder==0):
-            return self.bessel_sT10
-        if(norder==2):
-            return self.bessel_sT12
-        if(norder==4):
-            return self.bessel_sT14
-        raise ValueError("norder={:d} not recognized; should be 0, 2 or 4.".format(norder))
+        if(norder!=0 and norder!=2 and norder!=4):
+            raise ValueError("norder={:d} not recognized; should be 0, 2 or 4.".format(norder))
+        name = 'sT1{:d}'.format(norder)
+        return self._bessel_array(name, _shearT1_integrand_direct, self.DT1, norder)
 
     def _shear_bessel_T2(self):
         ''' The quantity sT2, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_sT2 is None):
-            path = self._cache_path_bessel('sT2')
-            if(path.is_file()):
-                self.bessel_sT2 = np.load(path)
-            else:
-                self.bessel_sT2 = quad_vec(_shearT2_integrand, self.kmin, self.kmax,
-                                           args=(self.b, self.DT2),
-                                           workers=8)[0]
-                np.save(path, self.bessel_sT2)
-        return self.bessel_sT2
+        return self._bessel_array('sT2', _shearT2_integrand, self.DT2)
 
     def _shear_bessel_A(self):
         ''' The quantity sA, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_sA is None):
-            path = self._cache_path_bessel('sA')
-            if(path.is_file()):
-                self.bessel_sA = np.load(path)
-            else:
-                self.bessel_sA = quad_vec(_shearA_integrand, self.kmin, self.kmax,
-                                           args=(self.b, self.sbar),
-                                           workers=8)[0]
-                np.save(path, self.bessel_sA)
-        return self.bessel_sA
+        return self._bessel_array('sA', _shearA_integrand, self.sbar)
 
     def _force_bessel_0(self):
         ''' The quantity f0, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_f0 is None):
-            path = self._cache_path_bessel('f0')
-            if(path.is_file()):
-                self.bessel_f0 = np.load(path)
-            else:
-                self.bessel_f0 = quad_vec(_f0_integrand, self.kmin, self.kmax,
-                                           args=(self.b, self.cU),
-                                           workers=8)[0]
-                np.save(path, self.bessel_f0)
-        return self.bessel_f0
+        return self._bessel_array('f0', _f0_integrand, self.cU)
 
     def _force_bessel_2(self):
         ''' The quantity f2, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_f2 is None):
-            path = self._cache_path_bessel('f2')
-            if(path.is_file()):
-                self.bessel_f2 = np.load(path)
-            else:
-                self.bessel_f2 = quad_vec(_f2_integrand, self.kmin, self.kmax,
-                                           args=(self.b, self.cT1, self.cT2, self.sbar),
-                                           workers=8)[0]
-                np.save(path, self.bessel_f2)
-        return self.bessel_f2
+        return self._bessel_array('f2', _f2_integrand, self.cT1, self.cT2, self.sbar)
 
     def _force_bessel_3(self):
         ''' The quantity f3, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        if(self.bessel_f3 is None):
-            path = self._cache_path_bessel('f3')
-            if(path.is_file()):
-                self.bessel_f3 = np.load(path)
-            else:
-                self.bessel_f3 = quad_vec(_f3_integrand, self.kmin, self.kmax,
-                                           args=(self.b, self.cT1, self.sbar),
-                                           workers=8)[0]
-                np.save(path, self.bessel_f3)
-        return self.bessel_f3
+        return self._bessel_array('f3', _f3_integrand, self.cT1, self.sbar)
 
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -567,26 +420,23 @@ class Density:
         return
 
     def _initialize_bessel(self):
-        ''' Ensure variables for cached Bessel transforms exist.
-        Initialize them to 0.
-        '''
-        self.bessel_aU   = None
-        self.bessel_aT   = None
-        self.bessel_k    = None
-        self.bessel_fm   = None
-        self.bessel_pU   = None
-        self.bessel_sU   = None
-        self.bessel_pT1  = None
-        self.bessel_sT10 = None
-        self.bessel_sT12 = None
-        self.bessel_sT14 = None
-        self.bessel_pT2  = None
-        self.bessel_sT2  = None
-        self.bessel_sA   = None
-        self.bessel_f0   = None
-        self.bessel_f2   = None
-        self.bessel_f3   = None
+        ''' Initialize a dict to contain cached Bessel transform arrays. '''
+        self.bessel_cache = {}
         return
+
+    def _bessel_array(self, name, integrand, *args):
+        ''' A method to retrieve a particular Bessel transform array,
+        or to create it if it doesn't exist.
+        '''
+        if(name not in self.bessel_cache):
+            path = self._cache_path_bessel(name)
+            if(path.is_file()):
+                self.bessel_cache[name] = np.load(path)
+            else:
+                self.bessel_cache[name] = quad_vec(integrand, self.kmin, self.kmax,
+                                                   args=(self.b, args),
+                                                   workers=8)[0]
+        return self.bessel_cache[name]
 
     def _cache_path(self):
         filename = "emtff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
