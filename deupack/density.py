@@ -23,9 +23,9 @@ class Density:
 
     This is implemented as a class so that lookup tables for mechanical form
     factors can be cached, and so that the user can create different objects
-    with different MFFs in their cache. Additionally, the density functions can
-    themselves be cached on a per-object basis to reduce computation time when
-    creating 3D density plots.
+    with different EMT-FFs in their cache. Additionally, the density functions
+    can themselves be cached on a per-object basis to reduce computation time
+    when creating 3D density plots.
     '''
 
     def __init__(self,
@@ -238,14 +238,14 @@ class Density:
         return shear
 
     def isoradial_pressure(self, pol='U'):
-        ''' Eigenpressure closest to the radial direction, in GeV/fm**3. '''
+        ''' Principal stress closest to the radial direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
         pt = self.polar_pressure(pol=pol)
         s = self.symmetric_shear(pol=pol)
         return 0.5*(pr+pt + np.sqrt((pr-pt)**2+4*s**2))
 
     def isopolar_pressure(self, pol='U'):
-        ''' Eigenpressure closest to the polar direction, in GeV/fm**3. '''
+        ''' Principal stress closest to the polar direction, in GeV/fm**3. '''
         pr = self.radial_pressure(pol=pol)
         pt = self.polar_pressure(pol=pol)
         s = self.symmetric_shear()
@@ -283,12 +283,11 @@ class Density:
             self._pol_error(pol)
         return force
 
-    # Unit eigenvectors of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Principal axes of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def e_plus(self, pol='U'):
         ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
-        components of the isoradial eigenvector of the symmetric stress
-        tensor.
+        components of the isoradial principal axis.
         '''
         pr = self.radial_pressure( pol=pol)
         pt = self.polar_pressure(pol=pol)
@@ -303,8 +302,7 @@ class Density:
 
     def e_minus(self, pol='U'):
         ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
-        components of the isoradial eigenvector of the symmetric stress
-        tensor.
+        components of the isopolar principal axis.
         '''
         pr = self.radial_pressure( pol=pol)
         pt = self.polar_pressure(pol=pol)
@@ -335,7 +333,7 @@ class Density:
         return self.bessel_aU
 
     def _mass_bessel_T(self):
-        ''' Tesnor-polarized part of mass density; b dependence.
+        ''' Tensor-polarized part of mass density; b dependence.
         Uses internal spatial variables.
         '''
         if(self.bessel_aT is None):
@@ -677,11 +675,6 @@ class Density:
     def _pol_error(self,pol):
         raise ValueError(
                 "pol={} not recognized; use 'U', 'T', 1, 0 or -1.".format(pol)
-                )
-
-    def _pol_error_eigen(self,pol):
-        raise ValueError(
-                "pol={} invalid for eigenpressures; use 1, 0 or -1.".format(pol)
                 )
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

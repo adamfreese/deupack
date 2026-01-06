@@ -36,7 +36,7 @@ def make_paper_plots():
     mass_density()     # Figure 5
     s_d_interference() # Figure 6
     momentum_density() # Figure 7
-    eigenvectors()     # Figure 8
+    principal_axes()   # Figure 8
     pressure()         # Figure 9
     torsion()          # Figure 11
     forces()           # Figure 12
@@ -310,7 +310,7 @@ def s_d_interference():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Two-dimensional density/quiver/streamline plots
 
-def eigenvectors():
+def principal_axes():
     # Parameters for this visualization (fixed)
     bmax = 1.6; nff='ba'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
@@ -351,7 +351,7 @@ def eigenvectors():
             )
     cbar.set_label(r'Pressure (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('eigenvectors.pdf', bbox_inches="tight")
+    fig.savefig('principal_axes.pdf', bbox_inches="tight")
     return
 
 def forces():
