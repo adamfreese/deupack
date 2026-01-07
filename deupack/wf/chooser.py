@@ -3,20 +3,32 @@
 #
 # Methods to choose the wave function, and return the appropriate functions.
 
+from .dwf import DWF
+
 from .av18   import dwf_av18
 from .CDbonn import dwf_cdbonn
 from .paris  import dwf_paris
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 def choose_wf(wf):
-    """Return a tuple (u,w,u1,w1,u2,w2,u3,w3) according to wf.
-    wf can be a string 'av18'/'paris' or a module-like object.
-    """
-    if(wf=='av18'):
-        dwf = dwf_av18()
-    elif(wf=='paris'):
-        dwf = dwf_paris()
-    elif(wf=='cdbonn'):
-        dwf = dwf_cdbonn()
-    else:
-        raise ValueError("wf={} not recognized.".format(wf))
-    return (dwf.u, dwf.w, dwf.u1, dwf.w1, dwf.u2, dwf.w2, dwf.u3, dwf.w3)
+    ''' Just give back wf if it's a DWF.
+    If wf is a string, then return the a DWF object of the appropriate class.
+    Allowed strings are:
+        av18
+        cdbonn
+        paris
+    '''
+    if(isinstance(wf, DWF)):
+        return wf
+    elif(isinstance(wf, str)):
+        if(wf=='av18'):
+            dwf = dwf_av18()
+        elif(wf=='paris'):
+            dwf = dwf_paris()
+        elif(wf=='cdbonn'):
+            dwf = dwf_cdbonn()
+        else:
+            raise ValueError("wf={} not recognized.".format(wf))
+        return dwf
+    raise TypeError("wf should be DWF or str.")
