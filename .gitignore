@@ -17,5 +17,8 @@ _skbuild/
 # Numpy output
 *.npy
 
+# csv files with caches
+*.csv
+
 # Personal workspace
 /workspace
