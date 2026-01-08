@@ -18,7 +18,7 @@ _skbuild/
 *.npy
 
 # csv files with caches
-*.csv
+deupack/cache/*.csv
 
 # Personal workspace
 /workspace
