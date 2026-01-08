@@ -27,6 +27,18 @@ NUCLEONFFS = {
             ),
         'mab' : (
             mab_mod.AN, mab_mod.JN, mab_mod.DN, misc_mod.cN, misc_mod.SN
+            ),
+        'mitq' : (
+            mit_mod.AN_q, mit_mod.JN_q, mit_mod.DN_q, misc_mod.cN_q, misc_mod.SN_q
+            ),
+        'mitg' : (
+            mit_mod.AN_g, mit_mod.JN_g, mit_mod.DN_g, misc_mod.cN_g, misc_mod.SN_g
+            ),
+        'hzq' : (
+            mit_mod.AN_q, mit_mod.JN_q, hz_mod.DN_q, misc_mod.cN_q, misc_mod.SN_q
+            ),
+        'hzg' : (
+            mit_mod.AN_g, mit_mod.JN_g, hz_mod.DN_g, misc_mod.cN_g, misc_mod.SN_g
             )
         }
 
