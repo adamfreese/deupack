@@ -217,25 +217,20 @@ def _DT2_integrand(r, k, dwf, AN, JN):
     return intd
 
 def _cU_integrand(r, k, dwf, AN, cN):
-    # TODO: nicer formatting
+    # Uses IBP to get rid of third derivatives of u(r) and w(r)
     kfm = k/hbar
-    intd = (
-            6*mNfm**2*r**2*(dwf.u(r)**2 + dwf.w(r)**2)*cN(k)*jn(0, kfm*r/2)
-            +
-            (
-                -2*(
-                    r**2*(dwf.u(r)*dwf.u2(r) - dwf.u1(r)**2 + dwf.w(r)*dwf.w2(r) - dwf.w1(r)**2)
-                    - r*(dwf.u(r)*dwf.u1(r) + dwf.w(r)*dwf.w1(r))
-                    + 2*dwf.u(r)**2 + 8*dwf.w(r)**2
-                    )*jn(2, kfm*r/2)
-                +
-                (
-                    r**2*(dwf.u(r)*dwf.u2(r) - dwf.u1(r)**2 + dwf.w(r)*dwf.w2(r) - dwf.w1(r)**2)
-                    + 2*r*(dwf.u(r)*dwf.u1(r) + dwf.w(r)*dwf.w1(r))
-                    - dwf.u(r)**2 - 13*dwf.w(r)**2
-                    )*jn(0, kfm*r/2)
-                )*AN(k)
-            )/(12*mNfm**2*r**2)
+    A_piece_1 = AN(k)/(mNfm**2*kfm)*jn(1,kfm*r/2)*(
+            dwf.u1(r)*dwf.u2(r) - dwf.u(r)*dwf.u2(r)/r
+            + dwf.w1(r)*dwf.w2(r) - dwf.w(r)*dwf.w2(r)/r
+            - 6*dwf.w(r)**2/r**3
+            )
+    A_piece_0 = AN(k)/(4*mNfm**2)*jn(0,kfm*r/2)*(
+            dwf.u(r)*dwf.u2(r) + dwf.w(r)*dwf.w2(r)
+            )
+    c_piece = cN(k)/2*jn(0,kfm*r/2)*(
+            dwf.u(r)**2 + dwf.w(r)**2
+            )
+    intd = A_piece_1 + A_piece_0 + c_piece
     return intd
 
 def _cT1_integrand(r, k, dwf, AN, JN, cN):
