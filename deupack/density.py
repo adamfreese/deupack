@@ -436,6 +436,7 @@ class Density:
                 self.bessel_cache[name] = quad_vec(integrand, self.kmin, self.kmax,
                                                    args=(self.b, *args),
                                                    workers=8)[0]
+                np.save(path, self.bessel_cache[name])
         return self.bessel_cache[name]
 
     def _cache_path(self):
