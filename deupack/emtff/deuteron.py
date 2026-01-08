@@ -182,16 +182,32 @@ def _DU_integrand(r, k, dwf, AN, JN, DN):
 def _DT1_integrand(r, k, dwf, AN, JN, DN):
     # TODO: nicer formatting
     kfm = k/hbar
-    intd = 24*mNfm**2*(
-            kfm**2*r**2*(2*sqrt(2)*dwf.u(r) - dwf.w(r))*DN(k)*jn(2, kfm*r/2)*dwf.w(r)
-            +
-            4*kfm*r*(sqrt(2)*r*(dwf.u(r)*dwf.w1(r) - dwf.u1(r)*dwf.w(r)) + (-2*sqrt(2)*dwf.u(r) + dwf.w(r))*dwf.w(r))*JN(k)*jn(3, kfm*r/2)
-            +
-            2*(
-                r**2*(sqrt(2)*dwf.u(r)*dwf.w2(r) - 2*sqrt(2)*dwf.u1(r)*dwf.w1(r) + sqrt(2)*dwf.u2(r)*dwf.w(r) - dwf.w(r)*dwf.w2(r) + dwf.w1(r)**2)
-                + r*(-5*sqrt(2)*dwf.u(r)*dwf.w1(r) + 3*sqrt(2)*dwf.u1(r)*dwf.w(r) + dwf.w(r)*dwf.w1(r)) + 6*(2*sqrt(2)*dwf.u(r) - dwf.w(r))*dwf.w(r)
-                )*AN(k)*jn(4, kfm*r/2)
-            )/(kfm**4*r**2)
+    #intd = 24*mNfm**2*(
+    #        kfm**2*r**2*(2*sqrt(2)*dwf.u(r) - dwf.w(r))*DN(k)*jn(2, kfm*r/2)*dwf.w(r)
+    #        +
+    #        4*kfm*r*(sqrt(2)*r*(dwf.u(r)*dwf.w1(r) - dwf.u1(r)*dwf.w(r)) + (-2*sqrt(2)*dwf.u(r) + dwf.w(r))*dwf.w(r))*JN(k)*jn(3, kfm*r/2)
+    #        +
+    #        2*(
+    #            r**2*(sqrt(2)*dwf.u(r)*dwf.w2(r) - 2*sqrt(2)*dwf.u1(r)*dwf.w1(r) + sqrt(2)*dwf.u2(r)*dwf.w(r) - dwf.w(r)*dwf.w2(r) + dwf.w1(r)**2)
+    #            + r*(-5*sqrt(2)*dwf.u(r)*dwf.w1(r) + 3*sqrt(2)*dwf.u1(r)*dwf.w(r) + dwf.w(r)*dwf.w1(r)) + 6*(2*sqrt(2)*dwf.u(r) - dwf.w(r))*dwf.w(r)
+    #            )*AN(k)*jn(4, kfm*r/2)
+    #        )/(kfm**4*r**2)
+    A_piece = 48*mNfm**2*AN(k)/kfm**4*jn(4,kfm*r/2)*(
+            sqrt(2)*(dwf.u(r)*dwf.w2(r) + dwf.w(r)*dwf.u2(r)
+                     - 2*dwf.u1(r)*dwf.w1(r))
+            - dwf.w(r)*dwf.w2(r) + dwf.w1(r)**2
+            + (sqrt(2)*(3*dwf.w(r)*dwf.u1(r) - 5*dwf.u(r)*dwf.w1(r))
+               + dwf.w(r)*dwf.w1(r))/r
+            + 6*(2*sqrt(2)*dwf.u(r) - dwf.w(r))*dwf.w(r)/r**2
+            )
+    J_piece = 96*mNfm**2*JN(k)/kfm**3*jn(3,kfm*r/2)*(
+            sqrt(2)*(dwf.u(r)*dwf.w1(r) - dwf.w(r)*dwf.u1(r))
+            - (2*sqrt(2)*dwf.u(r) - dwf.w(r))*dwf.w(r)/r
+            )
+    D_piece = 24*mNfm**2*DN(k)/kfm**2*jn(2,kfm*r/2)*(
+            2*sqrt(2)*dwf.u(r)*dwf.w(r) - dwf.w(r)**2
+            )
+    intd = A_piece + J_piece + D_piece
     return intd
 
 def _DT2_integrand(r, k, dwf, AN, JN):
