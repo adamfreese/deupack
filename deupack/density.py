@@ -414,8 +414,8 @@ class Density:
         b = np.linspace(-self.bmax, self.bmax, self.nb)
         x, y, z = np.meshgrid(b, b, b, indexing='ij')
         self.b = np.sqrt(x**2 + y**2 + z**2)
-        self.theta = np.atan2(np.sqrt(x**2+y**2 + 1e-9), z)
-        self.phi = np.atan2(y, x)
+        self.theta = np.arctan2(np.sqrt(x**2+y**2 + 1e-9), z)
+        self.phi = np.arctan2(y, x)
         self.x = b # a 1D array to grab for making plots
         return
 
@@ -434,7 +434,7 @@ class Density:
                 self.bessel_cache[name] = np.load(path)
             else:
                 self.bessel_cache[name] = quad_vec(integrand, self.kmin, self.kmax,
-                                                   args=(self.b, args),
+                                                   args=(self.b, *args),
                                                    workers=8)[0]
         return self.bessel_cache[name]
 
