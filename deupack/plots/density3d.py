@@ -307,7 +307,7 @@ def multidensity3d(fig, x, y, z, nrows, ncols, *values_list,
                   **kwargs)
     # Some labels
     if(labels is not None):
-        bbox = dict(facecolor='white', alpha=0.76, edgecolor='black', boxstyle='round,pad=0.5')
+        bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='black', boxstyle='round,pad=0.5')
         for n in range(len(values_list)):
             axes[n].text2D(0.05,0.95, labels[n], fontsize=36, transform=axes[n].transAxes, bbox=bbox)
     # Colorbar!
