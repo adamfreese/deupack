@@ -41,6 +41,8 @@ pip install .
 - Python
 - The dependencies listed in `pyproject.toml`
 
+The latter should be automatically installed by pip.
+
 ## Future plans
 
 deupack will be expanded on in the future as part of ongoing research.
