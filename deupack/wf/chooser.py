@@ -5,7 +5,7 @@
 
 from .dwf import DWF
 
-from .av18   import dwf_av18
+from .av18   import dwf_av18, dwf_av18_s_only, dwf_av18_d_only
 from .CDbonn import dwf_cdbonn
 from .paris  import dwf_paris
 
@@ -24,6 +24,10 @@ def choose_wf(wf):
     elif(isinstance(wf, str)):
         if(wf=='av18'):
             dwf = dwf_av18()
+        elif(wf=='av18-s-only'):
+            dwf = dwf_av18_s_only()
+        elif(wf=='av18-d-only'):
+            dwf = dwf_av18_d_only()
         elif(wf=='paris'):
             dwf = dwf_paris()
         elif(wf=='cdbonn'):

@@ -126,6 +126,56 @@ class dwf_av18(DWF):
         return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Auxiliary classes to obtain S-only and D-only parts of calculations
+
+class dwf_av18_s_only(dwf_av18):
+    ''' Creates an AV18 wave function with the D-wave set to zero. '''
+
+    def __init__(self):
+        super().__init__()
+        self._make_wf()
+        return
+
+    def w(self, r):
+        return 0
+
+    def w1(self, r):
+        return 0
+
+    def w2(self, r):
+        return 0
+
+    def w3(self, r):
+        return 0
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class dwf_av18_d_only(dwf_av18):
+    ''' Creates an AV18 wave function with the S-wave set to zero. '''
+
+    def __init__(self):
+        super().__init__()
+        self._make_wf()
+        return
+
+    def __init__(self):
+        super().__init__()
+        self._make_wf()
+        return
+
+    def u(self, r):
+        return 0
+
+    def u1(self, r):
+        return 0
+
+    def u2(self, r):
+        return 0
+
+    def u3(self, r):
+        return 0
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Implementation of the AV18 potential itself
 # This section is based on:
 #   R.B. Wiringa, V.G.J. Stoks and R. Schiavilla,
