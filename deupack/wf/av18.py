@@ -373,34 +373,3 @@ def Vw(r):
     and w(r) themselves, instead of needing to do numerical derivatives.
     '''
     return Vc(r) + 6*Vl2(r) - 3*Vls(r) + 9*Vls2(r) - 2*Vt(r)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Routines to obtain the mean potential as a function of space
-
-def _VmeanU(r):
-    ''' The density-weighted mean value of the potential, defined via:
-        Tr(rho*V)
-    for an unpolarized deuteron ensemble.
-    '''
-    Vmean = Vc(r)*u(r)**2 + 4*np.sqrt(2)*Vt(r)*u(r)*w(r) + (Vw(r)+6/mN/r**2)*w(r)**2
-    return Vmean / (4*np.pi*r**2)
-
-def _VmeanT(r):
-    ''' The density-weighted mean value of the potential, defined via:
-        Tr(rho*V)
-    for a tensor-polarized deuteron ensemble.
-    This must be multiplied by 3/2*cos(theta)-1/2 for angular dependence.
-    '''
-    Vmean = 3*(
-            2*Vt(r)*u(r)**2
-            + (2*Vt(r) - Vw(r)/2 - 3/mN/r**2)*w(r)**2
-            + np.sqrt(2)*(Vc(r)/2 - Vt(r) + Vw(r)/2 + 3/mN/r**2)*u(r)*w(r)
-            )
-    return Vmean / (4*np.pi*r**2)
-
-# Vectorize these routines, so they can take arrays of r values.
-# The wave functions use if statements because quad_vec passes r as a scalar,
-# and if statements are faster than casting r into an array and then using
-# np.where.
-VmeanU = np.vectorize(_VmeanU)
-VmeanT = np.vectorize(_VmeanT)
