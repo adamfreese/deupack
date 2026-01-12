@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use deupack, please cite it as below."
+authors:
+- family-names: "Freese"
+- given-names "Adam
+- orcid: "https://orcid.org/0000-0002-0688-4121"
+- family-names: "Sosa"
+- given-names "Alan"
+- orcid: "https://orcid.org/0000-0002-6987-6161"
+title: "deupack"
+version: 1.0.0
+doi: TODO
+date-released: 2026-01-XX
+url: "https://github.com/adamfreese/deupack"

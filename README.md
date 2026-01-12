@@ -24,6 +24,7 @@ deupack was developed for the numerical calculations of:
   (in preparation)
 
 Please cite the paper if you use this code in your research.
+You can also cite the repository from GitHub.
 
 ## Installation
 
