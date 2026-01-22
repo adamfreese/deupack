@@ -1,9 +1,10 @@
-# Editor backup files
+# Backup files
 *.swp
 *.swo
 .*.swo
 .*.swp
 *~
+.DS_Store
 
 # Python build/run files
 *.pyc
@@ -11,12 +12,13 @@
 build/
 dist/
 setuptools
-python/tiktaalik.egg-info/
-tiktaalik.egg-info/
 _skbuild/
 
 # Numpy output
 *.npy
+
+# csv files with caches
+deupack/cache/*.csv
 
 # Personal workspace
 /workspace

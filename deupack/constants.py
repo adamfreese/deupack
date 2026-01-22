@@ -14,6 +14,9 @@ mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
 mr    = 0.46945915515 # reduced proton-nuetron mass [half harmonic mean] (GeV)
 Md    = 1.87561294200 # deuteron mass (GeV)
 
+# In fm
+mNfm  = mN / hbar
+
 # Electromagnetic properties
 mu_p  =  2.79284734463 # proton magnetic moment (nuclear magnetons)
 mu_n  = -1.91304276    # neutron magnetic moment (nuclear magnetons)

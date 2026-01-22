@@ -1,1 +1,3 @@
-from .devplots import *
+from . import tests
+
+from .paperplots import *

@@ -1,4 +1,4 @@
-# wimff.py
+# wim.py
 # Created 2025.10.10 by Adam Freese
 #
 # This module reads in Wim's data file for his EMT calculations,
@@ -18,7 +18,7 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_wimffs(remove_G7=False): 
+def make_wimffs():
     ''' Convert the data Wim provided into the MFFs used in our
     more recent, non-relativistic work.
     '''
@@ -31,7 +31,7 @@ def make_wimffs(remove_G7=False):
     D11 = df['tD_++'] / t
     D00 = df['tD_00'] / t
     Dmp = df['tD_-+'] / t
-    # Form factors without any G7 contamination
+    # New form factors
     AU = A11 + Amp/3
     AT = 4*Md**2/t*Amp
     J = J11
@@ -39,12 +39,8 @@ def make_wimffs(remove_G7=False):
     # Form factors with potential G7 contamination
     # The method of calculating and removing G7 is questionable,
     # so it's turned off by default
-    if(remove_G7):
-        G7 =- np.sqrt(-2/t)/Md*(df['tD_0+']+df['tD_+0'])
-    else:
-        G7 = 0
-    DT1 = 4*Md**2/t**2*( df['tD_-+'] + Md**2*G7)
-    DT2 = -(A11 - 2*J11) - 2*Md**2/t*(A11 - A00 + G7/2)
+    DT1 = 4*Md**2/t**2*df['tD_-+']
+    DT2 = (D00 - (1+t/(2*Md**2))*D11 - Dmp) / (1+t/(4*Md**2)) / 2
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,
@@ -54,7 +50,10 @@ def make_wimffs(remove_G7=False):
         'DT1'    : DT1,
         'DT2'    : DT2
         })
-    return new_df
+    # Cull the DataFrame to use Delta2 > 1e-4,
+    # because of numerical instability in Wim's code.
+    culled_df = new_df[new_df['Delta2'] > 1e-4]
+    return culled_df
 
 def read_emt_data():
     ''' Read EMT data from the table Wim provided. '''

@@ -3,29 +3,36 @@
 #
 # Methods to choose the wave function, and return the appropriate functions.
 
-# import wavefunction modules
-from . import av18 as av18_mod
-from . import paris as paris_mod
+from .dwf import DWF
 
-# Add mapping for convenient selection
-WAVEFUNCTIONS = {
-        'av18': (av18_mod.u, av18_mod.w, av18_mod.u1, av18_mod.w1,
-                 av18_mod.u2, av18_mod.w2, av18_mod.u3, av18_mod.w3),
-        'paris': (paris_mod.u, paris_mod.w, paris_mod.u1, paris_mod.w1,
-                  paris_mod.u2, paris_mod.w2, paris_mod.u3, paris_mod.w3),
-        }
+from .av18   import dwf_av18, dwf_av18_s_only, dwf_av18_d_only
+from .CDbonn import dwf_cdbonn
+from .paris  import dwf_paris
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def choose_wf(wf):
-    """Return a tuple (u,w,u1,w1,u2,w2,u3,w3) according to wf.
-    wf can be a string 'av18'/'paris' or a module-like object.
-    """
-    if isinstance(wf, str):
-        key = wf.lower()
-        if key in WAVEFUNCTIONS:
-            return WAVEFUNCTIONS[key]
-        raise ValueError(f"Unknown wf '{wf}', valid: {list(WAVEFUNCTIONS.keys())}")
-    # module-like object with attributes u,w,u1,...
-    for attr in ('u','w','u1','w1','u2','w2','u3','w3'):
-        if not hasattr(wf, attr):
-            raise ValueError("wf module must have attributes: u,w,u1,w1,u2,w2,u3,w3")
-    return (wf.u, wf.w, wf.u1, wf.w1, wf.u2, wf.w2, wf.u3, wf.w3)
+    ''' Just give back wf if it's a DWF.
+    If wf is a string, then return the a DWF object of the appropriate class.
+    Allowed strings are:
+        av18
+        cdbonn
+        paris
+    '''
+    if(isinstance(wf, DWF)):
+        return wf
+    elif(isinstance(wf, str)):
+        if(wf=='av18'):
+            dwf = dwf_av18()
+        elif(wf=='av18-s-only'):
+            dwf = dwf_av18_s_only()
+        elif(wf=='av18-d-only'):
+            dwf = dwf_av18_d_only()
+        elif(wf=='paris'):
+            dwf = dwf_paris()
+        elif(wf=='cdbonn'):
+            dwf = dwf_cdbonn()
+        else:
+            raise ValueError("wf={} not recognized.".format(wf))
+        return dwf
+    raise TypeError("wf should be DWF or str.")

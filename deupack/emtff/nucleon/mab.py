@@ -1,7 +1,7 @@
 # point.py
 # Created 2025.11.13 by Alan Sosa
 #
-# This contains nucleon MFFs parametrization used in Freese Cosyn spatial density paper
+# This contains nucleon EMTFFs parametrization used in Freese Cosyn spatial density paper
 
 
 def AN(k):

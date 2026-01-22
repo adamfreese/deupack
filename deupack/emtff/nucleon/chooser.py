@@ -1,7 +1,7 @@
 # chooser.py
 # Created 2025.11.11 by Adam Freese
 #
-# This is modelled after Alan's wf chooser, and is meant to choose the nucleon MFFs
+# This is modelled after Alan's wf chooser, and is meant to choose the nucleon EMTFFs
 
 # import nucleon MFF modules
 from . import ba as ba_mod
@@ -27,12 +27,24 @@ NUCLEONFFS = {
             ),
         'mab' : (
             mab_mod.AN, mab_mod.JN, mab_mod.DN, misc_mod.cN, misc_mod.SN
+            ),
+        'mitq' : (
+            mit_mod.AN_q, mit_mod.JN_q, mit_mod.DN_q, misc_mod.cN_q, misc_mod.SN_q
+            ),
+        'mitg' : (
+            mit_mod.AN_g, mit_mod.JN_g, mit_mod.DN_g, misc_mod.cN_g, misc_mod.SN_g
+            ),
+        'hzq' : (
+            mit_mod.AN_q, mit_mod.JN_q, hz_mod.DN_q, misc_mod.cN_q, misc_mod.SN_q
+            ),
+        'hzg' : (
+            mit_mod.AN_g, mit_mod.JN_g, hz_mod.DN_g, misc_mod.cN_g, misc_mod.SN_g
             )
         }
 
 def choose_nff(nff):
     ''' Return a tuple (AN,JN,DN,cbarN,SN) according to a choice
-    of nucleon MFFs.
+    of nucleon EMTFFs.
     '''
     if isinstance(nff, str):
         key = nff.lower()

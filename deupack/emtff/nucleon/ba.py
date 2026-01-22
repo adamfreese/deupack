@@ -1,7 +1,7 @@
 # ba.py
 # Created 2025.11.11 by Adam Freese
 #
-# This contains nucleon MFFs from:
+# This contains nucleon GFFs from:
 #   Wojciech Broniowski and Enrique Ruiz Arriola
 #   Physical Review D 112 (2025) 054028
 #   Broniowski:2025ctl

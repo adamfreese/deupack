@@ -2,7 +2,7 @@
 # Created 2025.10.23 by Adam Freese
 #
 # This module reads in Julia's data files for her GFF calculations,
-# and converts them to the MFFs in Cosyn/Freese/Sosa.
+# and converts them to the EMTFFs in Cosyn/Freese/Sosa.
 #
 # The form factors this module looks at are from:
 #   J.Yu. Panteleeva, E. Epelbaum, A.M. Gasparyan, J. Gegelia
@@ -17,9 +17,9 @@ from ..constants import Md
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_peggmffs():
-    ''' Convert Panteleeva et al.'s MFFs into those of Cosyn, Freese and Sosa. '''
-    df = read_mffs()
+def make_peggffs(leading_order=False):
+    ''' Convert Panteleeva et al.'s GFFs into those of Cosyn, Freese and Sosa. '''
+    df = read_emtffs(leading_order=leading_order)
     t = df['t']
     E0 = df['E0']
     E2 = df['E2']
@@ -31,7 +31,7 @@ def make_peggmffs():
     AT = -2*E2
     DU = -4*D0
     DT1 = 8*D3
-    DT2 = -2*D2
+    DT2 = 2*D2
     new_df = pd.DataFrame({
         'Delta2' : -t,
         'AU'     : AU,
@@ -43,19 +43,40 @@ def make_peggmffs():
         })
     return new_df
 
-def read_mffs():
-    ''' Read EMT data from the tables Fangcheng provided. '''
+def read_emtffs(leading_order=False):
+    ''' Read EMT data from the tables Julia provided.
+    ----------
+    Input:
+        - leading_order : bool, optional
+            if True, use leading order calculation;
+            otherwise, highest order available is used
+    Output:
+        pandas.DataFrame
+    '''
     path = Path(__file__).parent.parent / 'data/pegg'
     # c8 and c9 provided by Julia Panteleeva (private communication)
     c8 = -2.77/1000 # MeV**-1
     c9 = 0
     # Use the highest-order data available for each MFF
-    df_E0 = pd.read_csv(path / "E0_nnlo.txt", comment='#')
-    df_E2 = pd.read_csv(path / "E2_nnlo.txt", comment='#')
-    df_D0 = pd.read_csv(path / "D0_nlo.txt",  comment='#')
-    df_D2 = pd.read_csv(path / "D2_nlo.txt",  comment='#')
-    df_D3 = pd.read_csv(path / "D3_nlo.txt",  comment='#')
-    df_J  = pd.read_csv(path / "J_lo.txt",    comment='#')
+    max_order = {
+            'E0' : 'nnlo',
+            'E2' : 'nnlo',
+            'D0' : 'nlo',
+            'D2' : 'nlo',
+            'D3' : 'nlo',
+            'J'  : 'lo'
+            }
+    def gff_path(name):
+        if(leading_order):
+            return path / "{}_lo.txt".format(name)
+        else:
+            return path / "{}_{}.txt".format(name, max_order[name])
+    df_E0 = pd.read_csv(gff_path('E0'), comment='#')
+    df_E2 = pd.read_csv(gff_path('E2'), comment='#')
+    df_D0 = pd.read_csv(gff_path('D0'), comment='#')
+    df_D2 = pd.read_csv(gff_path('D2'), comment='#')
+    df_D3 = pd.read_csv(gff_path('D3'), comment='#')
+    df_J  = pd.read_csv(gff_path('J'),  comment='#')
     t  = -(df_E0['q (MeV)']/1000)**2
     E0 = df_E0['E0'] + df_E0['E0c8']*c8 + df_E0['E0c9']*c9
     E2 = df_E2['E2'] + df_E2['E2c8']*c8 + df_E2['E2c9']*c9
