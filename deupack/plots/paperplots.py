@@ -36,10 +36,10 @@ def make_paper_plots():
     mass_density()     # Figure 5
     s_d_interference() # Figure 6
     momentum_density() # Figure 7
-    principal_axes()   # Figure 8
-    pressure()         # Figure 9
-    torsion()          # Figure 11
-    forces()           # Figure 12
+    principal_axes()   # Figure 9
+    pressure()         # Figure 10
+    torsion()          # Figure 12
+    forces()           # Figure 13
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -230,9 +230,9 @@ def pressure():
             r'$m_j=0$, isoradial pressure',
             r'$m_j=0$, isopolar pressure',
             r'$m_j=0$, azimuthal pressure',
-            r'$m_j=1$, isoradial pressure',
-            r'$m_j=1$, isopolar pressure',
-            r'$m_j=1$, azimuthal pressure'
+            r'$m_j=\pm1$, isoradial pressure',
+            r'$m_j=\pm1$, isopolar pressure',
+            r'$m_j=\pm1$, azimuthal pressure'
             ]
     # Prepare figure
     nrows,ncols=2,3
@@ -256,7 +256,7 @@ def torsion():
     s0 = D.torsion_shear(pol=0)
     s1 = D.torsion_shear(pol=1)
     # Make some labels
-    labels = [ r'$m_j=0$', r'$m_j=1$' ]
+    labels = [ r'$m_j=0$', r'$m_j=\pm1$' ]
     # Prepare figure
     nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*10,nrows*10+1))
@@ -292,7 +292,7 @@ def s_d_interference():
     # Make some labels
     labels = [
             r'S-wave ($m_j=0$)', r'D-wave ($m_j=0$)', r'Interference ($m_j=0$)',
-            r'S-wave ($m_j=1$)', r'D-wave ($m_j=1$)', r'Interference ($m_j=1$)'
+            r'S-wave ($m_j=\pm1$)', r'D-wave ($m_j=\pm1$)', r'Interference ($m_j=\pm1$)'
             ]
     # Prepare figure
     nrows,ncols=2,3
@@ -334,8 +334,8 @@ def principal_axes():
     # Call the panel code four times
     _ = _eigenvector_panel(ax0p, Dq, Dh, '+', 0, vmax, r'Isoradial,  $m_j=0$')
     _ = _eigenvector_panel(ax0m, Dq, Dh, '-', 0, vmax, r'Isopolar, $m_j=0$')
-    _ = _eigenvector_panel(ax1p, Dq, Dh, '+', 1, vmax, r'Isoradial,  $m_j=1$')
-    _ = _eigenvector_panel(ax1m, Dq, Dh, '-', 1, vmax, r'Isopolar, $m_j=1$')
+    _ = _eigenvector_panel(ax1p, Dq, Dh, '+', 1, vmax, r'Isoradial,  $m_j=\pm1$')
+    _ = _eigenvector_panel(ax1m, Dq, Dh, '-', 1, vmax, r'Isopolar, $m_j=\pm1$')
     # Remove x axes from top two panels for economic use of space
     for ax in [ax0p, ax0m]:
         ax.get_xaxis().set_visible(False)
