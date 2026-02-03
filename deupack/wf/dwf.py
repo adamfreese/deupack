@@ -49,6 +49,18 @@ class DWF:
 
     # The following routines can be used for any wave function ~~~~~~~~~~~~~~~~~
 
+    def Ps(self):
+        ''' S-state probability. '''
+        def integrand(r):
+            return self.u(r)**2
+        return quad(integrand, 0, np.inf)[0]
+
+    def Pd(self):
+        ''' D-state probability. '''
+        def integrand(r):
+            return self.w(r)**2
+        return quad(integrand, 0, np.inf)[0]
+
     def radius_squared(self):
         ''' Obtain the mean squared radius associated with the wave function. '''
         def integrand(r):
