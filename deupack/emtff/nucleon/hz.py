@@ -7,18 +7,36 @@
 #   Physical Review C109 (2024) 045209
 #   He:2023ogg
 
-def DN(k):
-    ''' The nucleon DN used by He and Zahed '''
-    return DN_q(k) + DN_g(k)
+from ...constants import hbar
 
-def DN_q(k):
-    ''' The nucleon DN used by He and Zahed, quark part '''
-    D0 = -1.30
-    Lambda = 0.81
-    return D0 / (1 + (k/Lambda)**2)**2
+from .mit import nff_mit
 
-def DN_g(k):
-    ''' The nucleon DN used by He and Zahed, gluon part '''
-    D0 = -1.275
-    Lambda = 0.963
-    return D0 / (1 + (k/Lambda)**2)**2
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class nff_hz(nff_mit):
+    ''' Uses the MIT AN and JN, but overrides DN with a holographic result.
+    '''
+
+    def __init__(self):
+        super().__init__()
+        return
+
+    # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def DN(self, k):
+        ''' The nucleon DN used by He and Zahed '''
+        return self.DN_q(k) + self.DN_g(k)
+
+    # Auxiliary functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def DN_q(self, k):
+        ''' The nucleon DN used by He and Zahed, quark part '''
+        D0 = -1.30
+        Lambda = 0.81
+        return D0 / (1 + (k/Lambda)**2)**2
+
+    def DN_g(self, k):
+        ''' The nucleon DN used by He and Zahed, gluon part '''
+        D0 = -1.275
+        Lambda = 0.963
+        return D0 / (1 + (k/Lambda)**2)**2

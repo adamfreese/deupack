@@ -21,58 +21,80 @@
 #
 # Parameters of MIT are given in Table III of their supplemental material.
 
-def AN(k):
-    ''' Form factor AN. Assumes k is in GeV. '''
-    return AN_q(k) + AN_g(k)
+from ...constants import mN, hbar
 
-def JN(k):
-    ''' Form factor JN. Assumes k is in GeV. '''
-    return JN_q(k) + JN_g(k)
-
-def DN(k):
-    ''' Form factor DN. Assumes k is in GeV. '''
-    return DN_q(k) + DN_g(k)
+from .nff import *
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def AN_q(k):
-    ''' Quark contribution to AN. Assumes k is in GeV. '''
-    alpha  =  0.510 # reported 0.510(25)
-    Lambda =  1.477 # reported 1.477(44)
-    return dipole(k, alpha, Lambda)
+class nff_mit(nff_with_SN):
 
-def JN_q(k):
-    ''' Quark contribution to JN. Assumes k is in GeV. '''
-    alpha  =  0.251 # reported 0.251(21)
-    Lambda =  1.62  # reported 1.62(13)
-    return dipole(k, alpha, Lambda)
+    def __init__(self):
+        super().__init__()
+        return
 
-def DN_q(k):
-    ''' Quark contribution to DN. Assumes k is in GeV. '''
-    alpha  = -1.30 # reported -1.30(49)
-    Lambda =  0.81 # reported 0.81(14)
-    return dipole(k, alpha, Lambda)
+    # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def AN_g(k):
-    ''' Gluon contribution to AN. Assumes k is in GeV. '''
-    alpha  =  0.490 # reported 0.501(27); adjusted for sum rule
-    Lambda =  1.262 # reported 1.262(18)
-    return dipole(k, alpha, Lambda)
+    def AN(self, k):
+        ''' Form factor AN. Assumes k is in GeV. '''
+        return self.AN_q(k) + self.AN_g(k)
 
-def JN_g(k):
-    ''' Gluon contribution to JN. Assumes k is in GeV. '''
-    alpha  =  0.249 # reported 0.255(13); adjusted for sum rule
-    Lambda =  1.399 # reported 1.399(49)
-    return dipole(k, alpha, Lambda)
+    def JN(self, k):
+        ''' Form factor JN. Assumes k is in GeV. '''
+        return self.JN_q(k) + self.JN_g(k)
 
-def DN_g(k):
-    ''' Gluon contribution to DN. Assumes k is in GeV. '''
-    alpha  = -2.57  # reported -2.57(84)
-    Lambda =  0.538 # reported 0.538(65)
-    return dipole(k, alpha, Lambda)
+    def DN(self, k):
+        ''' Form factor DN. Assumes k is in GeV. '''
+        return self.DN_q(k) + self.DN_g(k)
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def mass_radius_squared(self):
+        ''' Derivatives of dipole forms, summed in quadrature. '''
+        alpha_q  =  0.510 # reported 0.510(25)
+        Lambda_q =  1.477 # reported 1.477(44)
+        alpha_g  =  0.490 # reported 0.501(27); adjusted for sum rule
+        Lambda_g =  1.262 # reported 1.262(18)
+        dAdt_q = 2*alpha_q/Lambda_q**2
+        dAdt_g = 2*alpha_g/Lambda_g**2
+        return 6 * (dAdt_q + dAdt_g) * hbar**2
 
-def dipole(k, alpha, Lambda):
-    ''' Dipole form. '''
-    return alpha / (1 + (k/Lambda)**2)**2
+    # Auxiliary functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_q(self, k):
+        ''' Quark contribution to AN. Assumes k is in GeV. '''
+        alpha  =  0.510 # reported 0.510(25)
+        Lambda =  1.477 # reported 1.477(44)
+        return self.dipole(k, alpha, Lambda)
+
+    def JN_q(self, k):
+        ''' Quark contribution to JN. Assumes k is in GeV. '''
+        alpha  =  0.251 # reported 0.251(21)
+        Lambda =  1.62  # reported 1.62(13)
+        return self.dipole(k, alpha, Lambda)
+
+    def DN_q(self, k):
+        ''' Quark contribution to DN. Assumes k is in GeV. '''
+        alpha  = -1.30 # reported -1.30(49)
+        Lambda =  0.81 # reported 0.81(14)
+        return self.dipole(k, alpha, Lambda)
+
+    def AN_g(self, k):
+        ''' Gluon contribution to AN. Assumes k is in GeV. '''
+        alpha  =  0.490 # reported 0.501(27); adjusted for sum rule
+        Lambda =  1.262 # reported 1.262(18)
+        return self.dipole(k, alpha, Lambda)
+
+    def JN_g(self, k):
+        ''' Gluon contribution to JN. Assumes k is in GeV. '''
+        alpha  =  0.249 # reported 0.255(13); adjusted for sum rule
+        Lambda =  1.399 # reported 1.399(49)
+        return self.dipole(k, alpha, Lambda)
+
+    def DN_g(self, k):
+        ''' Gluon contribution to DN. Assumes k is in GeV. '''
+        alpha  = -2.57  # reported -2.57(84)
+        Lambda =  0.538 # reported 0.538(65)
+        return self.dipole(k, alpha, Lambda)
+
+    def dipole(self, k, alpha, Lambda):
+        ''' Dipole form. '''
+        return alpha / (1 + (k/Lambda)**2)**2
