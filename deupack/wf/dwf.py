@@ -1,4 +1,4 @@
-# base.py
+# dwf.py
 # Created 2026.01.06 by Adam Freese
 #
 # A base class specifying the interface for deuteron wave functions
@@ -49,12 +49,12 @@ class DWF:
 
     # The following routines can be used for any wave function ~~~~~~~~~~~~~~~~~
 
-    def radius(self):
-        ''' Obtain the matter radius associated with the wave function. '''
+    def radius_squared(self):
+        ''' Obtain the mean squared radius associated with the wave function. '''
         def integrand(r):
             return r**2*(self.u(r)**2 + self.w(r)**2)/4
         r2 = quad(integrand, 0, np.inf)[0]
-        return np.sqrt(r2)
+        return r2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Asymptotic forms of the S- and D-waves, and their derivatives
