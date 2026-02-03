@@ -38,7 +38,21 @@ def mechanical_radius_squared(nff='ba', wf='av18'):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Quadrupole moments
 
-# TODO
+def mass_quadrupole_momenmt(nff='ba', wf='av18'):
+    ''' Mass quadrupole moment, in fm**2. '''
+    # There are actually two equivalent ways of getting this
+    # Method 1: from the wave function
+    _wf = choose_wf(wf)
+    Qd1 = _wf.quadrupole()
+    # Method 2: from the EMT-FF AT
+    # (The result doesn't actually depend on the NFF)
+    Qd2 = AT(0, nff=nff, wf=wf) / (2*mN)**2 * hbar**2
+    # Return both just to show they're equal
+    return Qd1, Qd2
+
+def mechanical_quadrupole_moment(nff='ba', wf='av18'):
+    # TODO
+    return 0
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Other moments
@@ -82,4 +96,3 @@ def _6_dcUdt(nff='ba', wf='av18'):
     r2 = coef1 * _nff.mass_radius_squared() + coef2
     # TODO: cbarN contributions (zero right now, but might matter later)
     return r2 * 2 # factor 2 from sum over nucleons
-

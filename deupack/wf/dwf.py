@@ -68,6 +68,13 @@ class DWF:
         r2 = quad(integrand, 0, np.inf)[0]
         return r2
 
+    def quadrupole(self):
+        ''' Return the quadrupole moment, in fm**2. '''
+        def integrand(r):
+            return r**2*(2*np.sqrt(2)*self.u(r)*self.w(r) - self.w(r)**2) / 20
+        Qd = quad(integrand, 0, np.inf)[0]
+        return Qd
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Asymptotic forms of the S- and D-waves, and their derivatives
 
