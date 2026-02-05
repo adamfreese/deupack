@@ -1,11 +1,5 @@
 # hz.py
 # Created 2025.11.11 by Adam Freese (moved code from misc.py)
-#
-# This file contains formulas for the D form factor of a nucelon,
-# as used by
-#   Fangcheng He and Ismail Zahed
-#   Physical Review C109 (2024) 045209
-#   He:2023ogg
 
 from ...constants import hbar
 
@@ -15,6 +9,10 @@ from .mit import nff_mit
 
 class nff_hz(nff_mit):
     ''' Uses the MIT AN and JN, but overrides DN with a holographic result.
+    The DN used here is from:
+        Fangcheng He and Ismail Zahed
+        Physical Review C109 (2024) 045209
+        He:2023ogg
     '''
 
     def __init__(self):
@@ -40,3 +38,53 @@ class nff_hz(nff_mit):
         D0 = -1.275
         Lambda = 0.963
         return D0 / (1 + (k/Lambda)**2)**2
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class nff_hz_quark(nff_hz):
+    ''' A quark-only variation on nff_hz. '''
+
+    def __init__(self):
+        super().__init__()
+        return
+
+    # Overrides to eliminate gluons ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_g(self, k):
+        return k*0
+
+    def JN_g(self, k):
+        return k*0
+
+    def DN_g(self, k):
+        return k*0
+
+    def cN_g(self, k):
+        return k*0
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class nff_hz_gluon(nff_hz):
+    ''' A gluon-variation on nff_hz. '''
+
+    def __init__(self):
+        super().__init__()
+        return
+
+    # Overrides to eliminate quarks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_q(self, k):
+        return k*0
+
+    def JN_q(self, k):
+        return k*0
+
+    def DN_q(self, k):
+        return k*0
+
+    def cN_q(self, k):
+        return k*0
+
+    def SN(self, k):
+        # Note that gluons cannot contribute to SN
+        return k*0
