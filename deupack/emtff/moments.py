@@ -30,7 +30,7 @@ def mass_radius_squared(nff='ba', wf='av18'):
 def mechanical_radius_squared(nff='ba', wf='av18'):
     ''' Mechanical radius, defined as the mean squared radius of the radial
     pressure distribution. This can be obtained by dividing the b2 moment
-    by the integrated radial pressure.
+    by the integrated radial pressure. Result is given in fm**2.
     '''
     r2 = mechanical_b2_moment(nff=nff, wf=wf) / mechanical_charge(nff=nff, wf=wf)
     return r2*hbar**2
@@ -51,8 +51,16 @@ def mass_quadrupole_momenmt(nff='ba', wf='av18'):
     return Qd1, Qd2
 
 def mechanical_quadrupole_moment(nff='ba', wf='av18'):
-    # TODO
-    return 0
+    ''' Mechanical quadrupole moment, defined as the mean value of 3*z**2-b**2
+    over the radial pressure distribution. This can be obtained by dividng the
+    3*z**2-b**2 moment by the integrated radial presure.
+    Result is given in fm**2.
+    '''
+    Qmech = (
+            mechanical_3z2_minus_b2_moment(nff=nff, wf=wf)
+            / mechanical_charge(nff=nff, wf=wf)
+            )
+    return Qmech*hbar**2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Other moments
@@ -72,27 +80,38 @@ def mechanical_charge(nff='ba', wf='av18'):
     return -DU_integral/(4*Md) - Md*cU0
 
 def mechanical_b2_moment(nff='ba', wf='av18'):
-    ''' The integral of b**2 times the radial pressure distribution. '''
+    ''' The integral of b**2 times the radial pressure distribution.
+    Numerator of the mechanical radius.
+    '''
     DU_term = -3/(2*Md) * DU(0, nff=nff, wf=wf)
-    cU_derivative_term = - Md * _6_dcUdt(nff=nff, wf=wf)
+    cU_derivative_term = 6 * Md * _emtff_derivative(cU, nff=nff, wf=wf)
     return DU_term + cU_derivative_term
+
+def mechanical_3z2_minus_b2_moment(nff='ba', wf='av18'):
+    ''' The integral of 3*z**2-b**2 times the radial pressure distribution.
+    Numerator of the mechanical quadrupole moment.
+    '''
+    # T1 terms ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Part of the answer depends on the integral of DT1(k).
+    # np.trapz is good enough for our purposes, if a lot of points are used.
+    k_array = np.geomspace(1e-6, 100, 666)
+    DT1_array = DT1(k_array, nff=nff, wf=wf)
+    DT1_integral = np.trapz(DT1_array, x=k_array**2)
+    cT10 = cT1(0, nff=nff, wf=wf)
+    T1_terms = (-DT1_integral/(4*Md) - Md*cT10) / (Md**2)
+    # T2 terms ~~~~~~~~~~~~~~~~~~~~~~~~~
+    DT2_term = -3/(2*Md) * DT2(0, nff=nff, wf=wf)
+    cT2_derivative_term = 6 * Md * _emtff_derivative(cT2, nff=nff, wf=wf)
+    T2_terms = (DT2_term + cT2_derivative_term) * 2/(15*Md)
+    return T1_terms + T2_terms
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Helper methods
 
-def _6_dcUdt(nff='ba', wf='av18'):
-    ''' Derivative, in GeV**-2. '''
-    _wf = choose_wf(wf)
-    _nff = choose_nff(nff)
-    def integrand1(r):
-        return _wf.u(r)*_wf.u2(r) + _wf.w(r)*_wf.w2(r) - 6*_wf.w(r)**2/r**2
-    def integrand2(r):
-        return r**2*(
-                _wf.u(r)*_wf.u2(r) + _wf.w(r)*_wf.w2(r)
-                - _wf.u1(r)**2 - _wf.w1(r)**2
-                )
-    coef1 = quad(integrand1, 0, np.inf)[0] / (6*mN**2)
-    coef2 = 3/20*(1/4*quad(integrand2, 0, np.inf)[0] - _wf.Pd()) / mN**2
-    r2 = coef1 * _nff.mass_radius_squared() + coef2
-    # TODO: cbarN contributions (zero right now, but might matter later)
-    return r2 * 2 # factor 2 from sum over nucleons
+def _emtff_derivative(F, nff='ba', wf='av18'):
+    h = 1e-4
+    k2 = np.array([0, h])
+    k = np.sqrt(k2)
+    FF = F(k, nff=nff, wf=wf)
+    dFdk2 = (FF[1] - FF[0])/h
+    return dFdk2
