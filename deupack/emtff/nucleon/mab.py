@@ -1,8 +1,5 @@
 # mab.py
 # Created 2025.11.13 by Alan Sosa
-#
-# This contains nucleon EMTFFs parametrization used in Freese Cosyn spatial density paper
-
 
 from ...constants import mN, hbar
 
@@ -11,6 +8,11 @@ from .nff import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class nff_mab(nff_with_SN):
+    ''' Nucleon EMT-FFs from the meson dominance model of:
+        Masjuan, Ruiz Arriola and Broniowski
+        Phys. Rev. D 87 (2013) 014005
+        Masjuan:2012sk
+    '''
 
     def __init__(self):
         super().__init__()

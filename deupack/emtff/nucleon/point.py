@@ -1,13 +1,12 @@
 # point.py
 # Created 2025.11.11 by Alan Sosa
-#
-# This contains point like fermion EMTFFs
 
 from .nff import *
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class nff_point(NFF):
+    ''' EMT-FFs for a pointlike fermion. '''
 
     def __init__(self):
         super().__init__()

@@ -1,10 +1,5 @@
 # ba.py
 # Created 2025.11.11 by Adam Freese
-#
-# This contains nucleon GFFs from:
-#   Wojciech Broniowski and Enrique Ruiz Arriola
-#   Physical Review D 112 (2025) 054028
-#   Broniowski:2025ctl
 
 from ...constants import mN, hbar
 
@@ -13,6 +8,11 @@ from .nff import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class nff_ba(nff_with_SN):
+    ''' Nucleon EMT-FFs from the meson dominance model of:
+        Wojciech Broniowski and Enrique Ruiz Arriola
+        Physical Review D 112 (2025) 054028
+        Broniowski:2025ctl
+    '''
 
     def __init__(self):
         super().__init__()
