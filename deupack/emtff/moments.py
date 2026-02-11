@@ -98,7 +98,7 @@ def mechanical_3z2_minus_b2_moment(nff='ba', wf='av18'):
     DT1_array = DT1(k_array, nff=nff, wf=wf)
     DT1_integral = np.trapz(DT1_array, x=k_array**2)
     cT10 = cT1(0, nff=nff, wf=wf)
-    T1_terms = (-DT1_integral/(4*Md) - Md*cT10) / (Md**2)
+    T1_terms = (-3*DT1_integral/(10*Md) - Md*cT10) / (Md**2)
     # T2 terms ~~~~~~~~~~~~~~~~~~~~~~~~~
     DT2_term = -3/(2*Md) * DT2(0, nff=nff, wf=wf)
     cT2_derivative_term = 6 * Md * _emtff_derivative(cT2, nff=nff, wf=wf)
