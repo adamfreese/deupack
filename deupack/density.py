@@ -29,7 +29,7 @@ class Density:
     '''
 
     def __init__(self,
-                 wf=emtff.wf_default,
+                 wf='av18',
                  nff='ba',
                  nk=600,
                  nb=101,
