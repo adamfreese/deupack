@@ -72,10 +72,10 @@ def mechanical_charge(nff='ba', wf='av18'):
     correspond to a physically meaningful charge.
     '''
     # Part of the answer depends on the integral of DU(k).
-    # np.trapz is good enough for our purposes, if a lot of points are used.
+    # np.trapezoid is good enough for our purposes, if a lot of points are used.
     k_array = np.geomspace(1e-6, 100, 666)
     DU_array = DU(k_array, nff=nff, wf=wf)
-    DU_integral = np.trapz(DU_array, x=k_array**2)
+    DU_integral = np.trapezoid(DU_array, x=k_array**2)
     cU0 = cU(0, nff=nff, wf=wf)
     return -DU_integral/(4*Md) - Md*cU0
 
@@ -93,10 +93,10 @@ def mechanical_3z2_minus_b2_moment(nff='ba', wf='av18'):
     '''
     # T1 terms ~~~~~~~~~~~~~~~~~~~~~~~~~
     # Part of the answer depends on the integral of DT1(k).
-    # np.trapz is good enough for our purposes, if a lot of points are used.
+    # np.trapezoid is good enough for our purposes, if a lot of points are used.
     k_array = np.geomspace(1e-6, 100, 666)
     DT1_array = DT1(k_array, nff=nff, wf=wf)
-    DT1_integral = np.trapz(DT1_array, x=k_array**2)
+    DT1_integral = np.trapezoid(DT1_array, x=k_array**2)
     cT10 = cT1(0, nff=nff, wf=wf)
     T1_terms = (-3*DT1_integral/(10*Md) - Md*cT10) / (Md**2)
     # T2 terms ~~~~~~~~~~~~~~~~~~~~~~~~~
