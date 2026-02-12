@@ -10,6 +10,7 @@ class nff_point(NFF):
 
     def __init__(self):
         super().__init__()
+        self.name = "point"
         return
 
     # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

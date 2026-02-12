@@ -32,6 +32,7 @@ class nff_mit(nff_with_SN):
 
     def __init__(self):
         super().__init__()
+        self.name = "mit"
         return
 
     # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -148,6 +149,7 @@ class nff_mit_quark(nff_mit):
 
     def __init__(self):
         super().__init__()
+        self.name = "mitq"
         return
 
     # Overrides to eliminate gluons ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,6 +173,7 @@ class nff_mit_gluon(nff_mit):
 
     def __init__(self):
         super().__init__()
+        self.name = "mitg"
         return
 
     # Overrides to eliminate quarks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

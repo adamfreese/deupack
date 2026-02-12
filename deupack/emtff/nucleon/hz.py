@@ -17,6 +17,7 @@ class nff_hz(nff_mit):
 
     def __init__(self):
         super().__init__()
+        self.name = "hz"
         return
 
     # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,6 +47,7 @@ class nff_hz_quark(nff_hz):
 
     def __init__(self):
         super().__init__()
+        self.name = "hzq"
         return
 
     # Overrides to eliminate gluons ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +71,7 @@ class nff_hz_gluon(nff_hz):
 
     def __init__(self):
         super().__init__()
+        self.name = "hzg"
         return
 
     # Overrides to eliminate quarks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

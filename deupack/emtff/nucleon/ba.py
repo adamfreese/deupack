@@ -16,6 +16,7 @@ class nff_ba(nff_with_SN):
 
     def __init__(self):
         super().__init__()
+        self.name = "ba"
         return
 
     # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

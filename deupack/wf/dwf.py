@@ -19,6 +19,7 @@ class DWF:
     '''
 
     def __init__(self):
+        self.name = "" # every dwf class should have a name
         return
 
     # The following functions are expected to exist ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

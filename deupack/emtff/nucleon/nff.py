@@ -13,6 +13,7 @@ class NFF:
     '''
 
     def __init__(self):
+        self.name = "" # every nff class should have a name
         return
 
     # The expected form factors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

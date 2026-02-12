@@ -16,6 +16,7 @@ class nff_mab(nff_with_SN):
 
     def __init__(self):
         super().__init__()
+        self.name = "mab"
         return
 
     # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
