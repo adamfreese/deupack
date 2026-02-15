@@ -30,6 +30,7 @@ class dwf_av18(DWF):
     def __init__(self):
         super().__init__()
         self._make_wf()
+        self.name = "av18"
         return
 
     # S-wave ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,6 +135,7 @@ class dwf_av18_s_only(dwf_av18):
     def __init__(self):
         super().__init__()
         self._make_wf()
+        self.name = "av18-s-only"
         return
 
     def w(self, r):
@@ -156,6 +158,7 @@ class dwf_av18_d_only(dwf_av18):
     def __init__(self):
         super().__init__()
         self._make_wf()
+        self.name = "av18-d-only"
         return
 
     def __init__(self):

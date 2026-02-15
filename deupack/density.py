@@ -13,6 +13,8 @@ from scipy.interpolate import CubicSpline
 from pathlib import Path
 
 from .constants import mN, hbar
+from .wf.chooser import choose_wf
+from .emtff.nucleon.chooser import choose_nff
 from . import emtff
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,7 +31,7 @@ class Density:
     '''
 
     def __init__(self,
-                 wf=emtff.wf_default,
+                 wf='av18',
                  nff='ba',
                  nk=600,
                  nb=101,
@@ -37,8 +39,8 @@ class Density:
                  kmin=1e-6, # GeV
                  kmax=20    # GeV
                  ):
-        self.wf   = wf
-        self.nff  = nff
+        self.wf   = choose_wf(wf)
+        self.nff  = choose_nff(nff)
         self.nk   = nk
         self.nb   = nb
         self.bmax = bmax
@@ -441,14 +443,14 @@ class Density:
 
     def _cache_path(self):
         filename = "emtff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
-                self.wf, self.nff, self.nk, self.kmin, self.kmax
+                self.wf.name, self.nff.name, self.nk, self.kmin, self.kmax
                 )
         path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
         return path
 
     def _cache_path_bessel(self, name):
         filename = "bessel_{}_table_{}_{}_{:d}_{:.2e}".format(
-                name, self.wf, self.nff, self.nb, self.bmax,
+                name, self.wf.name, self.nff.name, self.nb, self.bmax,
                 )
         path = Path(__file__).parent / 'cache/{}.npy'.format(filename)
         return path

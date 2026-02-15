@@ -1,9 +1,10 @@
-# base.py
+# dwf.py
 # Created 2026.01.06 by Adam Freese
 #
 # A base class specifying the interface for deuteron wave functions
 
 import numpy as np
+from scipy.integrate import quad
 
 from ..constants import kappa
 
@@ -18,6 +19,7 @@ class DWF:
     '''
 
     def __init__(self):
+        self.name = "" # every dwf class should have a name
         return
 
     # The following functions are expected to exist ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,6 +47,34 @@ class DWF:
 
     def w3(self, r):
         return 0
+
+    # The following routines can be used for any wave function ~~~~~~~~~~~~~~~~~
+
+    def Ps(self):
+        ''' S-state probability. '''
+        def integrand(r):
+            return self.u(r)**2
+        return quad(integrand, 0, np.inf)[0]
+
+    def Pd(self):
+        ''' D-state probability. '''
+        def integrand(r):
+            return self.w(r)**2
+        return quad(integrand, 0, np.inf)[0]
+
+    def radius_squared(self):
+        ''' Obtain the mean squared radius associated with the wave function. '''
+        def integrand(r):
+            return r**2*(self.u(r)**2 + self.w(r)**2)/4
+        r2 = quad(integrand, 0, np.inf)[0]
+        return r2
+
+    def quadrupole(self):
+        ''' Return the quadrupole moment, in fm**2. '''
+        def integrand(r):
+            return r**2*(2*np.sqrt(2)*self.u(r)*self.w(r) - self.w(r)**2) / 20
+        Qd = quad(integrand, 0, np.inf)[0]
+        return Qd
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Asymptotic forms of the S- and D-waves, and their derivatives

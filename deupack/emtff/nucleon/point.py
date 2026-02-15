@@ -1,21 +1,36 @@
 # point.py
 # Created 2025.11.11 by Alan Sosa
-#
-# This contains point like fermion EMTFFs
 
+from .nff import *
 
-def AN(k):
-    ''' AN for point like fermion '''
-    return 1.0
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def JN(k):
-    ''' JN for point like fermion '''
-    return 0.5
+class nff_point(NFF):
+    ''' EMT-FFs for a pointlike fermion. '''
 
-def SN(k):
-    ''' SN for point like fermion '''
-    return 0.5
+    def __init__(self):
+        super().__init__()
+        self.name = "point"
+        return
 
-def DN(k):
-    ''' DN for point like fermion '''
-    return 0.0
+    # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN(self, k):
+        ''' AN for point like fermion '''
+        return 1 + k*0
+
+    def JN(self, k):
+        ''' JN for point like fermion '''
+        return 0.5 + k*0
+
+    def SN(self, k):
+        ''' SN for point like fermion '''
+        return 0.5 + k*0
+
+    def DN(self, k):
+        ''' DN for point like fermion '''
+        return k*0
+
+    def mass_radius_squared():
+        ''' Mass radius for point like fermion '''
+        return 0.0

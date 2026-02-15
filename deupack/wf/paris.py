@@ -23,6 +23,8 @@ class dwf_paris(dwf_yukawa):
     def __init__(self):
         CJ, DJ, MJ = self._read_params_data()
         super().__init__(CJ, DJ, MJ)
+        self.name = "paris"
+        return
 
     def _read_params_data(self):
         ''' Read parameters used for analytic form of Paris wavefunction. '''

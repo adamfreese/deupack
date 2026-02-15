@@ -17,6 +17,8 @@ class dwf_cdbonn(dwf_yukawa):
     def __init__(self):
         CJ, DJ, MJ = self._read_params_data()
         super().__init__(CJ, DJ, MJ)
+        self.name = "cdbonn"
+        return
 
     def _read_params_data(self):
         ''' Read parameters used for analytic form of CD Bonn wavefunction. '''
