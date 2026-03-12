@@ -531,6 +531,84 @@ class Density:
                 )
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Density object for a nucleon target
+# Currently kind of a hack that overloads some of the Density class
+# TODO: create more generic object for which deuteron and nucleon can# both be
+# derived classes
+
+class NucleonDensity(Density):
+
+    def __init__(self,
+                 nff='ba',
+                 nk=600,
+                 nb=101,
+                 bmax=0.84, # fm
+                 kmin=1e-6, # GeV
+                 kmax=20    # GeV
+                 ):
+        super().__init__(nff=nff, nb=nb, nk=nk, bmax=bmax, kmin=kmin, kmax=kmax)
+        return
+
+    # Overloaded methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def _cache_path(self):
+        filename = "emtff_table_nucleon_{}_{:d}_{:.2e}_{:.2e}".format(
+                self.nff.name, self.nk, self.kmin, self.kmax
+                )
+        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+        return path
+
+    def _cache_path_bessel(self, name):
+        filename = "bessel_{}_table_nucleon_{}_{:d}_{:.2e}".format(
+                name, self.nff.name, self.nb, self.bmax,
+                )
+        path = Path(__file__).parent / 'cache/{}.npy'.format(filename)
+        return path
+
+    def _init_emtff_table(self, save_table=False):
+        k    = np.geomspace(self.kmin, self.kmax, self.nk)
+        AU   = self.nff.AN(k) / 2 # b/c of factor 2*mN in density formulas
+        AT   = k*0
+        DU   = self.nff.DN(k) * 2 # b/c of factor 1/(2*mN) in density formulas
+        DT1  = k*0
+        DT2  = k*0
+        cU   = self.nff.cN(k) / 2 # b/c of factor 2*mN in density formulas
+        cT1  = k*0
+        cT2  = k*0
+        J    = self.nff.JN(k)
+        S    = self.nff.SN(k)
+        sbar = k*0
+        if(save_table):
+            df = pd.DataFrame(data={
+                'k'    : k,
+                'AU'   : AU,
+                'AT'   : AT,
+                'DU'   : DU,
+                'DT1'  : DT1,
+                'DT2'  : DT2,
+                'cU'   : cU,
+                'cT1'  : cT1,
+                'cT2'  : cT2,
+                'J'    : J,
+                'S'    : S,
+                'sbar' : sbar
+                })
+            path = self._cache_path()
+            df.to_csv(path, index=None)
+        self.AU   = CubicSpline(k, AU)
+        self.AT   = CubicSpline(k, AT)
+        self.DU   = CubicSpline(k, DU)
+        self.DT1  = CubicSpline(k, DT1)
+        self.DT2  = CubicSpline(k, DT2)
+        self.cU   = CubicSpline(k, cU)
+        self.cT1  = CubicSpline(k, cT1)
+        self.cT2  = CubicSpline(k, cT2)
+        self.J    = CubicSpline(k, J)
+        self.S    = CubicSpline(k, S)
+        self.sbar = CubicSpline(k, sbar)
+        return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Integrand functions
 # Need to make these separate functions to use quad_vec with workers
 
