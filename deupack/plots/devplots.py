@@ -21,7 +21,7 @@ plt.rcParams["axes.formatter.use_mathtext"] = True
 
 def pressure():
     # Fixed parameters for the visualization
-    nff='mit'; nb=151; bmax=0.84
+    nff='ba'; nb=151; bmax=0.84
     # Get the pressures
     D = Density(nff=nff, nb=nb, bmax=bmax)
     pr = D.radial_pressure(pol=0)
@@ -40,7 +40,7 @@ def pressure():
                    pr, pt,
                    labels=labels,
                    clabel=r'Pressure (GeV/fm$^3$)',
-                   decay=1, opacity=0.69, cmap=cmr.fusion_r,
+                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     fig.savefig('nucleon_pressure.pdf')
     return
