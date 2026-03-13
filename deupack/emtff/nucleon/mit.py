@@ -15,19 +15,23 @@ class nff_mit(nff_with_SN):
       Physical Review Letters 132 (2024) 241904
       Hackett:2023rif
     which I will refer to as MIT after the authors' institution.
-    
+
     MIT actually give two parametric fits to their lattice data:
     (1) a dipole fit, and (2) a z-expansion.
     Both fits achieve qualitatively similar results and similar chi2/dof.
     For simplicity, I use their dipole forms here.
-    
+
     One minor tweak I make here is that I enforce the sum rules A(0)=1 and J(0)=1/2.
     I adjust the alpha parameters for Ag and Jg to achieve this.
     On the other hand, I use the central fit values for Aq and Jq.
     Since D(0) is not constrained by any conservation laws,
     I use the central values reported by MIT for both Dq(0) and Dg(0)
-    
+
     Parameters of MIT are given in Table III of their supplemental material.
+
+    For D(t), I use a tripole form instead of the dipole form from Table III.
+    The parameters for the tripole form were provided by Dimitra Pefkou in a
+    private communication on March 13, 2026.
     '''
 
     def __init__(self):
@@ -93,9 +97,9 @@ class nff_mit(nff_with_SN):
 
     def DN_q(self, k):
         ''' Quark contribution to DN. Assumes k is in GeV. '''
-        alpha  = -1.30 # reported -1.30(49)
-        Lambda =  0.81 # reported 0.81(14)
-        return self.dipole(k, alpha, Lambda)
+        alpha  = -1.10 # private communication; reported -1.10(34)
+        Lambda =  1.16 # private communication; reported 1.16(16)
+        return self.tripole(k, alpha, Lambda)
 
     def AN_g(self, k):
         ''' Gluon contribution to AN. Assumes k is in GeV. '''
@@ -111,9 +115,9 @@ class nff_mit(nff_with_SN):
 
     def DN_g(self, k):
         ''' Gluon contribution to DN. Assumes k is in GeV. '''
-        alpha  = -2.57  # reported -2.57(84)
-        Lambda =  0.538 # reported 0.538(65)
-        return self.dipole(k, alpha, Lambda)
+        alpha  = -1.81  # private communication; reported -1.81(44)
+        Lambda =  0.845 # private communication; reported 0.845(72)
+        return self.tripole(k, alpha, Lambda)
 
     def cN_q(self, k):
         ''' Quark contribution to cN. Assumes k is in GeV.
@@ -141,6 +145,10 @@ class nff_mit(nff_with_SN):
     def dipole(self, k, alpha, Lambda):
         ''' Dipole form. '''
         return alpha / (1 + (k/Lambda)**2)**2
+
+    def tripole(self, k, alpha, Lambda):
+        ''' Dipole form. '''
+        return alpha / (1 + (k/Lambda)**2)**3
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -310,6 +310,8 @@ class Density:
         pt = self.polar_pressure(pol=pol)
         s  = self.symmetric_shear( pol=pol)
         sgn = np.sign(s)
+        sgn[np.isnan(sgn)] = 0
+        sgn[np.isinf(sgn)] = 0
         R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         Th = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         Z = R*np.cos(self.theta) + sgn*Th*np.sin(self.theta)
@@ -550,6 +552,24 @@ class NucleonDensity(Density):
         return
 
     # Overloaded methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def e_plus(self, pol='U'):
+        ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
+        components of the isoradial principal axis.
+        '''
+        Z = np.cos(self.theta)
+        X = np.sin(self.theta)*np.cos(self.phi)
+        Y = np.sin(self.theta)*np.sin(self.phi)
+        return X, Y, Z
+
+    def e_minus(self, pol='U'):
+        ''' Returns three 3D numpy arrays, with the Cartesian x, y and z
+        components of the isopolar principal axis.
+        '''
+        Z = np.sin(self.theta)
+        X = - np.cos(self.theta)*np.cos(self.phi)
+        Y = - np.cos(self.theta)*np.sin(self.phi)
+        return X, Y, Z
 
     def _cache_path(self):
         filename = "emtff_table_nucleon_{}_{:d}_{:.2e}_{:.2e}".format(
