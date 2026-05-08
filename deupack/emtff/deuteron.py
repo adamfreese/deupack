@@ -11,7 +11,7 @@ from numpy import sqrt
 from scipy.special import spherical_jn as jn
 from scipy.integrate import quad_vec
 
-from ..constants import mN, hbar, mNfm
+from ..constants import hbar
 
 # Import wave function chooser
 from ..wf.chooser import choose_wf
@@ -163,7 +163,7 @@ def _AT_integrand(r, k, dwf, nff):
     kfm = k/hbar
     intd = nff.AN(k) * jn(2, kfm*r/2)*(
             2*sqrt(2)*dwf.u(r)*dwf.w(r) - dwf.w(r)**2
-            ) * 6*mN**2/k**2
+            ) * 6*dwf.mN**2/k**2
     return intd
 
 def _DU_integrand(r, k, dwf, nff):
@@ -181,7 +181,7 @@ def _DU_integrand(r, k, dwf, nff):
 
 def _DT1_integrand(r, k, dwf, nff):
     kfm = k/hbar
-    A_piece = 48*mNfm**2*nff.AN(k)/kfm**4*jn(4,kfm*r/2)*(
+    A_piece = 48*dwf.mNfm**2*nff.AN(k)/kfm**4*jn(4,kfm*r/2)*(
             sqrt(2)*(dwf.u(r)*dwf.w2(r) + dwf.w(r)*dwf.u2(r)
                      - 2*dwf.u1(r)*dwf.w1(r))
             - dwf.w(r)*dwf.w2(r) + dwf.w1(r)**2
@@ -189,11 +189,11 @@ def _DT1_integrand(r, k, dwf, nff):
                + dwf.w(r)*dwf.w1(r))/r
             + 6*(2*sqrt(2)*dwf.u(r) - dwf.w(r))*dwf.w(r)/r**2
             )
-    J_piece = 96*mNfm**2*nff.JN(k)/kfm**3*jn(3,kfm*r/2)*(
+    J_piece = 96*dwf.mNfm**2*nff.JN(k)/kfm**3*jn(3,kfm*r/2)*(
             sqrt(2)*(dwf.u(r)*dwf.w1(r) - dwf.w(r)*dwf.u1(r))
             - (2*sqrt(2)*dwf.u(r) - dwf.w(r))*dwf.w(r)/r
             )
-    D_piece = 24*mNfm**2*nff.DN(k)/kfm**2*jn(2,kfm*r/2)*(
+    D_piece = 24*dwf.mNfm**2*nff.DN(k)/kfm**2*jn(2,kfm*r/2)*(
             2*sqrt(2)*dwf.u(r)*dwf.w(r) - dwf.w(r)**2
             )
     intd = A_piece + J_piece + D_piece
@@ -219,12 +219,12 @@ def _DT2_integrand(r, k, dwf, nff):
 def _cU_integrand(r, k, dwf, nff):
     # Uses IBP to get rid of third derivatives of u(r) and w(r)
     kfm = k/hbar
-    A_piece_1 = nff.AN(k)/(mNfm**2*kfm)*jn(1,kfm*r/2)*(
+    A_piece_1 = nff.AN(k)/(dwf.mNfm**2*kfm)*jn(1,kfm*r/2)*(
             dwf.u1(r)*dwf.u2(r) - dwf.u(r)*dwf.u2(r)/r
             + dwf.w1(r)*dwf.w2(r) - dwf.w(r)*dwf.w2(r)/r
             - 6*dwf.w(r)**2/r**3
             )
-    A_piece_0 = nff.AN(k)/(4*mNfm**2)*jn(0,kfm*r/2)*(
+    A_piece_0 = nff.AN(k)/(4*dwf.mNfm**2)*jn(0,kfm*r/2)*(
             dwf.u(r)*dwf.u2(r) + dwf.w(r)*dwf.w2(r)
             )
     c_piece = nff.cN(k)/2*jn(0,kfm*r/2)*(
@@ -251,7 +251,7 @@ def _cT1_integrand(r, k, dwf, nff):
     J_piece = 6*sqrt(2)*nff.JN(k)*jn(2,kfm*r/2)/kfm**2*(
             dwf.w(r)*dwf.u2(r) - dwf.u(r)*dwf.w2(r) + 6*dwf.u(r)*dwf.w(r)/r**2
             )
-    c_piece = 6*mN**2/k**2 * nff.cN(k) * jn(2,kfm*r/2)*(
+    c_piece = 6*dwf.mN**2/k**2 * nff.cN(k) * jn(2,kfm*r/2)*(
             2*sqrt(2)*dwf.u(r)*dwf.w(r) - dwf.w(r)**2
             )
     return A_piece_3 + A_piece_2 + J_piece + c_piece
@@ -259,7 +259,7 @@ def _cT1_integrand(r, k, dwf, nff):
 def _cT2_integrand(r, k, dwf, nff):
     # Uses IBP to get rid of third derivatives of u(r) and w(r)
     kfm = k/hbar
-    A_piece_2 = 6*nff.AN(k)/(mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
+    A_piece_2 = 6*nff.AN(k)/(dwf.mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
             (sqrt(2)*(dwf.u1(r)*dwf.w2(r) + dwf.w1(r)*dwf.u2(r))
              - dwf.w1(r)*dwf.w2(r))/r
             - sqrt(2)*(dwf.u(r)*dwf.w2(r) + 3*dwf.w(r)*dwf.u2(r))/r**2
@@ -267,11 +267,11 @@ def _cT2_integrand(r, k, dwf, nff):
             - 6*sqrt(2)*dwf.w(r)*dwf.u1(r)/r**3
             + 6*(sqrt(2)*dwf.u(r)*dwf.w(r) + dwf.w(r)**2)/r**4
             )
-    A_piece_1 = 3*nff.AN(k)/(2*mNfm**2*kfm)*jn(1,kfm*r/2)*(
+    A_piece_1 = 3*nff.AN(k)/(2*dwf.mNfm**2*kfm)*jn(1,kfm*r/2)*(
             2*sqrt(2)*dwf.w(r)*dwf.u2(r)
             - dwf.w(r)*dwf.w2(r)
             )/r
-    J_piece = -3*sqrt(2)/(4*mNfm**2)*jn(2,kfm*r/2)*nff.JN(k)*(
+    J_piece = -3*sqrt(2)/(4*dwf.mNfm**2)*jn(2,kfm*r/2)*nff.JN(k)*(
             dwf.u(r)*dwf.w2(r) - dwf.w(r)*dwf.u2(r) - 6*dwf.u(r)*dwf.w(r)/r**2
             )
     return A_piece_2 + A_piece_1 + J_piece
@@ -303,7 +303,7 @@ def _sbar_integrand(r, k, dwf, nff):
 
 def _cU_integrand_paper(r, k, dwf, nff):
     kfm = k/hbar
-    A_piece = nff.AN(k)*jn(1, kfm*r/2)/(2*mNfm**2*kfm) * (
+    A_piece = nff.AN(k)*jn(1, kfm*r/2)/(2*dwf.mNfm**2*kfm) * (
             dwf.u1(r)*dwf.u2(r) + dwf.w1(r)*dwf.w2(r)
             - dwf.u(r)*dwf.u3(r) - dwf.w(r)*dwf.w3(r) - 12*dwf.w(r)**2/r**3
             )
@@ -323,21 +323,21 @@ def _cT1_integrand_paper(r, k, dwf, nff):
     J_piece = 6*sqrt(2)*nff.JN(k)*jn(2,kfm*r/2)/kfm**2*(
             dwf.w(r)*dwf.u2(r) - dwf.u(r)*dwf.w2(r) + 6*dwf.u(r)*dwf.w(r)/r**2
             )
-    c_piece = 6*mN**2/k**2 * nff.cN(k) * jn(2,kfm*r/2)*(
+    c_piece = 6*dwf.mN**2/k**2 * nff.cN(k) * jn(2,kfm*r/2)*(
             2*sqrt(2)*dwf.u(r)*dwf.w(r) - dwf.w(r)**2
             )
     return A_piece + J_piece + c_piece
 
 def _cT2_integrand_paper(r, k, dwf, nff):
     kfm = k/hbar
-    A_piece = -3*nff.AN(k)/(mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
+    A_piece = -3*nff.AN(k)/(dwf.mNfm**2*kfm**2)*jn(2,kfm*r/2)*(
             (2*sqrt(2)*(dwf.w(r)*dwf.u3(r)-dwf.u1(r)*dwf.w2(r))
              -dwf.w(r)*dwf.w3(r)+dwf.w1(r)*dwf.w2(r))/r
             +(2*sqrt(2)*(dwf.u(r)*dwf.w2(r)-dwf.w(r)*dwf.u2(r)))/r**2
             +12*sqrt(2)*dwf.w(r)*dwf.u1(r)/r**3
             -12*(sqrt(2)*dwf.u(r)*dwf.w(r)+dwf.w(r)**2)/r**4
             )
-    J_piece = -3*sqrt(2)/(4*mNfm**2)*jn(2,kfm*r/2)*nff.JN(k)*(
+    J_piece = -3*sqrt(2)/(4*dwf.mNfm**2)*jn(2,kfm*r/2)*nff.JN(k)*(
             dwf.u(r)*dwf.w2(r) - dwf.w(r)*dwf.u2(r) - 6*dwf.u(r)*dwf.w(r)/r**2
             )
     return A_piece + J_piece

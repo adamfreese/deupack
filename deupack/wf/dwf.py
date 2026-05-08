@@ -6,7 +6,7 @@
 import numpy as np
 from scipy.integrate import quad
 
-from ..constants import kappa
+from ..constants import kappa, hbar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # A base class defining functions expected to exist in a deuteron wave function
@@ -20,6 +20,8 @@ class DWF:
 
     def __init__(self):
         self.name = "" # every dwf class should have a name
+        self.mN = 0.93891875569 # GeV ... allows per-target override
+        self.mNfm = self.mN / hbar
         return
 
     # The following functions are expected to exist ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
