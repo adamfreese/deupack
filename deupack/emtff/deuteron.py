@@ -73,7 +73,6 @@ def AU(k,
     '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    print("wave function:", dwf.name)
     return onebody.AU(k, dwf=dwf, nff=_nff)
 
 def AT(k,
