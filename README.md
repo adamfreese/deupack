@@ -35,7 +35,7 @@ using the publicly-available wave function table on
 
 deupack was developed for the numerical calculations of:
 - Wim Cosyn, Adam Freese and Alan Sosa,
-  (in preparation)
+  [arXiv:2602.18298 [nucl-th]](https://inspirehep.net/literature/3122080)
 
 Please cite the paper if you use this code in your research.
 You can also cite the repository from GitHub,
