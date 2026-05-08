@@ -45,13 +45,17 @@ def AU(k,
         - impulse: boolean
             True if the impulse contributions are to be included
             False to exclude them
-        - interactions : list of booleans
-            interaction types that should be included, e.g.,
-            coulomb=True, string=True, etc.
-            The list is allowed to be empty. Any interactions not listed
-            will not be calculated.
-            Recognized interactions:
-            - None (TODO)
+        - interactions : list of floats
+            include any interactions (two-body currents) that should
+            be included in the returned form factor.
+            The variable name is the kind of interaction.
+            The value is the parameter associated with the interaction.
+            For instance, one may include:
+                coulomb=1/137, string=0.136
+            The list is allowed to be empty.
+            Any interactions not listed will not be calculated.
+            Recognized interactions and the meaning of the float parameter:
+                - TODO
     Output:
         numpy.array with form factor values
     Notes:
@@ -69,6 +73,7 @@ def AU(k,
     '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
+    print("wave function:", dwf.name)
     return onebody.AU(k, dwf=dwf, nff=_nff)
 
 def AT(k,

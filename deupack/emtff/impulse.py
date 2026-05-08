@@ -1,6 +1,7 @@
-# deuteron.py
+# impulse.py
 # Created 2025.09.30 by Adam Freese
 # contributions from both Adam Freese and Alan Sosa
+# migrated from deuteron.py to impulse.py on 2026.05.08
 #
 # This file contains formulas for form factors as given in the work by
 # Wim Cosyn, Adam Freese and Alan Sosa.
@@ -13,146 +14,119 @@ from scipy.integrate import quad_vec
 
 from ..constants import hbar
 
-# Import wave function chooser
-#from ..wf.chooser import choose_wf
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The user interfaces for the impulse approximation form factors
+# More friendly user interfaces are given in deuteron.py
 
-# Import nucleon form factor chooser
-#from .nucleon.chooser import choose_nff
+def AU(k, dwf, nff, rmin=0, rmax=np.inf):
+    integral = quad_vec(_AU_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
 
-# Default wave function is an AV18 instance
-#from ..wf.av18 import dwf_av18
-#wf_default = dwf_av18()
+def AT(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_AT_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def DU(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_DU_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def DT1(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_DT1_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def DT2(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_DT2_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def cU(k, dwf, nff, rmin=0, rmax=np.inf, formula='fast'):
+    k = regulate_zero(k) # avoid division by zero
+    if(formula=='fast'):
+        integrand = _cU_integrand
+    elif(formula=='paper'):
+        integrand = _cU_integrand_paper
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def cT1(k, dwf, nff, rmin=0, rmax=np.inf, formula='fast'):
+    k = regulate_zero(k) # avoid division by zero
+    if(formula=='fast'):
+        integrand = _cT1_integrand
+    elif(formula=='paper'):
+        integrand = _cT1_integrand_paper
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def cT2(k, dwf, nff, rmin=0, rmax=np.inf, formula='fast'):
+    k = regulate_zero(k) # avoid division by zero
+    if(formula=='fast'):
+        integrand = _cT2_integrand
+    elif(formula=='paper'):
+        integrand = _cT2_integrand_paper
+    else:
+        raise ValueError("{} is not a valid formula key.".format(formula))
+    integral = quad_vec(integrand, rmin, np.inf,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def J(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_J_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def S(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_S_integrand, rmin, rmax,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
+
+def sbar(k, dwf, nff, rmin=0, rmax=np.inf):
+    k = regulate_zero(k) # avoid division by zero
+    integral = quad_vec(_sbar_integrand, rmin, np.inf,
+                        args=(k, dwf, nff),
+                        workers=8
+                        )[0]
+    return integral * 2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The user interfaces for the form factors
-
-#def AU(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor AU.
-#    ----------
-#    Input:
-#        - k : float or numpy.array
-#            float one-dimensional array of k values in GeV
-#        - wf : DWF or string
-#            Deuteron wave function to use
-#            See wf.chooser.choose_wf for available options
-#        - nff : string
-#            Nucleon EMT form factors to use
-#            Available: ba, mab, hz, point
-#            Default: ba
-#    Output:
-#        numpy.array with form factor values
-#    Notes:
-#        Some form factors have multiple options for formulas.
-#        These are meant for consistency checks.
-#        The default formula in each case is the fastest to evaluate.
-#        Form factors with a 'formula' option are:
-#            - cU
-#            - cT1
-#            - cT2
-#        The options for the formula are 'fast' (default) or 'paper'.
-#        The latter uses the formula explicitly given in the paper.
-#        The option is given only to demonstrate that the results are the same,
-#        but the 'paper' formula is significantly slower.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _AU(k, dwf=dwf, nff=_nff)
-#
-#def AT(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor AT.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _AT(k, dwf=dwf, nff=_nff)
-#
-#def DU(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor DU.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _DU(k, dwf=dwf, nff=_nff)
-#
-#def DT1(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor DT1.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _DT1(k, dwf=dwf, nff=_nff)
-#
-#def DT2(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor DT2.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _DT2(k, dwf=dwf, nff=_nff)
-#
-#def cU(k, wf=wf_default, nff='ba', formula='fast'):
-#    ''' The EMT form factor cU.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    # Need to change rmin from 0 to 1e-2 for Yukawa parametrizations,
-#    # because of an instability at small r
-#    rmin = 0
-#    if(wf=='paris' or wf=='cdbonn'):
-#        rmin = 1e-2
-#    return _cU(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
-#
-#def cT1(k, wf=wf_default, nff='ba', formula='fast'):
-#    ''' The EMT form factor cT1.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _cT1(k, dwf=dwf, nff=_nff, formula=formula)
-#
-#def cT2(k, wf=wf_default, nff='ba', formula='fast'):
-#    ''' The EMT form factor cT2.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    # Need to change rmin from 0 to 1e-2 for Yukawa parametrizations,
-#    # because of an instability at small r
-#    _nff = choose_nff(nff)
-#    rmin = 0
-#    if(wf=='paris' or wf=='cdbonn'):
-#        rmin =  1e-2
-#    return _cT2(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
-#
-#def J(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor J.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _J(k, dwf=dwf, nff=_nff)
-#
-#def S(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor S.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _S(k, dwf=dwf, nff=_nff)
-#
-#def sbar(k, wf=wf_default, nff='ba'):
-#    ''' The EMT form factor S.
-#    See docstring of AU for more info.
-#    '''
-#    dwf = choose_wf(wf)
-#    _nff = choose_nff(nff)
-#    return _sbar(k, dwf=dwf, nff=_nff)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the EMTFFs:
-# 1. Integrands
-#    Parallelization of the integration requires the integrands to be defined
-#    as top-level (rather than nested) functions.
+# Under-the-hood implementation details for the EMTFFs: Integrands
+#  Parallelization of the integration requires the integrands to be defined
+#  as top-level (rather than nested) functions.
 
 def _AU_integrand(r, k, dwf, nff):
     kfm = k/hbar
@@ -341,117 +315,6 @@ def _cT2_integrand_paper(r, k, dwf, nff):
             dwf.u(r)*dwf.w2(r) - dwf.w(r)*dwf.u2(r) - 6*dwf.u(r)*dwf.w(r)/r**2
             )
     return A_piece + J_piece
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the EMTFFs:
-# 2. Integration
-#    quad_vec achieves good speed for parallel calculation of form factors
-#    at multiple k values. It's also parallelizable.
-
-def AU(k, dwf, nff, rmin=0, rmax=np.inf):
-    integral = quad_vec(_AU_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def AT(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_AT_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def DU(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DU_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def DT1(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT1_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def DT2(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_DT2_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def cU(k, dwf, nff, rmin=0, rmax=np.inf, formula='fast'):
-    k = regulate_zero(k) # avoid division by zero
-    if(formula=='fast'):
-        integrand = _cU_integrand
-    elif(formula=='paper'):
-        integrand = _cU_integrand_paper
-    else:
-        raise ValueError("{} is not a valid formula key.".format(formula))
-    integral = quad_vec(integrand, rmin, np.inf,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def cT1(k, dwf, nff, rmin=0, rmax=np.inf, formula='fast'):
-    k = regulate_zero(k) # avoid division by zero
-    if(formula=='fast'):
-        integrand = _cT1_integrand
-    elif(formula=='paper'):
-        integrand = _cT1_integrand_paper
-    else:
-        raise ValueError("{} is not a valid formula key.".format(formula))
-    integral = quad_vec(integrand, rmin, np.inf,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def cT2(k, dwf, nff, rmin=0, rmax=np.inf, formula='fast'):
-    k = regulate_zero(k) # avoid division by zero
-    if(formula=='fast'):
-        integrand = _cT2_integrand
-    elif(formula=='paper'):
-        integrand = _cT2_integrand_paper
-    else:
-        raise ValueError("{} is not a valid formula key.".format(formula))
-    integral = quad_vec(integrand, rmin, np.inf,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def J(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_J_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def S(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_S_integrand, rmin, rmax,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
-
-def sbar(k, dwf, nff, rmin=0, rmax=np.inf):
-    k = regulate_zero(k) # avoid division by zero
-    integral = quad_vec(_sbar_integrand, rmin, np.inf,
-                        args=(k, dwf, nff),
-                        workers=8
-                        )[0]
-    return integral * 2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Misc utilities
