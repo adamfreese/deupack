@@ -40,7 +40,7 @@ def pressure():
                    pr, pt,
                    labels=labels,
                    clabel=r'Pressure (GeV/fm$^3$)',
-                   decay=2, opacity=0.69, cmap=cmr.fusion_r,
+                   decay=1, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
     fig.savefig('nucleon_pressure.pdf')
     return
