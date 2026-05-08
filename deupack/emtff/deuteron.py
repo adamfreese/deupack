@@ -19,8 +19,9 @@ from .nucleon.chooser import choose_nff
 from ..wf.av18 import dwf_av18
 wf_default = dwf_av18()
 
-# Import impulse approximation routines
-from . import impulse as onebody
+# Import impulse approximation and interaction contributions
+from . import impulse as _impulse
+from . import string as _string
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -28,7 +29,8 @@ def AU(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       coulomb = False,
+       string = False
        ):
     ''' The EMT form factor AU.
     ----------
@@ -43,19 +45,19 @@ def AU(k,
             Available: ba, mab, hz, point
             Default: ba
         - impulse: boolean
-            True if the impulse contributions are to be included
-            False to exclude them
-        - interactions : list of floats
-            include any interactions (two-body currents) that should
-            be included in the returned form factor.
-            The variable name is the kind of interaction.
-            The value is the parameter associated with the interaction.
-            For instance, one may include:
-                coulomb=1/137, string=0.136
-            The list is allowed to be empty.
-            Any interactions not listed will not be calculated.
-            Recognized interactions and the meaning of the float parameter:
-                - TODO
+            True to include one-body currents, False to exclude
+            Default: True
+        - coulomb: boolean
+            True to include Coulomb-like stress, False to exclude
+            This will fail unless the associated wf has an alpha member,
+            which signifies the effective Coulomb constant
+            (for one gluon exchange, alpha means alpha_s*CF)
+            Default: False
+        - string: boolean
+            True to include string stress, False to exclude
+            This will fail unless the associated wf has a sigma member,
+            which specifies the string tension
+            Default: False
     Output:
         numpy.array with form factor values
     Notes:
@@ -67,13 +69,16 @@ def AU(k,
             - cT1
             - cT2
         The options for the formula are 'fast' (default) or 'paper'.
-        The latter uses the formula explicitly given in the paper.
+        The latter uses the formula explicitly given in 2602.18298.
         The option is given only to demonstrate that the results are the same,
         but the 'paper' formula is significantly slower.
     '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.AU(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.AU(k, dwf=dwf, nff=_nff)
+    return result
 
 def AT(k,
        wf = wf_default,
@@ -81,12 +86,13 @@ def AT(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor AT.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor AT. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.AT(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.AT(k, dwf=dwf, nff=_nff)
+    return result
 
 def DU(k,
        wf = wf_default,
@@ -94,12 +100,15 @@ def DU(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor DU.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor DU. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.DU(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.DU(k, dwf=dwf, nff=_nff)
+    if(interactions.get('string', False)):
+        result += _string.DU(k, dwf=dwf)
+    return result
 
 def DT1(k,
        wf = wf_default,
@@ -107,12 +116,13 @@ def DT1(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor DT1.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor DT1. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.DT1(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.DT1(k, dwf=dwf, nff=_nff)
+    return result
 
 def DT2(k,
        wf = wf_default,
@@ -120,12 +130,13 @@ def DT2(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor DT2.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor DT2. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.DT2(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.DT2(k, dwf=dwf, nff=_nff)
+    return result
 
 def cU(k,
        wf = wf_default,
@@ -134,9 +145,7 @@ def cU(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor cU.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor cU. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
     # Need to change rmin from 0 to 1e-2 for Yukawa parametrizations,
@@ -144,7 +153,12 @@ def cU(k,
     rmin = 0
     if(wf=='paris' or wf=='cdbonn'):
         rmin = 1e-2
-    return onebody.cU(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
+    result = k*0
+    if(impulse):
+        result += _impulse.cU(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
+    if(interactions.get('string', False)):
+        result += _string.cU(k, dwf=dwf)
+    return result
 
 def cT1(k,
        wf = wf_default,
@@ -153,12 +167,13 @@ def cT1(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor cT1.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor cT1. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.cT1(k, dwf=dwf, nff=_nff, formula=formula)
+    result = k*0
+    if(impulse):
+        result += _impulse.cT1(k, dwf=dwf, nff=_nff, formula=formula)
+    return result
 
 def cT2(k,
        wf = wf_default,
@@ -167,9 +182,7 @@ def cT2(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor cT2.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor cT2. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     # Need to change rmin from 0 to 1e-2 for Yukawa parametrizations,
     # because of an instability at small r
@@ -177,7 +190,10 @@ def cT2(k,
     rmin = 0
     if(wf=='paris' or wf=='cdbonn'):
         rmin =  1e-2
-    return onebody.cT2(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
+    result = k*0
+    if(impulse):
+        result += _impulse.cT2(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
+    return result
 
 def J(k,
        wf = wf_default,
@@ -185,12 +201,13 @@ def J(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor J.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor J. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.J(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.J(k, dwf=dwf, nff=_nff)
+    return result
 
 def S(k,
        wf = wf_default,
@@ -198,12 +215,13 @@ def S(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor S.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor S. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.S(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.S(k, dwf=dwf, nff=_nff)
+    return result
 
 def sbar(k,
        wf = wf_default,
@@ -211,9 +229,10 @@ def sbar(k,
        impulse = True,
        **interactions
        ):
-    ''' The EMT form factor S.
-    See docstring of AU for more info.
-    '''
+    ''' The EMT form factor S. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
     _nff = choose_nff(nff)
-    return onebody.sbar(k, dwf=dwf, nff=_nff)
+    result = k*0
+    if(impulse):
+        result += _impulse.sbar(k, dwf=dwf, nff=_nff)
+    return result

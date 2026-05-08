@@ -125,8 +125,8 @@ def sbar(k, dwf, nff, rmin=0, rmax=np.inf):
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Under-the-hood implementation details for the EMTFFs: Integrands
-#  Parallelization of the integration requires the integrands to be defined
-#  as top-level (rather than nested) functions.
+# Parallelization of the integration requires the integrands to be defined
+# as top-level (rather than nested) functions.
 
 def _AU_integrand(r, k, dwf, nff):
     kfm = k/hbar

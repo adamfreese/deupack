@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import cmasher as cmr
 
 from .. import emtff
+from ..wf.airy import dwf_airy
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)
@@ -42,5 +43,52 @@ def cbar_check():
     l = axU.legend(prop = { 'size' : 27 }, loc=2)
     fig.patch.set_alpha(0)
     fig.savefig('cbar_check.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Check that Airy wave function behaves reasonably
+
+def airy_check():
+    dl2 = np.linspace(1e-4, 10, 666)
+    dl = np.sqrt(dl2)
+    eta_c = dwf_airy()
+    # One-body form factors
+    Aq = emtff.AU(dl, wf=eta_c, nff='point', impulse=True, string=False)
+    Dq = emtff.DU(dl, wf=eta_c, nff='point', impulse=True, string=False)
+    cq = emtff.cU(dl, wf=eta_c, nff='point', impulse=True, string=False)
+    # String form factors
+    AS = emtff.AU(dl, wf=eta_c, nff='point', impulse=False, string=True)
+    DS = emtff.DU(dl, wf=eta_c, nff='point', impulse=False, string=True)
+    cS = emtff.cU(dl, wf=eta_c, nff='point', impulse=False, string=True)
+    A = Aq + AS
+    D = Dq + DS
+    c = cq + cS
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax1 = plt.subplot(nrows,ncols,1)
+    ax2 = plt.subplot(nrows,ncols,2)
+    ax3 = plt.subplot(nrows,ncols,3)
+    #
+    ax1.plot(dl2, Aq, '--', linewidth=2.6, label=r'Quark')
+    ax1.plot(dl2, AS, ':',  linewidth=2.6, label=r'String')
+    ax1.plot(dl2, A,  '-',  linewidth=2.6, label=r'Total')
+    #
+    ax2.plot(dl2, Dq, '--', linewidth=2.6, label=r'Quark')
+    ax2.plot(dl2, DS, ':',  linewidth=2.6, label=r'String')
+    ax2.plot(dl2, D,  '-',  linewidth=2.6, label=r'Total')
+    #
+    ax3.plot(dl2, cq, '--', linewidth=2.6, label=r'Quark')
+    ax3.plot(dl2, cS, ':',  linewidth=2.6, label=r'String')
+    ax3.plot(dl2, c,  '-',  linewidth=2.6, label=r'Total')
+    #
+    ax1.set_ylabel(r'$A(\varDelta^2)$')
+    ax2.set_ylabel(r'$D(\varDelta^2)$')
+    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
+    for ax in [ax1,ax2,ax3]:
+        ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+        #ax.set_xscale('log')
+    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+    fig.patch.set_alpha(0)
+    fig.savefig('airy_emtff.pdf')
     return
 
