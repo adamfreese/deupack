@@ -161,11 +161,6 @@ class dwf_av18_d_only(dwf_av18):
         self.name = "av18-d-only"
         return
 
-    def __init__(self):
-        super().__init__()
-        self._make_wf()
-        return
-
     def u(self, r):
         return 0
 
