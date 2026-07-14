@@ -9,7 +9,6 @@ import numpy as np
 # from ...constants import mN, hbar
 
 
-mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
 pickle_path = Path(__file__).with_name("nucleonGFFs.pickle")
 
 with pickle_path.open("rb") as handle:
@@ -84,15 +83,32 @@ Dq= Du+Dd+Ds
 '''
 
 
-    # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
+mN    = 0.970 # mass used for nucleon because of lattice pion mass difference from real mass (GeV)
+mf0    = 0.98 # see text above Eq. (51)
+
+mf0p= 1.250  #from PDG
+
+
+# masses of mesons from set I
+mf2    = 1.275 # from set I, see Eq. (51)
+mf2p   = 1.517 # from set I, see Eq. (51)
+mf2pp  = 1.565 # from set I, see Eq. (51)
+mf2ppp = 1.936 # from set I, see Eq. (51)
+msigma = 0.64 # central value for set I, see Eq. (52)
+
+# mass of mesons from set II
+# mf2    = 1.275 # from set II, see Eq. (51)
+# mf2p   = 1.430 # from set II, see Eq. (51)
+# mf2pp  = 1.517 # from set II, see Eq. (51)
+# mf2ppp = 1.565 # from set II, see Eq. (51)
+
+# msigma = 0.64 # central value for set II, see Eq. (52)
 
 
 def AN(mt,A_0,cA,c2):
     ''' See Eq. (49) of Broniowski:2025ctl '''
-    mf2    = 1.275 # from set I, see Eq. (51)
-    mf2p   = 1.517 # from set I, see Eq. (51)
-    mf2pp  = 1.565 # from set I, see Eq. (51)
-    mf2ppp = 1.936 # from set I, see Eq. (51)
     # t =-k**2
     t=-mt
     num = A_0 - cA*t + c2*t**2
@@ -101,15 +117,44 @@ def AN(mt,A_0,cA,c2):
 
 def JN( mt,J_0,cJ,c2):
     ''' See Eq. (49) of Broniowski:2025ctl '''
-    mf2    = 1.275 # from set I, see Eq. (51)
-    mf2p   = 1.517 # from set I, see Eq. (51)
-    mf2pp  = 1.565 # from set I, see Eq. (51)
-    mf2ppp = 1.936 # from set I, see Eq. (51)
     # t =-k**2
     t=-mt
     num = 2*J_0 - cJ*t + c2*t**2
     den = 2 * (1-t/mf2**2) * (1-t/mf2p**2) * (1-t/mf2pp**2) * (1-t/mf2ppp**2)
     return num/den
+
+
+
+def ThetaP(mt,theta_p):
+    ''' See Eq. (50) of Broniowski:2025ctl '''
+    # t = -k**2
+    t=-mt
+    num = mN*theta_p
+    den = (1-t/mf0**2) * (1-t/msigma**2)
+    return num/den
+
+def newThetaP(mt,theta_p,c2theta):
+    ''' See Eq. (50) of Broniowski:2025ctl '''
+    # t = -k**2
+    t=-mt
+    num = mN*theta_p+ c2theta*t
+    den = (1-t/mf0**2) * (1-t/msigma**2)*(1-t/mf0p**2)
+    return num/den
+
+
+
+
+
+def cbar(mt,c_0):
+    ''' See Eq. (50) of Broniowski:2025ctl '''
+    # t = -k**2
+    t=-mt
+    num = c_0
+    den = (1-t/mf0**2) * (1-t/msigma**2)
+    return num/den
+
+
+
 
 def DN(mt,A_0,J_0,cA,cJ,c2):
     # t = -k**2
@@ -118,27 +163,24 @@ def DN(mt,A_0,J_0,cA,cJ,c2):
     return -4*mN*( -mN*AN(mt,A_0,cA,c2) +ThetaP(mt,A_0) + (t/(8*mN))*(JN(mt,J_0,cJ,c2) +AN(mt,A_0,cA,c2)))/(3*(t))
 
 
-def ThetaP(mt,theta_p):
-    ''' See Eq. (50) of Broniowski:2025ctl '''
-    mf0    = 0.98 # see text above Eq. (51)
-    msigma = 0.64 # central value for set I, see Eq. (52)
+
+def new_DN(mt,A_0,J_0,cA,cJ,c2,c2theta):
     # t = -k**2
+
     t=-mt
-    num = mN*theta_p
-    den = (1-t/mf0**2) * (1-t/msigma**2)
-    return num/den
+    c0=0.12 #doesn't matter what this is it cancels anyway here
+    return -4*mN*( -mN*AN(mt,A_0,cA,c2) +newThetaP(mt,A_0+4*c0,c2theta) -4*mN*cbar(mt,c0) + (t/(8*mN))*(JN(mt,J_0,cJ,c2) +AN(mt,A_0,cA,c2)))/(3*(t))
 
 
+# values found from BA previous fits to total form factors
+cA     = 0.62 # central value for set I, see Eq. (52)
+c2     = 0.15 # central value for set I, see Eq. (52)
+cJ     = 0.87 # central value for set I, see Eq. (52)
 
-def cbar(mt,c_0):
-    ''' See Eq. (50) of Broniowski:2025ctl '''
-    mf0    = 0.98 # see text above Eq. (51)
-    msigma = 0.64 # central value for set I, see Eq. (52)
-    # t = -k**2
-    t=-mt
-    num = c_0
-    den = (1-t/mf0**2) * (1-t/msigma**2)
-    return num/den
+# cA     = 0.83 # central value for set II, see Eq. (52)
+# c2     = 0.25 # central value for set II, see Eq. (52)
+# cJ     = 1.12 # central value for set II, see Eq. (52)
+
 
 
 # fitting function
@@ -162,18 +204,12 @@ prior["c2q"] = gv.gvar(0,5)
 
 prior["J0q"] = gv.gvar(0.25,0.50)
 prior["cJq"] = gv.gvar(0,5)
+prior["c2thetaq"] = gv.gvar(-5,5)
 
+prior["c2thetag"] = gv.gvar(-5,5)
 
 
 # prior["cJg"] = gv.gvar(0,5)
-
-
-# values found from BA previous fits to total form factors
-cA     = 0.62 # central value for set I, see Eq. (52)
-c2     = 0.15 # central value for set I, see Eq. (52)
-
-
-cJ     = 0.87 # central value for set I, see Eq. (52)
 
 
 def fcn(p):
@@ -184,13 +220,13 @@ def fcn(p):
 
     J0g = 0.5 - p["J0q"]
 
+
     #constraints from BA previous fit for total
 
 
     c2g = c2 -p["c2q"]
     cAg = cA -p["cAq"]
     cJg= cJ - p["cJq"]
-
 
     model = {}
 
@@ -225,22 +261,42 @@ def fcn(p):
         cJg,
         c2g
     )
-    model["Dq"] = DN(
+    # model["Dq"] = DN(
+    #     np.array(tDu),
+    #     p["A0q"],
+    #     p["J0q"],
+    #     p["cAq"],
+    #     p["cJq"],
+    #     p["c2q"]
+    # )
+
+    # model["Dg"] = DN(
+    #     np.array(tDg),
+    #     A0g,
+    #     J0g,
+    #     cAg,
+    #     cJg,
+    #     c2g
+    # )
+
+    model["Dq"] = new_DN(
         np.array(tDu),
         p["A0q"],
         p["J0q"],
         p["cAq"],
         p["cJq"],
-        p["c2q"]
+        p["c2q"],
+        p["c2thetaq"]
     )
 
-    model["Dg"] = DN(
+    model["Dg"] = new_DN(
         np.array(tDg),
         A0g,
         J0g,
         cAg,
         cJg,
-        c2g
+        c2g,
+        p["c2thetag"]
     )
 
     return model
@@ -292,24 +348,43 @@ Jg_fit = JN(
     c2-fit.p["c2q"]
 )
 
-Dq_fit = DN(
+# Dq_fit = DN(
+#     mt,
+#     fit.p["A0q"],
+#     fit.p["J0q"],
+#     fit.p["cAq"],
+#     fit.p["cJq"],
+#     fit.p["c2q"]
+# )
+
+# Dg_fit = DN(
+#     mt,
+#     1-fit.p["A0q"],
+#     0.5-fit.p["J0q"],
+#     cA-fit.p["cAq"],
+#     cJ-fit.p["cJq"],
+#     c2-fit.p["c2q"]
+# )
+
+Dq_fit = new_DN(
     mt,
     fit.p["A0q"],
     fit.p["J0q"],
     fit.p["cAq"],
     fit.p["cJq"],
-    fit.p["c2q"]
+    fit.p["c2q"],
+    fit.p["c2thetaq"]
 )
 
-Dg_fit = DN(
+Dg_fit = new_DN(
     mt,
     1-fit.p["A0q"],
     0.5-fit.p["J0q"],
     cA-fit.p["cAq"],
     cJ-fit.p["cJq"],
-    c2-fit.p["c2q"]
+    c2-fit.p["c2q"],
+    fit.p["c2thetag"]
 )
-
 
 #In D2 scheme
 c_0q = (theta_q -fit.p["A0q"])/4.
@@ -348,7 +423,7 @@ plt.errorbar(
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$A_q$")
 
-plt.savefig("DeupackPlots/A_qFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/A_q_NewParametrization.pdf")
 
 
 plt.figure()
@@ -375,7 +450,7 @@ plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$A_g$")
 
 
-plt.savefig("DeupackPlots/A_gFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/A_g_NewParametrization.pdf")
 
 
 
@@ -404,7 +479,7 @@ plt.errorbar(
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$J_q$")
 
-plt.savefig("DeupackPlots/J_qFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/J_q_NewParametrization.pdf")
 
 
 plt.figure()
@@ -430,7 +505,7 @@ plt.errorbar(
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$J_g$")
 
-plt.savefig("DeupackPlots/J_gFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/J_g_NewParametrization.pdf")
 
 
 
@@ -457,7 +532,7 @@ plt.errorbar(
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$D_q$")
 
-plt.savefig("DeupackPlots/D_qFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/D_q_NewParametrization.pdf")
 
 
 plt.figure()
@@ -483,7 +558,7 @@ plt.errorbar(
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$D_g$")
 
-plt.savefig("DeupackPlots/D_gFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/D_g_NewParametrization.pdf")
 
 
 
@@ -503,7 +578,7 @@ plt.fill_between(
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$\bar{c}_q$")
 
-plt.savefig("DeupackPlots/c_qFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/c_q_NewParametrization.pdf")
 
 
 
@@ -521,5 +596,40 @@ plt.fill_between(
 
 plt.xlabel(r"$-t$ (GeV$^2$)")
 plt.ylabel(r"$\bar{c}_g$")
-plt.savefig("DeupackPlots/c_gFit.pdf")
+plt.savefig("../DeupackPlots/plots/fits/New_Parametrization/c_g_NewParametrization.pdf")
 
+
+
+# Least Squares Fit (original parametrization results):
+#   chi2/dof [dof] = 1 [200]    Q = 0.3    logGBF = 406.13
+
+# Parameters:
+#             A0q   0.578 (14)     [  0.20 (50) ]  
+#             cAq   0.353 (30)     [    0 ± 5.0 ]  
+#             c2q   0.151 (21)     [    0 ± 5.0 ]  
+#             J0q   0.274 (11)     [  0.25 (50) ]  
+#             cJq   0.441 (38)     [    0 ± 5.0 ]  
+
+# Settings:
+#   svdcut/n = 1e-12/0    tol = (1e-08,1e-10*,1e-10)    (itns/time = 2/0.5s)
+#   fitter = scipy_least_squares    method = trf
+
+
+
+
+
+# Least Squares Fit (new parametrization results):
+#   chi2/dof [dof] = 0.94 [200]    Q = 0.71    logGBF = 409.35
+
+# Parameters:
+#             A0q    0.575 (14)     [  0.20 (50) ]  
+#             cAq    0.351 (31)     [    0 ± 5.0 ]  
+#             c2q    0.152 (21)     [    0 ± 5.0 ]  
+#             J0q    0.275 (11)     [  0.25 (50) ]  
+#             cJq    0.440 (39)     [    0 ± 5.0 ]  
+#        c2thetaq    -1.24 (15)     [ -5.0 (5.0) ]  
+#        c2thetag   -0.835 (90)     [ -5.0 (5.0) ]  
+
+# Settings:
+#   svdcut/n = 1e-12/0    tol = (1e-08,1e-10*,1e-10)    (itns/time = 2/0.4s)
+#   fitter = scipy_least_squares    method = trf
