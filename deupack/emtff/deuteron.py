@@ -22,6 +22,7 @@ wf_default = dwf_av18()
 # Import impulse approximation and interaction contributions
 from . import impulse as _impulse
 from . import string as _string
+from . import coulomb as _coulomb
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -108,6 +109,8 @@ def DU(k,
         result += _impulse.DU(k, dwf=dwf, nff=_nff)
     if(interactions.get('string', False)):
         result += _string.DU(k, dwf=dwf)
+    if(interactions.get('coulomb', False)):
+        result += _coulomb.DU(k, dwf=dwf)
     return result
 
 def DT1(k,
@@ -158,6 +161,8 @@ def cU(k,
         result += _impulse.cU(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
     if(interactions.get('string', False)):
         result += _string.cU(k, dwf=dwf)
+    if(interactions.get('coulomb', False)):
+        result += _coulomb.cU(k, dwf=dwf)
     return result
 
 def cT1(k,
