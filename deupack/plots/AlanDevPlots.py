@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import cmasher as cmr
 
-
 from deupack import emtff
 from deupack.density import Density
+from deupack.densityLF import DensityLF,DensityLFSym
 from deupack.plots.density3d import multidensity3d
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
@@ -37,10 +37,11 @@ def make_paper_plots():
     # mass_density()     # Figure 5
     # s_d_interference() # Figure 6
     # momentum_density() # Figure 7
-    # principal_axes()   # Figure 9
-    # pressure()         # Figure 10
+    principal_axes()   # Figure 9
+    pressure()         # Figure 10
     # torsion()          # Figure 12
     forces()           # Figure 13
+    forcesLF()
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -217,7 +218,7 @@ def momentum_density(nff='ba', wf='av18', nb=101, bmax=2):
 
 def pressure():
     # Fixed parameters for the visualization
-    nff='ba'; wf='av18'; nb=101; bmax=2
+    nff='bag'; wf='av18'; nb=101; bmax=2
     # Get the pressures
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
     pr0 = D.isoradial_pressure(pol=0)
@@ -227,6 +228,7 @@ def pressure():
     pθ1 = D.isopolar_pressure( pol=1)
     pφ1 = D.azimuthal_pressure(pol=1)
     # Make some labels
+
     labels = [
             r'$m_j=0$, isoradial pressure',
             r'$m_j=0$, isopolar pressure',
@@ -246,7 +248,26 @@ def pressure():
                    clabel=r'Pressure (GeV/fm$^3$)',
                    decay=2, opacity=0.69, cmap=cmr.fusion_r,
                    projections=True, divergent=True, s=1)
-    fig.savefig('pressure3D.pdf')
+    # # labels = [
+    # #         r'$m_j=0$, isoradial pressure',
+    #         # r'$m_j=0$, isopolar pressure',
+    #         # r'$m_j=0$, azimuthal pressure',
+    #         # r'$m_j=\pm1$, isoradial pressure',
+    #         # r'$m_j=\pm1$, isopolar pressure',
+    #         # r'$m_j=\pm1$, azimuthal pressure'
+    #         # ]
+    # # Prepare figure
+    # nrows,ncols=1,1
+    # fig = plt.figure(figsize=(ncols*10,nrows*10+1))
+    # # Use the custom multi-3D plotter
+    # multidensity3d(fig, D.x, D.x, D.x,
+    #                nrows, ncols,
+    #                pr0,
+    #             #    labels=labels,
+    #                clabel=r'Pressure (GeV/fm$^3$)',
+    #                decay=2, opacity=0.69, cmap=cmr.fusion_r,
+    #                projections=True, divergent=True, s=1)
+    fig.savefig('pressure3D_Gluons.pdf')
     return
 
 def torsion():
@@ -313,7 +334,7 @@ def s_d_interference():
 
 def principal_axes():
     # Parameters for this visualization (fixed)
-    bmax = 1.6; nff='ba'; wf='av18'; nbq = 21; nbh = 101
+    bmax = 1.6; nff='bag'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
     Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
     Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
@@ -352,12 +373,12 @@ def principal_axes():
             )
     cbar.set_label(r'Pressure (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('principal_axes.pdf', bbox_inches="tight")
+    fig.savefig('principal_axesGluons.pdf', bbox_inches="tight")
     return
 
 def forces():
     # Fixed parameters
-    nff = 'ba'; wf = 'av18-s-only'; bmax = 1.4; nb = 101
+    nff = 'bag'; wf = 'av18'; bmax = 1.4; nb = 101
     D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
     # Get vmax
     vmax = np.max([
@@ -382,11 +403,69 @@ def forces():
             ax = axes[1],
             orientation='vertical',
             )
-    cbar.set_label(r'Force density (GeV/fm$^4$)', size=36)
+    cbar.set_label(r'Force density (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('forcesSwave.pdf', bbox_inches="tight")
+    fig.savefig('forcesGluons.pdf', bbox_inches="tight")
     return
 
+
+def forcesLF():
+    # Fixed parameters
+    nff = 'bag'; bmax = 2.; nb = 101
+    D = DensityLF(nff=nff, bmax=bmax, nb=nb)
+    # Get vmax
+    vmax = np.max([
+        abs(D.radial_force(pol='U')).max()
+        ])
+    # Prepare figure
+    nrows,ncols=1,1
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
+    ax0 = axes
+    # ax1 = axes[1]
+    norm = mpl.colors.LogNorm(vmin=1e-3*vmax, vmax=vmax)
+    _ = _force_panel_streamLF(ax0, D, pol='U', norm=norm, label=r'U')
+    # _ = _force_panel_stream(ax1, D, pol=1, norm=norm, label=r'$m_j=\pm 1$')
+    # Remove y axes from right panel to save space
+    # Make the colorbar
+    cbar = fig.colorbar(
+            mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
+            ax = axes,
+            orientation='vertical',
+            )
+    cbar.set_label(r'Force density (GeV/fm$^3$)', size=36)
+    fig.patch.set_alpha(0)
+    fig.savefig('forcesProtonGluons.pdf', bbox_inches="tight")
+    return
+
+
+
+def forcesLF_1D():
+    # Fixed parameters
+    nff = 'bag'; bmax = 2.; nb = 101
+    D = DensityLFSym(nff=nff, bmax=bmax, nb=nb)
+    b = D.b
+
+    # fr = D.radial_force(pol='U')
+
+    # fθ = D.polar_force( pol=pol)[:,nb//2,:]
+    # Pull out the angular dependence
+    # phi = D.phi
+
+    # Prepare figure
+    nrows, ncols = 1, 1
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 8.4, nrows * 7.11), layout='constrained')
+    ax0 = axes
+
+    fr = D.radial_force( pol='U')
+    ax0.plot(b, fr.T, linewidth=2)
+    ax0.set_xlabel(r'$r$ (fm)')
+    ax0.set_ylabel(r'Force density (GeV/fm$^3$)')
+    # ax0.annotate(label='U', xy=(0.05,0.09), xycoords='axes fraction',
+    #             bbox=dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5'))
+
+    fig.patch.set_alpha(0)
+    fig.savefig('forcesProtonGluons1D.pdf', bbox_inches="tight")
+    return
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Utilities for EMTFF plots
 
@@ -619,8 +698,8 @@ def _force_panel_stream(ax, D, pol, norm, label):
     b = D.x
     nb = b.shape[0]
     # Get force vectors ... sliced down to y=0
-    fr = D.radial_forceSym(pol=pol)[:,nb//2,:]
-    fθ = D.polar_forceSym( pol=pol)[:,nb//2,:]
+    fr = D.radial_force(pol=pol)[:,nb//2,:]
+    fθ = D.polar_force( pol=pol)[:,nb//2,:]
     # Pull out the angular dependence
     theta = D.theta[:,nb//2,:]
     phi = D.phi[:,nb//2,:]
@@ -649,4 +728,44 @@ def _force_panel_stream(ax, D, pol, norm, label):
     ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
     ax.set_xlabel(r'$x$ (fm)')
     ax.set_ylabel(r'$z$ (fm)')
+    return c
+
+
+
+
+
+def _force_panel_streamLF(ax, D, pol, norm, label):
+    # First, calculate the quivers for force directions
+    b = D.x
+    nb = b.shape[0]
+
+    fr = D.radial_force(pol='U')
+    # fθ = D.polar_force( pol=pol)[:,nb//2,:]
+    # Pull out the angular dependence
+    phi = D.phi
+    # Force in Cartesian coordinates, and its magnitude
+    fx = fr*np.cos(phi)
+    fy = fr*np.sin(phi)
+    f = np.sqrt(fx**2 + fy**2)
+    # Next, get the fine-grained force magnitude for the heat map
+    # Plot the heat map
+    c = ax.pcolormesh(b, b, f.T, norm=norm, cmap=cmr.voltage_r, shading='gouraud')
+    # Plot the streamlines
+    s = ax.streamplot(b, b, fx.T, fy.T,
+                      color='white',
+                      arrowsize=1.7, arrowstyle='-|>',
+                      broken_streamlines=True,
+                      density=1.5
+                      )
+    # Tune the alphas for better visibility
+    s.lines.set_alpha(0.53)
+    for x in ax.get_children():
+        if type(x)==mpl.patches.FancyArrowPatch:
+            x.set_alpha(0.69)
+    # Finish up
+    bbox = dict(facecolor='#f8f8f8', alpha=0.86, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(label, xy=textxy, xycoords='axes fraction', bbox=bbox)
+    ax.set_xlabel(r'$x$ (fm)')
+    ax.set_ylabel(r'$y$ (fm)')
     return c
