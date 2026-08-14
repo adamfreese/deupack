@@ -1,5 +1,5 @@
 # hydrogen.py
-# Created 2026.08.03 by Adam Freese
+# Created 2026.08.13 by Adam Freese
 #
 # A class for hydrogen atom wave functions.
 # In progress. Currently only the ground state
