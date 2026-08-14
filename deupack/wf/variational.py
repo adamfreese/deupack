@@ -147,7 +147,7 @@ class var_wf_cornell(var_wf):
                  ):
         super().__init__(mN=mN,
                          N=N,
-                         nmin=1,
+                         nmin=-1,
                          Vcoeff = np.array([-alpha, 0, sigma/hbar**2])
                          )
         # Internal parameters
@@ -266,7 +266,6 @@ def _u1(r, n, L, a):
     for i in range(Nmax):
         f0 += a[i] * r**(i+2)
         f1 += a[i] * (i+2) * r**(i+1)
-        f2 += a[i] * (i+2) * (i+1) * r**i
     g0 = np.exp(-L*r**(n/2+1))
     g1 = -(n/2+1)*L*r**(n/2) * g0
     u1 = g0*f1 + g1*f0
