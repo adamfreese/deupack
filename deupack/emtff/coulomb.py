@@ -64,7 +64,7 @@ def _cU_integrand(r, k, dwf):
 def Phi1(z):
     ''' An auxiliary function appearing in the Coulomb D-term integrand.
     Defined as
-        \Phi_1(z) = \int_0^1 dy e^{-z\sqrt{1-y^2}} \frac{\sin(yz)}{y\sqrt{1-y^2}}
+        \Phi_1(z) = \int_0^1 dy e^{-z\sqrt{1-y^2}} \frac{j_0(yz)}{\sqrt{1-y^2}}
     and equal to
         \Phi_1(z) = \frac{\pi}{2z} e^{-z} - \frac{1}{z}\mathrm{Im}\left\{
         E_1(z(i+1)) e^z - E_1(z(i-1))
