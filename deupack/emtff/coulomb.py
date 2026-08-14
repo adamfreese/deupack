@@ -8,9 +8,6 @@
 # In progress...
 # TODO
 # - Currently unpolarized EMT-FFs only
-# - Working on a better numerical implementation for DU.
-#   Lookup table for integrand function is stable at least.
-#   Analytic solution (involving E1) is messy and unstable.
 
 import numpy as np
 from scipy.special import spherical_jn as jn, exp1
@@ -50,7 +47,7 @@ def cU(k, dwf):
 def _DU_integrand(r, k, dwf):
     kfm = k/hbar
     intd_self = np.pi*dwf.mNfm*dwf.alpha/kfm * jn(0,kfm*r/2) * dwf.u(r)**2
-    intd_cross = -4*dwf.mNfm*dwf.alpha/kfm * _Phi2(kfm*r/2) * dwf.u(r)**2
+    intd_cross = -4*dwf.mNfm*dwf.alpha/kfm * Phi2(kfm*r/2) * dwf.u(r)**2
     intd = intd_self + intd_cross
     return intd
 
@@ -62,92 +59,52 @@ def _cU_integrand(r, k, dwf):
     return intd
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Functions within integrands. In progress.
+# Auxiliary functions within integrands
 
-def _Phi1(z):
+def Phi1(z):
+    ''' An auxiliary function appearing in the Coulomb D-term integrand.
+    Defined as
+        \Phi_1(z) = \int_0^1 dy e^{-z\sqrt{1-y^2}} \frac{\sin(yz)}{y\sqrt{1-y^2}}
+    and equal to
+        \Phi_1(z) = \frac{\pi}{2z} e^{-z} - \frac{1}{z}\mathrm{Im}\left\{
+        E_1(z(i+1)) e^z - E_1(z(i-1))
+        \right\}
+    It's not the presttiest formula, but I've failed to find a simplification.
+
+    At z=0, Phi1(0) = pi/2. This is implemented directly.
+
+    For 0 < z <= 700, the exact formula works fine. However, at z > 700 or so,
+    np.exp(z) gives an overflow and the function gives invalid results.
+    This messes up integrals containing Phi1. To avoid numerical instability,
+    I use an asymptotic form of Phi1 whenever z >= 50. This is far lower then
+    needed, but the asymptotic formula is already an excellent approximation
+    at this point.
+    '''
+    _zsplit = 50
+    Phi = np.zeros(z.shape)
+    # Region 0 (z==0)
+    Phi[z==0] = np.pi/2
+    # Region 1 (z > 0 and z < _zsplit)
+    z1 = z[(z > 0) & (z < _zsplit)]
+    Phi[(z > 0) & (z < _zsplit)] = (
+            np.pi * np.exp(-z1) / 2
+            - np.imag(
+                exp1(z1*(1j+1)) * np.exp(z1)
+                -
+                exp1(z1*(1j-1)) * np.exp(-z1)
+                )
+            ) / z1
+    # Region 2 (z >= _zsplit)
+    z2 = z[z >= _zsplit]
+    Phi[np.where(z >= _zsplit)] = (
+            np.pi/2*np.exp(-z2)
+            + np.sin(z2)/z2
+            - np.cos(z2)/z2**2
+            - np.sin(z2)/(2*z2**3)
+            ) / z2
+    return Phi
+
+def Phi2(z):
     ''' An auxiliary function appearing in the Coulomb D-term integrand. '''
-    # TODO: better implementation
-    if(z > 100):
-        return 0
-    z1 = z*(1+1j)
-    z2 = z*(-1+1j)
-    cterm1 = exp1(z1)*np.exp(z)
-    cterm2 = exp1(z2)*np.exp(-z)
-    rterm = np.pi/2*np.exp(-z)
-    result = rterm - np.imag(cterm1-cterm2)
-    return result/z
-
-_Phi1 = np.vectorize(_Phi1)
-
-def _Phi2(z):
-    ''' An auxiliary function appearing in the Coulomb D-term integrand. '''
-    result = 1/2 * ( 3*jn(1,z)/z**2 - jn(0,z)/z + _Phi1(z) )
-    #result = 1/2 * ( 3*jn(1,z)/z**2 - jn(0,z)/z + Phi1(z) )
+    result = 1/2 * ( 3*jn(1,z)/z**2 - jn(0,z)/z + Phi1(z) )
     return result
-
-def _zPhi0_intd(y, z):
-    piece0 = (z*np.sqrt(1-y**2) + 1)*jn(0,y*z)
-    piece1 = 3*z*y*jn(1,y*z)
-    piece2 = -2*(z*np.sqrt(1-y**2) + 1)*jn(2,y*z)
-    factor = np.exp(-z*np.sqrt(1-y**2))
-    return factor*(piece0 + piece1 + piece2)
-
-def _zPhi1_intd(y, z):
-    return np.exp(-z*np.sqrt(1-y**2))*jn(0,y*z) / np.sqrt(1+1e-12-y**2)
-
-def _zPhi2_intd(y, z):
-    piece0 = z*np.sqrt(1-y**2)*jn(0,y*z)
-    piece1 = 2*z*y*jn(1,y*z)
-    piece2 = -(z*np.sqrt(1-y**2) + 1)*jn(2,y*z)
-    factor = np.exp(-z*np.sqrt(1-y**2))
-    return factor*(piece0 + piece1 + piece2)
-
-def _create_phi_tables():
-    zmax = 100
-    zmin = 0
-    nz = 9000
-    zz = np.linspace(zmin, zmax, nz)
-    #
-    #
-    zPhi0_table = quad_vec(_zPhi0_intd, 0, 1,
-                            args=(zz,),
-                            #workers=8
-                            )[0]
-    zPhi1_table = quad_vec(_zPhi1_intd, 0, 1,
-                            args=(zz,),
-                            #workers=8
-                            )[0]
-    zPhi2_table = quad_vec(_zPhi2_intd, 0, 1,
-                            args=(zz,),
-                            #workers=8
-                            )[0]
-    zPhi0_spline = CubicSpline(zz, zPhi0_table)
-    zPhi1_spline = CubicSpline(zz, zPhi1_table)
-    zPhi2_spline = CubicSpline(zz, zPhi2_table)
-    return zPhi0_spline, zPhi1_spline, zPhi2_spline, zmax, zmin
-
-_zPhi0, _zPhi1, _zPhi2, _zmax, _zmin = _create_phi_tables()
-
-def Phi0_single(z):
-    if(z > _zmax):
-        return 0
-    return _zPhi0(z) / z
-
-def Phi1_single(z):
-    if(z > _zmax):
-        return 0
-    return _zPhi1(z)
-
-def Phi2_single(z):
-    if(z > _zmax):
-        return 0
-    if(z == 0):
-        return np.pi/4
-    return _zPhi2(z) / z
-
-#Phi0 = np.vectorize(Phi0_single)
-Phi1 = np.vectorize(Phi1_single)
-Phi2 = np.vectorize(Phi2_single)
-
-def Phi0(z):
-    return 3*jn(1, z)/z**2

@@ -3,6 +3,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import cmasher as cmr
 
+from scipy.special import exp1 # for E1 test
+
 from .. import emtff
 from ..wf.airy import dwf_airy
 from ..wf.hydrogen import dwf_hydrogen
@@ -140,5 +142,44 @@ def hydrogen_check():
     l = ax1.legend(prop = { 'size' : 27 }, loc=1)
     fig.patch.set_alpha(0)
     fig.savefig('hydrogen_emtff.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def E1_direct(z):
+    z1 = z*(1+1j)
+    z2 = z*(-1+1j)
+    cterm1 = exp1(z1)*np.exp(z)
+    cterm2 = exp1(z2)*np.exp(-z)
+    result = np.imag(cterm1-cterm2)
+    return result
+
+def E1_asymptotic(z, n):
+    result = -np.sin(z)/z
+    if(n>=1):
+        result += np.cos(z)/z**2
+    if(n>=2):
+        result += np.sin(z)/(2*z**3)
+    return result
+
+def E1_test(zmin=90, zmax=100):
+    z = np.linspace(zmin, zmax, 8000)
+    direct = E1_direct(z)
+    asymp0 = E1_asymptotic(z, 0)
+    asymp1 = E1_asymptotic(z, 1)
+    asymp2 = E1_asymptotic(z, 2)
+    #
+    nrows, ncols = 1, 1
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax = plt.subplot(nrows,ncols,1)
+    ax.plot(z, direct, '-',  label=r'Direct implementation')
+    ax.plot(z, asymp0, '--', label=r'Asymptotic ($n=0$)')
+    ax.plot(z, asymp1, '-.', label=r'Asymptotic ($n=1$)')
+    ax.plot(z, asymp2, ':',  label=r'Asymptotic ($n=2$)')
+    #
+    ax.set_xlabel(r'$z$')
+    l = ax.legend(prop = { 'size' : 20 })
+    fig.patch.set_alpha(0)
+    fig.savefig('E1_test.pdf')
     return
 
