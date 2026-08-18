@@ -379,3 +379,29 @@ def cornell_check(N=4):
     fig.savefig('cornell_emtff.png')
     return
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def D_integrand_cornell():
+    r = np.linspace(0, 4, 666)
+    wf = var_wf_cornell()
+    u  = wf.u(r)
+    u2 = wf.u2(r)
+    #
+    nrows,ncols=1,1
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax = plt.subplot(nrows,ncols,1)
+    #
+    ax.plot(r, r**2*u*u2)
+    #
+    ax.plot(r, r*0, '-', linewidth=1, color='tab:gray')
+    # Classical barrier
+    E = wf.Efm
+    sigma = wf.sigma
+    alpha = wf.alpha
+    r0 = E/(2*sigma) + np.sqrt(E**2/(4*sigma**2) + alpha/sigma)
+    ymin, ymax = ax.get_ylim()
+    ax.vlines(r0, ymin, ymax)
+    ax.set_ylim((ymin,ymax))
+    #
+    fig.savefig('D_integrand.pdf')
+    return
