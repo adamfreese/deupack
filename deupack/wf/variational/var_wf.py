@@ -1,22 +1,21 @@
-# variational.py
+# var_wf.py
 # Created 2026.08.14 by Adam Freese
 #
-# Methods to create numerical wave functions that approximate
-# ground states of various potentials, whose large distance
-# behavior is dominated by a term r**n for n > 0.
+# Methods to create numerical ground wave functions for various potentials.
 # In progress.
 # NOTE: this module is unstable! its interface is expected to change
 # TODO
 # - Better names for variables (to make code easier to read)
-# - Deal with non-growing potentials
+# - Better way to deal with Yukawa potential
 # - docstrings
 
 import numpy as np
-from scipy.integrate import quad
-from scipy.optimize import differential_evolution
 
-from .dwf import DWF
-from ..constants import hbar
+from . import growing
+from . import shrinking
+
+from ..dwf import DWF
+from ...constants import hbar, alphaQED, mpi_0
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Python's mutliprocessing capabilities cannot deal with lambas and nested
@@ -45,7 +44,6 @@ class MonomialPotential(Potential):
     def Vfun(self, r):
         return self.Vn * r**self.n
 
-
 class CornellPotential(Potential):
     def __init__(self, alpha, sigma):
         ''' Parametrizes a potential of the form
@@ -58,6 +56,29 @@ class CornellPotential(Potential):
         return
     def Vfun(self, r):
         return self.sigma*r - self.alpha/r
+
+class CoulombPotential(Potential):
+    def __init__(self, alpha=alphaQED):
+        ''' Parametrizes a potential of the form
+            V(r) = - alpha/r
+        '''
+        self.alpha = alpha
+        return
+    def Vfun(self, r):
+        return -self.alpha/r
+
+class YukawaPotential(Potential):
+    def __init__(self, alpha=1, mu=mpi_0/hbar):
+        ''' Parametrizes a potential of the form
+            V(r) = - alpha/r * exp(-mu*r)
+        where mu is in fm**-1.
+        '''
+        # TODO: sensible default alpha
+        self.alpha = alpha
+        self.mu = mu
+        return
+    def Vfun(self, r):
+        return -self.alpha/r*np.exp(-self.mu*r)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Some wave functions using particular potentials
@@ -90,8 +111,11 @@ class var_wf(DWF):
         self.Vn = Vn
         self.L = 2*np.sqrt(2*self.mu*self.Vn)/(self.n_asy+2)
         # If user does not supply a Vfun, use a monomial
-        if(potential is None):
+        if(potential is None and n_asy > 0):
             self.potential = MonomialPotential(n=n_asy, Vn=Vn)
+        elif(potential is None):
+            # TODO: sensible shrinking potential
+            self.potential = CoulombPotential()
         else:
             self.potential = potential
         # Call the ground state solver
@@ -99,7 +123,10 @@ class var_wf(DWF):
         return
 
     def _solve(self):
-        a, C, E = solve_potential(self.mu, self.n_asy, self.Vn, self.potential, N=self.N)
+        if(self.n_asy > 0):
+            a, C, E = growing.solve_potential(self.mu, self.n_asy, self.Vn, self.potential, N=self.N)
+        else:
+            a, C, E = shrinking.solve_potential(self.mu, self.potential, N=self.N)
         self.a = a
         self.C = C
         self.E = E*hbar
@@ -109,16 +136,28 @@ class var_wf(DWF):
     # Wave function overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def u(self, r):
-        return _u(r, self.n_asy, self.L, self.a) * self.C
+        if(self.n_asy > 0):
+            return growing.u_func(r, self.n_asy, self.L, self.a) * self.C
+        else:
+            return shrinking.u_func(r, self.a) * self.C
 
     def u1(self, r):
-        return _u1(r, self.n_asy, self.L, self.a) * self.C
+        if(self.n_asy > 0):
+            return growing.u1_func(r, self.n_asy, self.L, self.a) * self.C
+        else:
+            return shrinking.u1_func(r, self.a) * self.C
 
     def u2(self, r):
-        return _u2(r, self.n_asy, self.L, self.a) * self.C
+        if(self.n_asy > 0):
+            return growing.u2_func(r, self.n_asy, self.L, self.a) * self.C
+        else:
+            return shrinking.u2_func(r, self.a) * self.C
 
     def u3(self, r):
-        return _u3(r, self.n_asy, self.L, self.a) * self.C
+        if(self.n_asy > 0):
+            return growing.u3_func(r, self.n_asy, self.L, self.a) * self.C
+        else:
+            return shrinking.u3_func(r, self.a) * self.C
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -193,167 +232,3 @@ class var_wf_cornell(var_wf):
         self.alpha = alpha
         return
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Potential solver routine
-
-def solve_potential(mu, n_asy, Vn, pot, N=4):
-    '''
-    Considers a potential
-        V(r) = pot.Vfun(r)
-    binding two particles with a reduced mass mu, which has the asymptotic form
-        V(r) ~ Vn*r**n_asy
-    at large r. Solves for the ground state wave function using an ansatz
-        u(r) = C*r*exp(-2*sqrt(2*mu*Vn)/(n+2)*r**(n/2+1))*(1 + a[0]*r + a[1]*r**2 + ...)
-    This method returns (a,C,E).
-    The method requires n_asy > 0 and Vn > 0 to obtain a sensible result.
-    ------
-    Input:
-    - mu ....... float
-                 reduced mass (fm**-1)
-    - n_asy .... integer or float
-                 asymptotic power of Vfun(r)
-                 must be > 0
-    - Vn ....... float
-                 coefficient of r**n_asy (fm**(-1-n_asy))
-                 must be > 0
-    - pot ...... Potential object
-                 contains Vfun as a member
-                 Vfun is a float function (takes float);
-                 potential energy function, as a function of r (fm**-1)
-    ------
-    Optional input:
-    - N ........ integer
-                 number of a coefficients (default N=4)
-    ------
-    Output:
-    - a ........ numpy.array of floats
-                 coefficients of the r powers in u(r)
-                 each number will be in units of a power of fm
-    - C ........ float
-                 factor to multiply wave function by to normalize it
-    - E ........ float
-                 ground state energy (fm**-1)
-    '''
-    bounds = [ (-7, 7) for _ in range(N) ]
-    stuff = differential_evolution(
-            _energy,
-            bounds,
-            args = (mu, n_asy, Vn, pot),
-            popsize = 32,
-            workers = 8,
-            tol = 0.0001,
-            maxiter = 2600
-            )
-    a = stuff['x']
-    N2 = quad(_usq_integrand, 0, np.inf,
-              args = (a, mu, n_asy, Vn)
-              )[0]
-    C = 1/np.sqrt(N2)
-    E = stuff['fun']
-    return a, C, E
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Helper routines for the potential solver
-
-def _energy(a, mu, n_asy, Vn, pot):
-    ''' Expectation value of energy for a variational state.
-    Input:
-    - a ....... numpy array with coefficients in the variational wave function
-    - mu ...... reduced mass in fm
-    - n_asy ... asymptotic power of V(r)
-    - Vn ...... coefficient of asymptotic power of V(r)
-    - pot ..... Potential object containing Vfun
-    See solve_potential for further details
-    '''
-    num = quad(_energy_integrand, 0, np.inf,
-               args = (a, mu, n_asy, Vn, pot),
-               )[0]
-    den = quad(_usq_integrand, 0, np.inf,
-               args = (a, mu, n_asy, Vn),
-               )[0]
-    return num/den
-
-def _energy_integrand(r, a, mu, n_asy, Vn, pot):
-    '''' Integrand for expected value of energy. '''
-    L = 2*np.sqrt(2*mu*Vn)/(n_asy+2)
-    u = _u(r, n_asy, L, a)
-    u2 = _u2(r, n_asy, L, a)
-    V = pot.Vfun(r)
-    return u * ( V*u - u2/(2*mu))
-
-def _usq_integrand(r, a, mu, n_asy, Vn):
-    ''' u**2(r) --- to find normalization. '''
-    L = 2*np.sqrt(2*mu*Vn)/(n_asy+2)
-    u = _u(r, n_asy, L, a)
-    return u**2
-
-def _u(r, n, L, a):
-    ''' Approximate form of the u(r) wave function.
-        u(r) = C*r*exp(-2*sqrt(2*mu*Vn)/(n+2)*r**(n/2+1))*(1 + a[0]*r + a[1]*r**2 + ...)
-    Input:
-        - r .... float or array of floats; separation (fm)
-        - n .... float; highest power of r in potential
-        - L .... float, = 2*(sqrt(2*mu*Vn)/(n+2)) (in fm**(-(n/2+1)))
-        - a .... array of floats; a[i-1] is coefficient of r**i
-    Output:
-        Float or array of floats with shape of r (fm**1/2)
-    '''
-    u = r*1 # to copy the value instead of identifying the variables
-    Nmax = a.shape[0]
-    for i in range(Nmax):
-        u += a[i] * r**(i+2)
-    u *= np.exp(-L*r**(n/2+1))
-    return u
-
-def _u1(r, n, L, a):
-    ''' First derivative of _u. See docstring thereof for details. '''
-    f0 = r*1
-    f1 = 1
-    Nmax = a.shape[0]
-    for i in range(Nmax):
-        f0 += a[i] * r**(i+2)
-        f1 += a[i] * (i+2) * r**(i+1)
-    g0 = np.exp(-L*r**(n/2+1))
-    g1 = -(n/2+1)*L*r**(n/2) * g0
-    u1 = g0*f1 + g1*f0
-    return u1
-
-def _u2(r, n, L, a):
-    ''' Second derivative of _u. See docstring thereof for details. '''
-    f0 = r*1
-    f1 = 1
-    f2 = 0
-    Nmax = a.shape[0]
-    for i in range(Nmax):
-        f0 += a[i] * r**(i+2)
-        f1 += a[i] * (i+2) * r**(i+1)
-        f2 += a[i] * (i+2) * (i+1) * r**i
-    g0 = np.exp(-L*r**(n/2+1))
-    g1 = -(n/2+1)*L*r**(n/2) * g0
-    g2 = 1/4*((2+n)**2*L**2*r**n - n*(2+n)*L*r**(n/2-1)) * g0
-    u2 = g0*f2 + 2*g1*f1 + g2*f0
-    return u2
-
-def _u3(r, n, L, a):
-    ''' Third derivative of _u. See docstring thereof for details. '''
-    f0 = r*1
-    f1 = 1
-    f2 = 0
-    f3 = 0
-    Nmax = a.shape[0]
-    for i in range(Nmax):
-        f0 += a[i] * r**(i+2)
-        f1 += a[i] * (i+2) * r**(i+1)
-        f2 += a[i] * (i+2) * (i+1) * r**i
-        if(i > 0):
-            f3 += a[i] * (i+2) * (i+1) * i * r**(i-1)
-    g0 = np.exp(-L*r**(n/2+1))
-    g1 = -(n/2+1)*L*r**(n/2) * g0
-    g2 = 1/4*((2+n)**2*L**2*r**n - n*(2+n)*L*r**(n/2-1)) * g0
-    g3 = 1/8*(
-            - (2+n)**3*L**3*r**(3*n/2)
-            + 2*n*(2+n)**2*L**2*r**(n-1)
-            - (n-1)*n*(n+1)*L*r**(n/2-2)
-            ) * g0
-    u2 = g0*f3 + 3*g1*f2 + 3*g2*f1 + g3*f0
-    return u2
