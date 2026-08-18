@@ -9,8 +9,7 @@ from .. import emtff
 from ..constants import hbar#, alphaQED
 from ..wf.airy import dwf_airy
 from ..wf.hydrogen import dwf_hydrogen
-from ..wf.variational import var_wf, var_wf_airy, var_wf_cornell
-from ..wf.variational import CoulombPotential, YukawaPotential
+from ..wf.variational import vwf_cornell, vwf_yukawa
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)
@@ -192,192 +191,33 @@ def E1_test(zmin=90, zmax=100):
 
 def variational_test():
     r = np.linspace(0, 4, 666)
-    # Airy
-    wf_exact_a = dwf_airy()
-    wf_appr1_a = var_wf_airy(N=1)
-    wf_appr2_a = var_wf_airy(N=2)
-    wf_appr3_a = var_wf_airy(N=3)
-    uX_a = wf_exact_a.u(r)
-    u1_a = wf_appr1_a.u(r)
-    u2_a = wf_appr2_a.u(r)
-    u3_a = wf_appr3_a.u(r)
-    # Coulomb
-    mu = 1 # fm**-1
-    alpha = 1
-    coulpot = CoulombPotential(alpha=alpha)
-    wf_exact_h = dwf_hydrogen(mN=2*mu*hbar, alpha=alpha)
-    wf_appr1_h = var_wf(N=1, mN=2*mu*hbar, n_asy=-1, potential=coulpot)
-    wf_appr2_h = var_wf(N=2, mN=2*mu*hbar, n_asy=-1, potential=coulpot)
-    wf_appr3_h = var_wf(N=3, mN=2*mu*hbar, n_asy=-1, potential=coulpot)
-    uX_h = wf_exact_h.u(r)
-    u1_h = wf_appr1_h.u(r)
-    u2_h = wf_appr2_h.u(r)
-    u3_h = wf_appr3_h.u(r)
-    # Cornell potential
-    wf_appr1_c = var_wf_cornell(N=1)
-    wf_appr2_c = var_wf_cornell(N=2)
-    wf_appr3_c = var_wf_cornell(N=3)
-    wf_appr4_c = var_wf_cornell(N=4)
-    wf_appr5_c = var_wf_cornell(N=5)
-    wf_appr6_c = var_wf_cornell(N=6)
-    wf_appr7_c = var_wf_cornell(N=7)
-    #wf_appr8_c = var_wf_cornell(N=8)
-    #wf_appr9_c = var_wf_cornell(N=9)
-    u1_c = wf_appr1_c.u(r)
-    u2_c = wf_appr2_c.u(r)
-    u3_c = wf_appr3_c.u(r)
-    u4_c = wf_appr4_c.u(r)
-    u5_c = wf_appr5_c.u(r)
-    u6_c = wf_appr6_c.u(r)
-    u7_c = wf_appr7_c.u(r)
-    #u8_c = wf_appr8_c.u(r)
-    #u9_c = wf_appr9_c.u(r)
-    # Yukawa
-    yukapot = YukawaPotential()
-    wf_appr1_y = var_wf(N=1, n_asy=-1, potential=yukapot)
-    wf_appr2_y = var_wf(N=2, n_asy=-1, potential=yukapot)
-    wf_appr3_y = var_wf(N=3, n_asy=-1, potential=yukapot)
-    wf_appr4_y = var_wf(N=4, n_asy=-1, potential=yukapot)
-    wf_appr5_y = var_wf(N=5, n_asy=-1, potential=yukapot)
-    wf_appr6_y = var_wf(N=6, n_asy=-1, potential=yukapot)
-    wf_appr7_y = var_wf(N=7, n_asy=-1, potential=yukapot)
-    #wf_appr8_y = var_wf(N=8, n_asy=-1, potential=yukapot)
-    #wf_appr9_y = var_wf(N=9, n_asy=-1, potential=yukapot)
-    u1_y = wf_appr1_y.u(r)
-    u2_y = wf_appr2_y.u(r)
-    u3_y = wf_appr3_y.u(r)
-    u4_y = wf_appr4_y.u(r)
-    u5_y = wf_appr5_y.u(r)
-    u6_y = wf_appr6_y.u(r)
-    u7_y = wf_appr7_y.u(r)
-    #u8_y = wf_appr8_y.u(r)
-    #u9_y = wf_appr9_y.u(r)
+    # Wave functions
+    wf2 = vwf_cornell(N=2)
+    wf4 = vwf_cornell(N=4)
+    wf6 = vwf_cornell(N=6)
+    u2 = wf2.u(r)
+    u4 = wf4.u(r)
+    u6 = wf6.u(r)
     # Plots
-    nrows,ncols=3,4
+    nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax1 = plt.subplot(nrows,ncols,1)
     ax2 = plt.subplot(nrows,ncols,2)
-    ax3 = plt.subplot(nrows,ncols,3)
-    ax4 = plt.subplot(nrows,ncols,4)
-    ax5 = plt.subplot(nrows,ncols,5)
-    ax6 = plt.subplot(nrows,ncols,6)
-    ax7 = plt.subplot(nrows,ncols,7)
-    ax8 = plt.subplot(nrows,ncols,8)
-    ax9 = plt.subplot(nrows,ncols,9)
-    ax10 = plt.subplot(nrows,ncols,10)
-    ax11 = plt.subplot(nrows,ncols,11)
-    ax12 = plt.subplot(nrows,ncols,12)
-    #
-    ax1.plot(r, uX_a, '-',  color='black',      linewidth=2.6, label=r'Exact')
-    ax1.plot(r, u1_a, ':',  color='tab:blue',   linewidth=2.6, label=r'$N=1$')
-    ax1.plot(r, u2_a, '-.', color='tab:orange', linewidth=2.6, label=r'$N=2$')
-    ax1.plot(r, u3_a, '--', color='tab:green',  linewidth=2.6, label=r'$N=3$')
-    #
-    ax2.plot(r, uX_h, '-',  color='black',      linewidth=2.6)
-    ax2.plot(r, u1_h, ':',  color='tab:blue',   linewidth=2.6)
-    ax2.plot(r, u2_h, '-.', color='tab:orange', linewidth=2.6)
-    ax2.plot(r, u3_h, '--', color='tab:green',  linewidth=2.6)
-    #
-    ax3.plot(r, u1_c, ':',  color='tab:blue',   linewidth=2.6)
-    ax3.plot(r, u2_c, '-.', color='tab:orange', linewidth=2.6)
-    ax3.plot(r, u3_c, '--', color='tab:green',  linewidth=2.6)
-    ax3.plot(r, u4_c, '-',  color='tab:gray',   linewidth=1)
-    ax3.plot(r, u5_c, '-',  color='tab:gray',   linewidth=1)
-    ax3.plot(r, u6_c, '-',  color='tab:gray',   linewidth=1)
-    ax3.plot(r, u7_c, '-',  color='tab:gray',   linewidth=1)
-    ax3.plot(r, u7_c, '-',  color='tab:gray',   linewidth=1)
-    #ax3.plot(r, u8_c, '-',  color='tab:gray',   linewidth=1)
-    #ax3.plot(r, u9_c, '-',  color='tab:gray',   linewidth=1)
-    #
-    ax4.plot(r, u1_y, ':',  color='tab:blue',   linewidth=2.6)
-    ax4.plot(r, u2_y, '-.', color='tab:orange', linewidth=2.6)
-    ax4.plot(r, u3_y, '--', color='tab:green',  linewidth=2.6)
-    ax4.plot(r, u4_y, '-',  color='tab:gray',   linewidth=1)
-    ax4.plot(r, u5_y, '-',  color='tab:gray',   linewidth=1)
-    ax4.plot(r, u6_y, '-',  color='tab:gray',   linewidth=1)
-    ax4.plot(r, u7_y, '-',  color='tab:gray',   linewidth=1)
-    ax4.plot(r, u7_y, '-',  color='tab:gray',   linewidth=1)
-    #ax4.plot(r, u8_y, '-',  color='tab:gray',   linewidth=1)
-    #ax4.plot(r, u9_y, '-',  color='tab:gray',   linewidth=1)
-    #
-    ax5.plot(r, u2_a-u1_a, '-.', color='tab:orange', linewidth=2.6)
-    ax5.plot(r, u3_a-u2_a, '--', color='tab:green',  linewidth=2.6)
-    #
-    ax6.plot(r, u2_h-u1_h, '-.', color='tab:orange', linewidth=2.6)
-    ax6.plot(r, u3_h-u2_h, '--', color='tab:green',  linewidth=2.6)
-    #
-    ax7.plot(r, u2_c-u1_c, ':',  color='tab:blue',   linewidth=2.6)
-    ax7.plot(r, u3_c-u2_c, '-.', color='tab:orange', linewidth=2.6)
-    ax7.plot(r, u4_c-u3_c, '--', color='tab:green',  linewidth=2.6)
-    ax7.plot(r, u5_c-u4_c, '-',  color='tab:gray',   linewidth=1)
-    ax7.plot(r, u6_c-u5_c, '-',  color='tab:gray',   linewidth=1)
-    ax7.plot(r, u7_c-u6_c, '-',  color='tab:gray',   linewidth=1)
-    ax7.plot(r, u7_c-u6_c, ':',  color='tab:gray',   linewidth=1)
-    #ax7.plot(r, u8_c-u7_c, '-',  color='tab:gray',   linewidth=1)
-    #ax7.plot(r, u9_c-u8_c, '-',  color='tab:gray',   linewidth=1)
-    #
-    ax8.plot(r, u2_y-u1_y, ':',  color='tab:blue',   linewidth=2.6)
-    ax8.plot(r, u3_y-u2_y, '-.', color='tab:orange', linewidth=2.6)
-    ax8.plot(r, u5_y-u4_y, '-',  color='tab:gray',   linewidth=1)
-    ax8.plot(r, u6_y-u5_y, '-',  color='tab:gray',   linewidth=1)
-    ax8.plot(r, u7_y-u6_y, '-',  color='tab:gray',   linewidth=1)
-    ax8.plot(r, u7_y-u6_y, ':',  color='tab:gray',   linewidth=1)
-    #ax8.plot(r, u8_y-u7_y, '-',  color='tab:gray',   linewidth=1)
-    #ax8.plot(r, u9_y-u8_y, '-',  color='tab:gray',   linewidth=1)
-    #
-    ax9.plot(np.array([1,3]), wf_exact_a.Efm*hbar*np.ones(2), '-', color='black')
-    ax9.plot(1, wf_appr1_a.E, 'o', color='tab:blue')
-    ax9.plot(2, wf_appr2_a.E, 'o', color='tab:orange')
-    ax9.plot(3, wf_appr3_a.E, 'o', color='tab:green')
-    #
-    ax10.plot(np.array([1,3]), -mu*alpha**2/2*np.ones(2)*hbar, '-', color='black')
-    ax10.plot(1, wf_appr1_h.E, 'o', color='tab:blue')
-    ax10.plot(2, wf_appr2_h.E, 'o', color='tab:orange')
-    ax10.plot(3, wf_appr3_h.E, 'o', color='tab:green')
-    #
-    ax11.plot(1, wf_appr1_c.E, 'o', color='tab:blue')
-    ax11.plot(2, wf_appr2_c.E, 'o', color='tab:orange')
-    ax11.plot(3, wf_appr3_c.E, 'o', color='tab:green')
-    ax11.plot(4, wf_appr4_c.E, 'o', color='tab:gray')
-    ax11.plot(5, wf_appr5_c.E, 'o', color='tab:gray')
-    ax11.plot(6, wf_appr6_c.E, 'o', color='tab:gray')
-    ax11.plot(7, wf_appr7_c.E, 'o', color='tab:gray')
-    #ax11.plot(8, wf_appr8_c.E, 'o', color='tab:gray')
-    #ax11.plot(9, wf_appr9_c.E, 'o', color='tab:gray')
-    #
-    ax12.plot(1, wf_appr1_y.E, 'o', color='tab:blue')
-    ax12.plot(2, wf_appr2_y.E, 'o', color='tab:orange')
-    ax12.plot(3, wf_appr3_y.E, 'o', color='tab:green')
-    ax12.plot(4, wf_appr4_y.E, 'o', color='tab:gray')
-    ax12.plot(5, wf_appr5_y.E, 'o', color='tab:gray')
-    ax12.plot(6, wf_appr6_y.E, 'o', color='tab:gray')
-    ax12.plot(7, wf_appr7_y.E, 'o', color='tab:gray')
-    #ax12.plot(8, wf_appr8_y.E, 'o', color='tab:gray')
-    #ax12.plot(9, wf_appr9_y.E, 'o', color='tab:gray')
-    #
+    # Plot wave functions
+    ax1.plot(r, u2, ':',  color='tab:blue',   linewidth=2.6, label=r'$N=2$')
+    ax1.plot(r, u4, '-.', color='tab:orange', linewidth=2.6, label=r'$N=4$')
+    ax1.plot(r, u6, '--', color='tab:green',  linewidth=2.6, label=r'$N=6$')
+    # Plot energy estimates
+    ax2.plot(2, wf2.E, 'o', color='tab:blue')
+    ax2.plot(4, wf4.E, 'o', color='tab:orange')
+    ax2.plot(6, wf6.E, 'o', color='tab:green')
+    # Labels etc
     ax1.set_ylabel(r'$u(r)$ (fm$^{-1/2}$)')
-    ax5.set_ylabel(r'$u_N(r) - u_{N-1}(r)$ (fm$^{-1/2}$)')
-    ax9.set_ylabel(r'$E$ (GeV)')
-    for ax in [ax1]:#, ax2, ax3]:
-        ax.get_xaxis().set_visible(False)
-        l = ax.legend(prop = { 'size' : 27 }, loc=1)
-        l.get_frame().set_facecolor('#f8f8f8')
-    #for ax in [ax2, ax3, ax5, ax6, ax8, ax9]:
-    #    ax.get_yaxis().set_visible(False)
-    for ax in [ax2, ax3, ax4, ax6, ax7, ax8]:
-        ax.get_yaxis().set_visible(False)
-    for ax in [ax1, ax2, ax3, ax4]:
-        ax.set_ylim((-0.1, 1.6))
-    for ax in [ax5, ax6, ax7, ax8]:
-        ax.set_xlabel(r'$r$ (fm)')
-        ax.set_ylim((-0.063, 0.063))
-    for ax in [ax9, ax10, ax11, ax12]:
-        ax.set_xlabel(r'$N$')
-        #ax.set_ylim((0, 1))
-    ax1.set_title(r'Linear potential')
-    ax2.set_title(r'Coulomb potential')
-    ax3.set_title(r'Cornell potential')
-    ax4.set_title(r'Yukawa potential')
+    ax1.set_xlabel(r'$r$ (fm)')
+    ax2.set_ylabel(r'$E$ (GeV)')
+    ax2.set_xlabel(r'$N$')
+    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+    l.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('variational_test.pdf')
     fig.savefig('variational_test.png')
@@ -389,7 +229,7 @@ def variational_test():
 def cornell_check(N=4):
     dl2 = np.linspace(1e-4, 10, 666)
     dl = np.sqrt(dl2)
-    eta_c = var_wf_cornell(N=N)
+    eta_c = vwf_cornell(N=N)
     ##eta_c = var_wf_airy(N=N)
     # One-body form factors
     Aq = emtff.AU(dl, wf=eta_c, nff='point', impulse=True)
