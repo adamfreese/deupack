@@ -13,8 +13,6 @@ import numpy as np
 from scipy.special import spherical_jn as jn, exp1
 from scipy.integrate import quad_vec
 
-from scipy.interpolate import CubicSpline
-
 from ..constants import hbar
 from .impulse import regulate_zero # maybe put in a common utils.py file
 
