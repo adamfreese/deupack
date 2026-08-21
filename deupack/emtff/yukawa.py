@@ -5,7 +5,6 @@
 #
 # In progress...
 # TODO
-# - mass terms
 # - Currently unpolarized EMT-FFs only
 
 import numpy as np
@@ -58,11 +57,12 @@ def _cU_integrand(r, k, dwf):
     kfm = k/hbar
     z = kfm*r/2
     w = 4*dwf.mu**2/k**2
-    intd_self = dwf.alpha*dwf.mu**2/k**2/(4*np.pi*kfm) * jn(0,z) * dwf.u(r)**2
+    intd_self = 0
     intd_cross = k*dwf.alpha/(12*dwf.mN) * (
             Phi0(z,w) - 3/2*w*Phi1(z,w)
             ) * dwf.u(r)**2
-    intd = intd_self + intd_cross
+    intd_m2 = k/(8*dwf.mN) * w * Phi1(z,w) * dwf.u(r)**2
+    intd = intd_self + intd_cross + intd_m2
     return intd
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
