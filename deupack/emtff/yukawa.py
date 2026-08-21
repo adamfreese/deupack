@@ -5,7 +5,6 @@
 #
 # In progress...
 # TODO
-# - look for mistakes in formulas
 # - mass terms
 # - Currently unpolarized EMT-FFs only
 
@@ -50,7 +49,7 @@ def _DU_integrand(r, k, dwf):
             (1-w)*np.arcsin(1/np.sqrt(1+w)) + np.sqrt(w)
             ) * dwf.u(r)**2 * jn(0,z)
     intd_cross = -4*dwf.mN*dwf.alpha/k*(
-            Phi2(z,w) - w/4*Phi1(z,w)
+            Phi2(z,w) - w*Phi1(z,w)
             ) * dwf.u(r)**2
     intd = intd_self + intd_cross
     return intd
