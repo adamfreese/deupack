@@ -34,7 +34,7 @@ class _VARWF(DWF):
         # Properties related to the ground state solver
         self.N = N
         self.bounds = [ (-11, 11) for _ in range(self.N) ] # TODO: generalize
-        self.mu = mN / hbar / 2
+        self.mredfm = mN / hbar / 2
         # Call the ground state solver in the derived class!
         #self.solve()
         return
@@ -114,7 +114,7 @@ class _VARWF_ASY(_VARWF):
                        /self._Vfun(rbig) )
                 / np.log(2)
                 )
-        self.Vn = self._Vfun(rbig) / rbig**self.n_asy
+        self.Vnfm = self._Vfun(rbig) / rbig**self.n_asy
         # Call the ground state solver in a derived class!
         #self.solve()
         return
@@ -123,7 +123,7 @@ class _VARWF_ASY(_VARWF):
 
     def _u(self, r, a):
         n = self.n_asy
-        L = 2*np.sqrt(2*self.mu*self.Vn)/(self.n_asy+2)
+        L = 2*np.sqrt(2*self.mredfm*self.Vnfm)/(self.n_asy+2)
         u = r*1 # to copy the value instead of identifying the variables
         Nmax = a.shape[0]
         for i in range(Nmax):
@@ -133,7 +133,7 @@ class _VARWF_ASY(_VARWF):
 
     def _u1(self, r, a):
         n = self.n_asy
-        L = 2*np.sqrt(2*self.mu*self.Vn)/(self.n_asy+2)
+        L = 2*np.sqrt(2*self.mredfm*self.Vnfm)/(self.n_asy+2)
         f0 = r*1
         f1 = 1
         Nmax = a.shape[0]
@@ -147,7 +147,7 @@ class _VARWF_ASY(_VARWF):
 
     def _u2(self, r, a):
         n = self.n_asy
-        L = 2*np.sqrt(2*self.mu*self.Vn)/(self.n_asy+2)
+        L = 2*np.sqrt(2*self.mredfm*self.Vnfm)/(self.n_asy+2)
         f0 = r*1
         f1 = 1
         f2 = 0
@@ -164,7 +164,7 @@ class _VARWF_ASY(_VARWF):
 
     def _u3(self, r, a):
         n = self.n_asy
-        L = 2*np.sqrt(2*self.mu*self.Vn)/(self.n_asy+2)
+        L = 2*np.sqrt(2*self.mredfm*self.Vnfm)/(self.n_asy+2)
         f0 = r*1
         f1 = 1
         f2 = 0
@@ -271,12 +271,12 @@ class _VARWF_EXP(_VARWF):
 class _dummy_yukawa(_VARWF_EXP):
 
     def __init__(self,
-                 mN    = mN, # constituent mass (GeV)
-                 N     = 4,   # number of terms in the variational approximation
-                 mY    = mpi_0/hbar, # meson exchange mass
-                 alpha = 1 # TODO: sane default
+                 mN    = mN,    # constituent mass (GeV)
+                 N     = 4,     # number of terms in the variational approximation
+                 mu    = mpi_0, # exponential decay constant
+                 alpha = 1      # TODO: sane default
                  ):
-        self.mY = mY
+        self.mu = mu
         self.alpha = alpha
         super().__init__(mN=mN, N=N)
         self.solve()
@@ -285,7 +285,7 @@ class _dummy_yukawa(_VARWF_EXP):
     # Potential energy override ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _Vfun(self, r):
-        return -self.alpha * np.exp(-self.mY*r)/r
+        return -self.alpha * np.exp(-self.mu*r/hbar)/r
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # A class to solve for the Yukawa potential's ground state using variational
@@ -295,21 +295,21 @@ class _dummy_yukawa(_VARWF_EXP):
 class vwf_yukawa(_VARWF):
 
     def __init__(self,
-                 mN    = mN, # constituent mass (GeV)
-                 N     = 4,   # number of terms in the variational approximation
-                 mY    = mpi_0/hbar, # meson exchange mass
-                 alpha = 1 # TODO: sane default
+                 mN    = mN,    # constituent mass (GeV)
+                 N     = 4,     # number of terms in the variational approximation
+                 mu    = mpi_0, # exponential decay constant
+                 alpha = 1      # TODO: sane default
                  ):
-        self.mY = mY
+        self.mu = mu
         self.alpha = alpha
         super().__init__(mN=mN, N=N)
         # First, get a good estimate of the ground state energy from the
         # _dummy_yukawa object with N+2 terms. This energy gives the correct
         # asymptotic form of the Yukawa wave function, so we shouldn't let
         # the coefficient in the exponential float.
-        _dummy = _dummy_yukawa(mN=mN, N=N+2, mY=mY, alpha=alpha)
+        _dummy = _dummy_yukawa(mN=mN, N=N+2, mu=mu, alpha=alpha)
         Efm = _dummy.Efm
-        self.kappa = np.sqrt(-2*self.mu*Efm)
+        self.kappa = np.sqrt(-2*self.mredfm*Efm)
         # Now we solve for real
         self.solve()
         return
@@ -373,7 +373,7 @@ class vwf_yukawa(_VARWF):
     # Potential energy override ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _Vfun(self, r):
-        return -self.alpha * np.exp(-self.mY*r)/r
+        return -self.alpha * np.exp(-self.mu*r/hbar)/r
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Class that solves for the ground state of the Cornell potential
@@ -387,13 +387,13 @@ class vwf_cornell(_VARWF_ASY):
                  alpha = 0.472, # 4/3 * alphaQCD at dressed charm mass
                  ):
         # Internal parameters
-        self.sigma = sigma/hbar**2
+        self.sigma = sigma
         self.alpha = alpha
         # Base class initialization
         super().__init__(mN=mN, N=N)
         # Override _VARWF_ASY parameters with exact values
         self.n_asy = 1
-        self.Vn = sigma / hbar**2
+        self.Vnfm = sigma / hbar**2
         # Call the ground state solver
         self.solve()
         return
@@ -401,7 +401,7 @@ class vwf_cornell(_VARWF_ASY):
     # Potential energy override ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _Vfun(self, r):
-        return self.sigma*r - self.alpha/r
+        return self.sigma/hbar**2*r - self.alpha/r
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Auxiliary methods used by the variational solver
@@ -426,7 +426,7 @@ def _energy_integrand(r, a, wf):
     u  = wf._u(r, a)
     u2 = wf._u2(r, a)
     V = wf._Vfun(r)
-    return u * ( V*u - u2/(2*wf.mu))
+    return u * ( V*u - u2/(2*wf.mredfm))
 
 def _usq_integrand(r, a, wf):
     ''' u**2(r) --- to find normalization. '''
