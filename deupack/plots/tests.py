@@ -6,7 +6,7 @@ import cmasher as cmr
 from scipy.special import exp1 # for E1 test
 
 from .. import emtff
-from ..constants import hbar#, alphaQED
+from ..constants import hbar, alphaQED
 from ..wf.airy import dwf_airy
 from ..wf.hydrogen import dwf_hydrogen
 from ..wf.variational import vwf_cornell, vwf_yukawa
@@ -109,12 +109,13 @@ def hydrogen_check():
     Dq = emtff.DU(dl, wf=H, nff='point', impulse=True, coulomb=False)
     cq = emtff.cU(dl, wf=H, nff='point', impulse=True, coulomb=False)
     # Coulomb form factors
-    AS = emtff.AU(dl, wf=H, nff='point', impulse=False, coulomb=True)
-    DS = emtff.DU(dl, wf=H, nff='point', impulse=False, coulomb=True)
-    cS = emtff.cU(dl, wf=H, nff='point', impulse=False, coulomb=True)
-    A = Aq + AS
-    D = Dq + DS
-    c = cq + cS
+    Ag = emtff.AU(dl, wf=H, nff='point', impulse=False, coulomb=True)
+    Dg = emtff.DU(dl, wf=H, nff='point', impulse=False, coulomb=True)
+    cg = emtff.cU(dl, wf=H, nff='point', impulse=False, coulomb=True)
+    A = Aq + Ag
+    D = Dq + Dg
+    c = cq + cg
+    # Plot
     nrows,ncols=1,3
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax1 = plt.subplot(nrows,ncols,1)
@@ -123,17 +124,17 @@ def hydrogen_check():
     #
     cf = 1e6
     #
-    ax1.plot(cf*dl2, Aq, '--', linewidth=2.6, label=r'Particle')
-    ax1.plot(cf*dl2, AS, ':',  linewidth=2.6, label=r'Coulomb')
-    ax1.plot(cf*dl2, A,  '-',  linewidth=2.6, label=r'Total')
+    ax1.plot(cf*dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax1.plot(cf*dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax1.plot(cf*dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Coulomb')
     #
-    ax2.plot(cf*dl2, Dq, '--', linewidth=2.6, label=r'Particle')
-    ax2.plot(cf*dl2, DS, ':',  linewidth=2.6, label=r'Coulomb')
-    ax2.plot(cf*dl2, D,  '-',  linewidth=2.6, label=r'Total')
+    ax2.plot(cf*dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax2.plot(cf*dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax2.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Coulomb')
     #
-    ax3.plot(cf*dl2, cq, '--', linewidth=2.6, label=r'Particle')
-    ax3.plot(cf*dl2, cS, ':',  linewidth=2.6, label=r'Coulomb')
-    ax3.plot(cf*dl2, c,  '-',  linewidth=2.6, label=r'Total')
+    ax3.plot(cf*dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax3.plot(cf*dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax3.plot(cf*dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Coulomb')
     #
     ax1.set_ylabel(r'$A(\varDelta^2)$')
     ax2.set_ylabel(r'$D(\varDelta^2)$')
@@ -306,3 +307,51 @@ def D_integrand_cornell():
     #
     fig.savefig('D_integrand.pdf')
     return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Check that wave function with Yukawa potential behaves reasonably
+
+def yukawa_check():
+    dl2 = np.geomspace(1e-5, 100, 666)
+    dl = np.sqrt(dl2)
+    H = vwf_yukawa()
+    # One-body form factors
+    Aq = emtff.AU(dl, wf=H, nff='point', impulse=True, yukawa=False)
+    Dq = emtff.DU(dl, wf=H, nff='point', impulse=True, yukawa=False)
+    cq = emtff.cU(dl, wf=H, nff='point', impulse=True, yukawa=False)
+    # Coulomb form factors
+    Ag = emtff.AU(dl, wf=H, nff='point', impulse=False, yukawa=True)
+    Dg = emtff.DU(dl, wf=H, nff='point', impulse=False, yukawa=True)
+    cg = emtff.cU(dl, wf=H, nff='point', impulse=False, yukawa=True)
+    A = Aq + Ag
+    D = Dq + Dg
+    c = cq + cg
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax1 = plt.subplot(nrows,ncols,1)
+    ax2 = plt.subplot(nrows,ncols,2)
+    ax3 = plt.subplot(nrows,ncols,3)
+    #
+    ax1.plot(dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax1.plot(dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax1.plot(dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
+    #
+    ax2.plot(dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax2.plot(dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax2.plot(dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
+    #
+    ax3.plot(dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax3.plot(dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax3.plot(dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
+    #
+    ax1.set_ylabel(r'$A(\varDelta^2)$')
+    ax2.set_ylabel(r'$D(\varDelta^2)$')
+    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
+    for ax in [ax1,ax2,ax3]:
+        ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+        ax.set_xscale('log')
+    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+    fig.patch.set_alpha(0)
+    fig.savefig('yukawa_emtff.pdf')
+    return
+

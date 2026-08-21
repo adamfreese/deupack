@@ -21,8 +21,9 @@ wf_default = dwf_av18()
 
 # Import impulse approximation and interaction contributions
 from . import impulse as _impulse
-from . import string as _string
 from . import coulomb as _coulomb
+from . import string as _string
+from . import yukawa as _yukawa
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,7 +32,8 @@ def AU(k,
        nff = 'ba',
        impulse = True,
        coulomb = False,
-       string = False
+       string = False,
+       yukawa = False
        ):
     ''' The EMT form factor AU.
     ----------
@@ -58,6 +60,12 @@ def AU(k,
             True to include string stress, False to exclude
             This will fail unless the associated wf has a sigma member,
             which specifies the string tension
+            Default: False
+        - yukawa: boolean
+            True to include Yukawa-like stress, False to exclude
+            This will fail unless the associated wf has an alpha member,
+            which signifies coupling strength (alpha=g^2/(4*pi),
+            and a mu member, signifying the exponential decay rate
             Default: False
     Output:
         numpy.array with form factor values
@@ -111,6 +119,8 @@ def DU(k,
         result += _string.DU(k, dwf=dwf)
     if(interactions.get('coulomb', False)):
         result += _coulomb.DU(k, dwf=dwf)
+    if(interactions.get('yukawa', False)):
+        result += _yukawa.DU(k, dwf=dwf)
     return result
 
 def DT1(k,
@@ -163,6 +173,8 @@ def cU(k,
         result += _string.cU(k, dwf=dwf)
     if(interactions.get('coulomb', False)):
         result += _coulomb.cU(k, dwf=dwf)
+    if(interactions.get('yukawa', False)):
+        result += _yukawa.cU(k, dwf=dwf)
     return result
 
 def cT1(k,
