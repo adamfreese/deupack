@@ -37,7 +37,8 @@ class DensityLF:
                  bmax=2,    # fm
                  kmin=1e-6, # GeV
                  kmax=100    # GeV
-                 ,Pplus=mN/np.sqrt(2.) #rest frame Pplus
+                 ,Pplus=mN/np.sqrt(2.) #rest frame Pplus as default
+                 ,S=(0.,0.,0.) #spin vector for azimuthalization direction default to unazimuthalized
                  ):
         self.nff  = choose_nff(nff)
         self.nk   = nk
@@ -46,6 +47,32 @@ class DensityLF:
         self.kmin = kmin
         self.kmax = kmax
         self.P =Pplus
+
+        # spin density matrix
+        self.S = np.asarray(S, dtype=float)
+
+        I = np.array([
+        [1, 0],
+        [0, 1]
+    ], dtype=complex)
+        sigma_x = np.array([
+        [0, 1],
+        [1, 0]
+    ], dtype=complex)
+
+        sigma_y = np.array([
+        [0, -1j],
+        [1j, 0]
+    ], dtype=complex)
+
+        sigma_z = np.array([
+        [1, 0],
+        [0, -1]
+    ], dtype=complex)
+
+        self.rho= 0.5*(I + sigma_x*self.S[0] +sigma_y*self.S[1]+sigma_z*self.S[2] )
+        
+
         # Internal initializations of spatial variables and Bessel caches
         self._initialize_space()
         self._initialize_bessel()
@@ -58,8 +85,9 @@ class DensityLF:
             self._init_emtff_table(save_table=True)
         return
 
-    # 2D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    # 2D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
 
     def radial_force(self, pol='U'):
         ''' Radial force density, in GeV/fm**3. '''
@@ -85,6 +113,75 @@ class DensityLF:
     #     else:
     #         self._pol_error(pol)
     #     return force
+
+    def isoradial_pressure(self, pol='U'):
+        ''' Principal stress closest to the radial direction, in GeV/fm**2. '''
+        pr = self.radial_pressure(pol=pol)
+        pa = self.azimuthal_pressure(pol=pol)
+        s = self.symmetric_shear(pol=pol)
+        return 0.5*(pr+pa + np.sqrt((pr-pa)**2+4*s**2))
+
+    def isoazimuthal_pressure(self, pol='U'):
+        ''' Principal stress closest to the azimuthal direction, in GeV/fm**2. '''
+        pr = self.radial_pressure(pol=pol)
+        pa = self.azimuthal_pressure(pol=pol)
+        s = self.symmetric_shear()
+        return 0.5*(pr+pa - np.sqrt((pr-pa)**2+4*s**2))
+
+
+    # Principal axes of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def e_plus(self, pol='U'):
+        ''' Returns two 2D numpy arrays, with the Cartesian x, y 
+        components of the isoradial principal axis.
+        '''
+        pr = self.radial_pressure( pol=pol)
+        pt = self.azimuthal_pressure(pol=pol)
+        s  = self.symmetric_shear( pol=pol)
+        sgn = np.sign(s)
+        R  = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        X = (R*np.cos(self.phi) - sgn*Th*np.sin(self.phi))
+        Y = (R*np.sin(self.phi) + sgn*Th*np.cos(self.phi))
+        return X, Y
+
+    def e_minus(self, pol='U'):
+        ''' Returns two 2D numpy arrays, with the Cartesian x, y 
+        components of the isoazimuthal principal axis.
+        '''
+        pr = self.radial_pressure( pol=pol)
+        pt = self.azimuthal_pressure(pol=pol)
+        s  = self.symmetric_shear( pol=pol)
+        sgn = np.sign(s)
+        R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        X = (R*np.cos(self.phi) + sgn*Th*np.sin(self.phi))
+        Y = (R*np.sin(self.phi) - sgn*Th*np.cos(self.phi))
+        return X, Y
+
+
+
+
+
+
+    #2D density methods
+    # 
+    def radial_pressure(self, pol='U'):
+        ''' Radial pressure in GeV/fm**3. '''
+        if(pol=='U'):
+            return self._pressure_bessel_U() + 1/2*self._shear_bessel_U()
+        
+        else:
+            self._pol_error(pol)
+
+    def azimuthal_pressure(self, pol='U'):
+        ''' Lateral pressure in GeV/fm**3. '''
+        if(pol=='U'):
+            return self._pressure_bessel_U() - 1/2*self._shear_bessel_U()
+        
+        else:
+            self._pol_error(pol)
+ 
 
 
     # Hankel transforms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -273,9 +370,6 @@ class DensityLFSym:
             self._pol_error(pol)
 
 
-
-
-
     # Hankel transforms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _pressure_bessel_U(self):
@@ -395,6 +489,14 @@ def _pressureU_integrand(k, b, P, D, c):
     form = k**2/(8*P)*D(k) + mN**2/(2*P)*c(k)
     return common * unique * bessel * form
 
+
+def _pressureV_integrand(k, b, P, D, c):
+    common = k/(2*np.pi*hbar**2)
+    unique = k/(2*mN)
+    bessel = jn(1, k*b/hbar)
+    form = k**2/(16*P)*D(k) + mN**2/(2*P)*c(k)
+    return common * unique * bessel * form
+
 def _shearU_integrand(k, b, P, D):
     common = k/(2*np.pi*hbar**2)
     unique = -1
@@ -402,10 +504,43 @@ def _shearU_integrand(k, b, P, D):
     form = k**2/(4*P)*D(k)
     return common * unique * bessel * form
 
+
+def _shearV3_integrand(k, b, P, D):
+    common = k/(2*np.pi*hbar**2)
+    unique = k/(2*mN)
+    bessel = jn(3, k*b/hbar)
+    form = k**2/(4*P)*D(k)
+    return common * unique * bessel * form
+
+
+
+def _shearV_integrand(k, b, P, D):
+    common = k/(2*np.pi*hbar**2)
+    unique = -k/(2*mN)
+    bessel = jn(1, k*b/hbar)
+    form = k**2/(16*P)*D(k)
+    return common * unique * bessel * form
+
+
+
 def _fU_integrand(k, b, P, c):
     common = k**2/(2*np.pi*hbar**3)
-    unique = -mN**2/(2*P)
+    unique = mN**2/(2*P)
     bessel = jn(1, k*b/hbar)
     form = c(k)
     return common * unique * bessel * form
 
+
+def _f0_integrand(k, b, P, c):
+    common = k**2/(2*np.pi*hbar**3)
+    unique = mN*k/(8*P)
+    bessel = jn(0, k*b/hbar)
+    form = c(k)
+    return common * unique * bessel * form
+
+def _f2_integrand(k, b, P, c):
+    common = k**2/(2*np.pi*hbar**3)
+    unique = -mN*k/(4*P)
+    bessel = jn(2, k*b/hbar)
+    form = c(k)
+    return common * unique * bessel * form
