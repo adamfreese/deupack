@@ -201,13 +201,13 @@ class nff_ba2(nff_with_SN):
         return DN1(k**2,A0q,J0q,cAq,cJq,c2q)
 
     def AN_g(self, k):
-        return AN1(k**2,A0q,cAq,c2q)
+        return AN1(k**2,A0g,cAg,c2g)
 
     def JN_g(self, k):
-        return JN1(k**2,J0q,cJq,c2q)
+        return JN1(k**2,J0g,cJg,c2g)
 
     def DN_g(self, k):
-        return DN1(k**2,A0q,J0q,cAq,cJq,c2q)
+        return DN1(k**2,A0g,J0g,cAg,cJg,c2g)
 
     def cN_q(self, k):
         return cbar(k**2,c_0q)
