@@ -35,7 +35,7 @@ class DensityLF:
                  nk=4000,
                  nb=101,
                  bmax=2,    # fm
-                 kmin=1e-6, # GeV
+                 kmin=1e-5, # GeV
                  kmax=100    # GeV
                  ,Pplus=mN/np.sqrt(2.) #rest frame Pplus as default
                  ,SpinV=(0.,0.,0.) #spin vector for density matrix parametrization
@@ -141,13 +141,19 @@ class DensityLF:
         pt = self.azimuthal_pressure()
         s  = self.symmetric_shear()
         sgn = np.sign(s)
-        tol = 1e-12
-        sgn = np.where(np.abs(s) < tol, 1.0, np.sign(s))
-        R  = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2+1e-12)) )
-        Th = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2+1e-12)) )
+        tol = 1e-7
+        small_s = np.abs(s) < tol
+        sgn = np.where(small_s, 1.0, np.sign(s))
+
+        R  = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         X = (R*np.cos(self.phi) - sgn*Th*np.sin(self.phi))
         Y = (R*np.sin(self.phi) + sgn*Th*np.cos(self.phi))
-        return X, Y
+
+        # this makes sure when spin along z that we have principal stresses along right directions
+        X1 = np.where(small_s, np.cos(self.phi), X)
+        Y1 = np.where(small_s, np.sin(self.phi), Y)
+        return X1, Y1
 
     def e_minus(self):
         ''' Returns two 2D numpy arrays, with the Cartesian x, y 
@@ -158,14 +164,21 @@ class DensityLF:
         s  = self.symmetric_shear()
 
         sgn = np.sign(s)
-        tol = 1e-12
-        sgn = np.where(np.abs(s) < tol, 1.0, np.sign(s))
+        tol = 1e-7
+        small_s = np.abs(s) < tol
+        sgn = np.where(small_s, 1.0, np.sign(s))
 
-        R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2+1e-12)) )
-        Th = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2+1e-12)) )
+        
+        R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
+        Th = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         X = (R*np.cos(self.phi) + sgn*Th*np.sin(self.phi))
         Y = (R*np.sin(self.phi) - sgn*Th*np.cos(self.phi))
-        return X, Y
+
+        
+        # this makes sure when spin along z that we have principal stresses along right directions
+        X1 = np.where(small_s, np.sin(self.phi), X)
+        Y1 = np.where(small_s, -np.cos(self.phi), Y)
+        return X1, Y1
 
 
 

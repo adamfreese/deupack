@@ -95,7 +95,12 @@ def DN1(mt,A_0,J_0,cA,cJ,c2):
     # t = -k**2
 
     t=-mt
-    return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +ThetaP(mt,A_0) + (t/(8*mN))*(JN1(mt,J_0,cJ,c2) +AN1(mt,A_0,cA,c2)))/(3*(t))
+    A = AN1(mt,A_0,cA,c2)
+    B = 2*JN1(mt,J_0,cJ,c2) -A
+    theta = ThetaP(mt,A_0)
+    return -1./(3.*t)*( 4*mN**2*(theta/mN-A) -t*B)
+
+    # return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +ThetaP(mt,A_0) + (t/(4*mN))*(2.*JN1(mt,J_0,cJ,c2) -AN1(mt,A_0,cA,c2)))/(3*(t))
 
 
 
@@ -104,7 +109,7 @@ def new_DN1(mt,A_0,J_0,cA,cJ,c2,c2theta):
 
     t=-mt
     c0=0.12 #doesn't matter what this is it cancels anyway here
-    return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +newThetaP(mt,A_0+4*c0,c2theta) -4*mN*cbar(mt,c0) + (t/(8*mN))*(JN1(mt,J_0,cJ,c2) +AN1(mt,A_0,cA,c2)))/(3*(t))
+    return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +newThetaP(mt,A_0+4*c0,c2theta) -4*mN*cbar(mt,c0) + (t/(4*mN))*(2*JN1(mt,J_0,cJ,c2) -AN1(mt,A_0,cA,c2)))/(3*(t))
 
 
 # values found from BA previous fits to total form factors
@@ -128,13 +133,23 @@ theta_g= 0.92
 
 
 
-A0q= 0.575   
-cAq=    0.351   
-c2q=    0.152 
-J0q =   0.275
-cJq=    0.440 
-c2thetaq =   -1.24 
-c2thetag =  -0.835 
+# A0q= 0.575   
+# cAq=    0.351   
+# c2q=    0.152 
+# J0q =   0.275
+# cJq=    0.440 
+# c2thetaq =   -1.24 
+# c2thetag =  -0.835 
+
+
+
+
+A0q= 0.570
+cAq=    0.334
+c2q=    0.161
+J0q =   0.277
+cJq=    0.422 
+
 
 
 
@@ -207,6 +222,7 @@ class nff_ba2(nff_with_SN):
         return JN1(k**2,J0g,cJg,c2g)
 
     def DN_g(self, k):
+        # return new_DN1(k**2,A0g,J0g,cAg,cJg,c2g,c2thetag)
         return DN1(k**2,A0g,J0g,cAg,cJg,c2g)
 
     def cN_q(self, k):

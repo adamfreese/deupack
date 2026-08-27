@@ -1,7 +1,7 @@
 # ba.py
 # Created 2025.11.11 by Adam Freese
 
-from ...constants import mN, hbar
+from ...constants import hbar
 
 from .nff import *
 
@@ -13,10 +13,11 @@ class nff_ba(nff_with_SN):
         Physical Review D 112 (2025) 054028
         Broniowski:2025ctl
     '''
-
     def __init__(self):
         super().__init__()
         self.name = "ba"
+        self.mN  = 0.970 # mass used for nucleon because of lattice pion mass difference from real mass (GeV)
+
         return
 
     # Form factor overrides ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,6 +51,7 @@ class nff_ba(nff_with_SN):
     def DN(self, k):
         ''' See Eq. (15) of Broniowski:2025ctl '''
         t = -k**2
+        mN = self.mN
         P2 = mN**2 - t/4
         return ( (4*P2*self.AN(k) - 4*mN*self.ThetaN(k))/t + 2*self.JN(k) )/3
 
@@ -71,6 +73,7 @@ class nff_ba(nff_with_SN):
         mf0    = 0.98 # see text above Eq. (51)
         msigma = 0.64 # central value for set I, see Eq. (52)
         t = -k**2
+        mN = self.mN
         num = mN
         den = (1-t/mf0**2) * (1-t/msigma**2)
         return num/den

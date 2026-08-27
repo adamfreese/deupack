@@ -380,7 +380,7 @@ def principal_axes():
 
 def principal_axesLF():
     # Parameters for this visualization (fixed)
-    bmax = 0.7; nff='ba2'; nbq=21 ;nbh = 101
+    bmax = 0.7; nff='bag'; nbq=21 ;nbh = 101
 
 
     SpinZ = (0.,0.,1.)
@@ -409,11 +409,11 @@ def principal_axesLF():
         ax.set_aspect('equal')
     vmax = np.max([
         abs(DhZ.isoradial_pressure()).max(),
-        # abs(DhX.isoradial_pressure()).max(),
-        # abs(DhY.isoradial_pressure()).max(),
+        abs(DhX.isoradial_pressure()).max(),
+        abs(DhY.isoradial_pressure()).max(),
         abs(DhZ.isoazimuthal_pressure()).max(),
-        # abs(DhY.isoazimuthal_pressure()).max(),
-        # abs(DhX.isoazimuthal_pressure()).max(),
+        abs(DhY.isoazimuthal_pressure()).max(),
+        abs(DhX.isoazimuthal_pressure()).max(),
         ])
     # Call the panel code four times
     _ = _eigenvector_panel_LF(axZp, DqZ, DhZ, '+', vmax, r'Isoradial,  z')
@@ -437,7 +437,7 @@ def principal_axesLF():
             )
     cbar.set_label(r'Pressure (GeV/fm$^2$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('principal_axesProtonTotal.pdf', bbox_inches="tight")
+    fig.savefig('principal_axesProtonGluons.pdf', bbox_inches="tight")
     return
 
 
