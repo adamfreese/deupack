@@ -355,3 +355,41 @@ def yukawa_check():
     fig.savefig('yukawa_emtff.pdf')
     return
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Auxiliary function test
+
+def auxtest():
+    N = 3
+    deltas = [0, 0.2, 0, 0.5]
+    omegas = [0, 0,   0.1, 2  ]
+    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:purple']
+    #
+    nrows, ncols = 1, 2
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax1 = plt.subplot(nrows,ncols,1)
+    ax2 = plt.subplot(nrows,ncols,2)
+    #
+    #
+    zeta = np.linspace(1e-6, 20, 666)
+    for n in range(N):
+        delta = deltas[n]
+        omega = omegas[n]
+        color = colors[n]
+        analy = emtff.yukawa.Phi_analytic(  zeta, omega, delta)
+        numer = emtff.yukawa.Phi_numeric(   zeta, omega, delta)
+        ax1.plot(zeta, analy, '-',  linewidth=2.6, color=colors[n])
+        ax1.plot(zeta, numer, '--', linewidth=2.6, color=colors[n])
+    #
+    for n in range(N):
+        delta = deltas[n]
+        omega = omegas[n]
+        color = colors[n]
+        zeta = np.linspace(10, 70, 666)
+        analy = emtff.yukawa.Phi_analytic(  zeta, omega, delta)
+        asymp = emtff.yukawa.Phi_asymptotic(zeta, omega, delta)
+        ax2.plot(zeta, analy, '-',  linewidth=2.6, color=colors[n])
+        ax2.plot(zeta, asymp, '-.', linewidth=2.6, color=colors[n])
+    #
+    fig.savefig('auxtest.pdf')
+    return
+

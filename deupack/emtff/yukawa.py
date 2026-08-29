@@ -50,7 +50,7 @@ def _DU_integrand(r, k, dwf):
             (1-w)*np.arcsin(1/np.sqrt(1+w)) + np.sqrt(w)
             ) * dwf.u(r)**2 * jn(0,z)
     intd_cross = -2*dwf.mNfm*dwf.alpha/kfm**2*(
-            kfm*(1-w)*Phi(z,w)/2
+            kfm*(1-w)*Phi(z,w,0)/2
             +
             2*(
                 6*(1+dwf.mu*r/hbar)*jn(1,kfm*r/2)/(kfm*r)
@@ -71,62 +71,125 @@ def _cU_integrand(r, k, dwf):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Auxiliary function
 
-def Phi(z, w):
-    ''' An auxiliary function appearing in the Yukawa interference D-term.
+def Phi(zeta, omega, delta):
+    r"""
+    An auxiliary function appearing in the Yukawa interference D-term.
     Defined as
-        \Phi_1(z,w) = \int_{-1}^1 dy e^{-z\sqrt{1-y^2+w}} \frac{j_0(yz)}{\sqrt{1-y^2+w}}
+
+    .. math::
+        \Phi_1(\zeta,\omega,\delta)
+        =
+        \int_{-1}^1 dy
+        \frac{ e^{-\zeta\sqrt{1-y^2+\omega}} }{\sqrt{1-y^2+\omega}}
+        j_0\big([y+\delta]\zeta\big)
+
     and equal to
-        \Phi_1(z,w) = \frac{\pi}{X} e^{-X}
-            - \frac{1}{X}\mathrm{Im}\left\{
-                E_1(z(i+\sqrt{1+w}+\sqrt{w})) e^X
-                - E_1(z(i-\sqrt{1+w}+\sqrt{w})) e^{-X}
-            \right\}
+
+    .. math::
+        \Phi(\zeta,\omega,\delta)
+        =
+        \frac{1}{\zeta\sqrt{1+\omega-\delta^2}}
+        \left\{
+          \e^{-\zeta\sqrt{1+\omega-\delta^2}}
+          \Big( \mathrm{Im}\big[ E_1(Z_1) - E_1(Z_2) \big] + \pi \Big)
+          +
+          \e^{+\zeta\sqrt{1+\omega-\delta^2}}
+          \mathrm{Im}\big[ E_1(Z_3) - E_1(Z_4) \big]
+          \right\}
+
     where
-        X = \sqrt{1 + w} z
+
+    .. math::
+        Z_1 = \zeta[\sqrt{\omega} - \sqrt{1+\omega-\delta^2} + i(1+\delta)]
+
+        Z_2 = \zeta[\sqrt{\omega} - \sqrt{1+\omega-\delta^2} - i(1-\delta)]
+
+        Z_3 = \zeta[\sqrt{\omega} + \sqrt{1+\omega-\delta^2} - i(1-\delta)]
+
+        Z_4 = \zeta[\sqrt{\omega} + \sqrt{1+\omega-\delta^2} + i(1+\delta)]
+
     It's not the presttiest formula, but I've failed to find a simplification.
 
-    At z=0, Phi(0,w) = 2*asin(1/sqrt(1+w)). This is implemented directly.
+    At z=0, Phi(0,omega,delta) = 2*asin(1/sqrt(1+omega)). This is implemented directly.
 
-    Intermediate X, the exact formula works fine. For very large X,
-    np.exp(X) gives an overflow and the function gives invalid results.
-    This messes up integrals containing Phi. To avoid numerical instability,
-    I use an asymptotic form of Phi whenever X >= 50. This is far lower then
-    needed, but the asymptotic formula is already an excellent approximation
-    at this point.
-    '''
+    For intermediate X=zeta*sqrt(1+omega-delta**2), the exact formula works fine.
+    For very large X, np.exp(X) overflows. This messes up integrals containing Phi.
+    To avoid numerical instability, I use an asymptotic form whenever X>=50.
+    """
     # w = 0 result
-    _zsplit = 50
-    Phi = np.zeros(z.shape)
-    X = np.sqrt(1+w) * z
-    # Region 0 (z==0)
-    Phi[z==0] = 2*np.arcsin(1/np.sqrt(1+w[z==0]))
-    # Region 1 (z > 0 and z < _zsplit)
-    z1 = z[(z > 0) & (X < _zsplit)]
-    w1 = w[(z > 0) & (X < _zsplit)]
-    X1 = X[(z > 0) & (X < _zsplit)]
-    Phi[(X > 0) & (X < _zsplit)] = (
-            np.pi * np.exp(-X1)
-            - 2*np.imag(
-                exp1(z1*(1j+np.sqrt(1+w1)+np.sqrt(w1))) * np.exp(X1)
-                -
-                exp1(z1*(1j-np.sqrt(1+w1)+np.sqrt(w1))) * np.exp(-X1)
-                )
-            ) / X1
-    # Region 2 (z >= _zsplit)
-    # Lazy implementation
-    z2 = z[X >= _zsplit]
-    X2 = X[X >= _zsplit]
-    w2 = w[X >= _zsplit]
-    x2a = 1j+np.sqrt(1+w2)+np.sqrt(w2)
-    x2b = 1j-np.sqrt(1+w2)+np.sqrt(w2)
-    Phi[np.where(X >= _zsplit)] = (
-            np.pi*np.exp(-X2)
-            - 2*np.imag(
-                np.exp(-1j*z2) * (
-                    1/x2a*(1/x2a - 2/x2a**2 + 6/x2a**3)
-                    -
-                    1/x2b*(1/x2b - 2/x2b**2 + 6/x2b**3)
-                    )
-                ) * np.exp(-np.sqrt(w2)*z2)/X2
-            )
+    _split = 50
+    Phi = np.zeros(zeta.shape)
+    X = np.sqrt(1+omega-delta**2) * zeta
+    # Region 0 (zeta==0)
+    Phi[zeta==0] = 2*np.arcsin(1/np.sqrt(1+omega[zeta==0]))
+    # Region 1 (zeta > 0 and X < _split)
+    zeta_anl  = zeta[ (zeta > 0) & (X < _split)]
+    omega_anl = omega[(zeta > 0) & (X < _split)]
+    Phi[(X > 0) & (X < _split)] = Phi_analytic(zeta_anl, omega_anl, 0)
+    # Region 2 (z >= _split)
+    zeta_asy  = zeta[ (zeta > 0) & (X >= _split)]
+    omega_asy = omega[(zeta > 0) & (X >= _split)]
+    Phi[np.where(X >= _split)] = Phi_asymptotic(zeta_asy, omega_asy, 0)
     return Phi
+
+def Phi_analytic(zeta, omega, delta):
+    ''' Exact analytic result for Phi function.
+    See Phi docstring for more details.
+    '''
+    s = np.sqrt(omega)
+    c = np.sqrt(1+omega-delta**2)
+    Z1 = zeta*(s-c+1j*(1+delta))
+    Z2 = zeta*(s-c-1j*(1-delta))
+    Z3 = zeta*(s+c-1j*(1-delta))
+    Z4 = zeta*(s+c+1j*(1+delta))
+    return (
+            np.pi * np.exp(-zeta*c)
+            + np.imag(
+                exp1(Z1) * np.exp(-zeta*c)
+                -
+                exp1(Z2) * np.exp(-zeta*c)
+                +
+                exp1(Z3) * np.exp(zeta*c)
+                -
+                exp1(Z4) * np.exp(zeta*c)
+                )
+            ) / (zeta*c)
+
+def Phi_asymptotic(zeta, omega, delta):
+    ''' Asymptotic form of Phi function when
+        zeta*sqrt(1+omega-delta**2)
+    is large. See Phi docstring for more details.
+    '''
+    s = np.sqrt(omega)
+    c = np.sqrt(1+omega-delta**2)
+    Z1 = zeta*(s-c+1j*(1+delta))
+    Z2 = zeta*(s-c-1j*(1-delta))
+    Z3 = zeta*(s+c-1j*(1-delta))
+    Z4 = zeta*(s+c+1j*(1+delta))
+    Z1_nc = zeta*(s+1j*(1+delta))
+    Z2_nc = zeta*(s-1j*(1-delta))
+    Z3_nc = zeta*(s-1j*(1-delta))
+    Z4_nc = zeta*(s+1j*(1+delta))
+    term1 = np.exp(-Z1_nc)/Z1*(1 - 1/Z1 + 2/Z1**2 - 6/Z1**3)
+    term2 = np.exp(-Z2_nc)/Z2*(1 - 1/Z2 + 2/Z2**2 - 6/Z2**3)
+    term3 = np.exp(-Z3_nc)/Z3*(1 - 1/Z3 + 2/Z3**2 - 6/Z3**3)
+    term4 = np.exp(-Z4_nc)/Z4*(1 - 1/Z4 + 2/Z4**2 - 6/Z4**3)
+    return (
+            np.pi * np.exp(-zeta*c)
+            + np.imag( term1 - term2 + term3 - term4)
+            ) / (zeta*c)
+
+def Phi_numeric(zeta, omega, delta):
+    ''' Evaluates the Phi function by doing the numerical integral.
+    See Phi docstring for more details.
+    '''
+    _eps = 1e-9
+    integral = quad_vec(_Phi_integrand, -1+_eps, 1-_eps,
+                        args=(zeta, omega, delta),
+                        workers=8
+                        )[0]
+    return integral
+
+def _Phi_integrand(y, zeta, omega, delta):
+    c = np.sqrt(1-y**2+omega)
+    return np.exp(-zeta*c) *jn(0, zeta*(y+delta)) / c
