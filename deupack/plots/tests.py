@@ -359,37 +359,72 @@ def yukawa_check():
 # Auxiliary function test
 
 def auxtest():
-    N = 3
-    deltas = [0, 0.2, 0, 0.5]
-    omegas = [0, 0,   0.1, 2  ]
-    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:purple']
+    zetamax = 10
+    zeta = np.linspace(1e-6, zetamax, 666)
     #
-    nrows, ncols = 1, 2
+    zetamax_1 = 36
+    zeta_1 = np.linspace(1e-6, zetamax_1, 666)
+    delta_1 = 0
+    omega_1 = 0
+    anl_1 = emtff.yukawa.Phi_analytic(zeta_1, omega_1, delta_1)
+    num_1 = emtff.yukawa.Phi_numeric( zeta_1, omega_1, delta_1)
+    #
+    zetamax_2 = 4
+    zeta_2 = np.linspace(1e-6, zetamax_2, 666)
+    delta_2 = 0.2
+    omega_2 = 5
+    anl_2 = emtff.yukawa.Phi_analytic(zeta_2, omega_2, delta_2)
+    num_2 = emtff.yukawa.Phi_numeric( zeta_2, omega_2, delta_2)
+    #
+    zetamax_3 = 10
+    zeta_3 = np.linspace(1e-6, zetamax_3, 666)
+    delta_3 = 0.7
+    omega_3 = 0.1
+    anl_3 = emtff.yukawa.Phi_analytic(zeta_3, omega_3, delta_3)
+    num_3 = emtff.yukawa.Phi_numeric( zeta_3, omega_3, delta_3)
+    #
+    nrows, ncols = 1, 3
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax1 = plt.subplot(nrows,ncols,1)
     ax2 = plt.subplot(nrows,ncols,2)
+    ax3 = plt.subplot(nrows,ncols,3)
     #
+    ax1.plot(zeta_1, zeta_1*anl_1, '-',  linewidth=3, color='tab:orange', label=r'Analytic result')
+    ax1.plot(zeta_1, zeta_1*num_1, '--', linewidth=3, color='tab:blue',   label=r'Numerical integral')
+    ax1.plot(zeta_1, zeta_1*0,     '-',  linewidth=1, color='tab:gray')
     #
-    zeta = np.linspace(1e-6, 20, 666)
-    for n in range(N):
-        delta = deltas[n]
-        omega = omegas[n]
-        color = colors[n]
-        analy = emtff.yukawa.Phi_analytic(  zeta, omega, delta)
-        numer = emtff.yukawa.Phi_numeric(   zeta, omega, delta)
-        ax1.plot(zeta, analy, '-',  linewidth=2.6, color=colors[n])
-        ax1.plot(zeta, numer, '--', linewidth=2.6, color=colors[n])
+    ax2.plot(zeta_2, zeta_2*anl_2, '-',  linewidth=3, color='tab:orange', label=r'Analytic result')
+    ax2.plot(zeta_2, zeta_2*num_2, '--', linewidth=3, color='tab:blue',   label=r'Numerical integral')
+    ax2.plot(zeta_2, zeta_2*0,     '-',  linewidth=1, color='tab:gray')
     #
-    for n in range(N):
-        delta = deltas[n]
-        omega = omegas[n]
-        color = colors[n]
-        zeta = np.linspace(10, 70, 666)
-        analy = emtff.yukawa.Phi_analytic(  zeta, omega, delta)
-        asymp = emtff.yukawa.Phi_asymptotic(zeta, omega, delta)
-        ax2.plot(zeta, analy, '-',  linewidth=2.6, color=colors[n])
-        ax2.plot(zeta, asymp, '-.', linewidth=2.6, color=colors[n])
+    ax3.plot(zeta_3, zeta_3*anl_3, '-',  linewidth=3, color='tab:orange', label=r'Analytic result')
+    ax3.plot(zeta_3, zeta_3*num_3, '--', linewidth=3, color='tab:blue',   label=r'Numerical integral')
+    ax3.plot(zeta_3, zeta_3*0,     '-',  linewidth=1, color='tab:gray')
     #
+    for ax in [ax1, ax2, ax3]:
+        ax.set_xlabel(r'$\zeta$')
+    eps = 0.03
+    ax1.set_xlim((0-eps,zetamax_1+eps))
+    ax2.set_xlim((0-eps,zetamax_2+eps))
+    ax3.set_xlim((0-eps,zetamax_3+eps))
+    ax1.set_ylabel(r'$\zeta \, \Phi(\zeta,\omega,\delta)$')
+    legend = ax1.legend(prop = { 'size' : 26 }, loc=1)
+    legend.get_frame().set_facecolor('#f8f8f8')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.2')
+    ax1.annotate(
+            r'$\omega=0$, $\delta=0$', xy=(0.65,0.07), xycoords='axes fraction',
+            bbox=bbox
+            )
+    ax2.annotate(
+            r'$\omega=2$, $\delta=0.2$', xy=(0.61,0.89), xycoords='axes fraction',
+            bbox=bbox
+            )
+    ax3.annotate(
+            r'$\omega=0.1$, $\delta=0.7$', xy=(0.56,0.89), xycoords='axes fraction',
+            bbox=bbox
+            )
+    #
+    fig.patch.set_alpha(0)
     fig.savefig('auxtest.pdf')
     return
 
