@@ -138,20 +138,20 @@ def Phi_analytic(zeta, omega, delta):
     '''
     s = np.sqrt(omega)
     c = np.sqrt(1+omega-delta**2)
-    Z1 = zeta*(s-c+1j*(1+delta))
-    Z2 = zeta*(s-c-1j*(1-delta))
-    Z3 = zeta*(s+c-1j*(1-delta))
-    Z4 = zeta*(s+c+1j*(1+delta))
+    ZB = zeta*(s-c+1j*(1+delta))
+    ZA = zeta*(s-c-1j*(1-delta))
+    ZC = zeta*(s+c-1j*(1-delta))
+    ZD = zeta*(s+c+1j*(1+delta))
     return (
             np.pi * np.exp(-zeta*c)
             + np.imag(
-                exp1(Z1) * np.exp(-zeta*c)
+                exp1(ZB) * np.exp(-zeta*c)
                 -
-                exp1(Z2) * np.exp(-zeta*c)
+                exp1(ZA) * np.exp(-zeta*c)
                 +
-                exp1(Z3) * np.exp(zeta*c)
+                exp1(ZC) * np.exp(zeta*c)
                 -
-                exp1(Z4) * np.exp(zeta*c)
+                exp1(ZD) * np.exp(zeta*c)
                 )
             ) / (zeta*c)
 
@@ -162,21 +162,21 @@ def Phi_asymptotic(zeta, omega, delta):
     '''
     s = np.sqrt(omega)
     c = np.sqrt(1+omega-delta**2)
-    Z1 = zeta*(s-c+1j*(1+delta))
-    Z2 = zeta*(s-c-1j*(1-delta))
-    Z3 = zeta*(s+c-1j*(1-delta))
-    Z4 = zeta*(s+c+1j*(1+delta))
-    Z1_nc = zeta*(s+1j*(1+delta))
-    Z2_nc = zeta*(s-1j*(1-delta))
-    Z3_nc = zeta*(s-1j*(1-delta))
-    Z4_nc = zeta*(s+1j*(1+delta))
-    term1 = np.exp(-Z1_nc)/Z1*(1 - 1/Z1 + 2/Z1**2 - 6/Z1**3)
-    term2 = np.exp(-Z2_nc)/Z2*(1 - 1/Z2 + 2/Z2**2 - 6/Z2**3)
-    term3 = np.exp(-Z3_nc)/Z3*(1 - 1/Z3 + 2/Z3**2 - 6/Z3**3)
-    term4 = np.exp(-Z4_nc)/Z4*(1 - 1/Z4 + 2/Z4**2 - 6/Z4**3)
+    ZB = zeta*(s-c+1j*(1+delta))
+    ZA = zeta*(s-c-1j*(1-delta))
+    ZC = zeta*(s+c-1j*(1-delta))
+    ZD = zeta*(s+c+1j*(1+delta))
+    ZB_nc = zeta*(s+1j*(1+delta))
+    ZA_nc = zeta*(s-1j*(1-delta))
+    ZC_nc = zeta*(s-1j*(1-delta))
+    ZD_nc = zeta*(s+1j*(1+delta))
+    termB = np.exp(-ZB_nc)/ZB*(1 - 1/ZB + 2/ZB**2 - 6/ZB**3)
+    termA = np.exp(-ZA_nc)/ZA*(1 - 1/ZA + 2/ZA**2 - 6/ZA**3)
+    termC = np.exp(-ZC_nc)/ZC*(1 - 1/ZC + 2/ZC**2 - 6/ZC**3)
+    termD = np.exp(-ZD_nc)/ZD*(1 - 1/ZD + 2/ZD**2 - 6/ZD**3)
     return (
             np.pi * np.exp(-zeta*c)
-            + np.imag( term1 - term2 + term3 - term4)
+            + np.imag( termB - termA + termC - termD)
             ) / (zeta*c)
 
 def Phi_numeric(zeta, omega, delta):
