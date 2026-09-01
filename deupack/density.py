@@ -284,6 +284,37 @@ class Density:
         else:
             self._pol_error(pol)
         return force
+    def radial_forceSym(self, pol='U'):
+        ''' Radial force density, in GeV/fm**4. '''
+        if(pol=='U'):
+            return self._force_bessel_0()
+        elif(pol=='T'):
+            b_dep = self._force_bessel_2sym() + 3/5*self._force_bessel_3sym()
+            theta_dep = (3*np.cos(self.theta)**2 - 1)
+            return b_dep*theta_dep
+        elif(pol==0):
+            return self.radial_force(pol='U') - 1/3*self.radial_force(pol='T')
+        elif(pol==1 or pol==-1):
+            return self.radial_force(pol='U') + 1/6*self.radial_force(pol='T')
+        else:
+            self._pol_error(pol)
+
+    def polar_forceSym(self, pol='U'):
+        ''' Polar force density, in GeV/fm**4. '''
+        theta_dep = -3 * np.sin(self.theta) * np.cos(self.theta)
+        b_dep = self._force_bessel_2sym() - 2/5*self._force_bessel_3sym()
+        force = theta_dep*b_dep
+        if(pol=='U'):
+            force *= 0
+        elif(pol=='T'):
+            pass
+        elif(pol==0):
+            force *= -1/3
+        elif(pol==1 or pol==-1):
+            force *= 1/6
+        else:
+            self._pol_error(pol)
+        return force
 
     # Principal axes of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -408,6 +439,17 @@ class Density:
         Uses internal spatial variables.
         '''
         return self._bessel_array('f3', _f3_integrand, self.cT1, self.sbar)
+    def _force_bessel_2sym(self):
+        ''' The quantity f2 with only symmetric contributions of EMT, defined as a Bessel transform.
+        Uses internal spatial variables.
+        '''
+        return self._bessel_array('f2', _f2_integrandSym, self.cT1, self.cT2)
+
+    def _force_bessel_3sym(self):
+        ''' The quantity f3 with only symmetric contributions of EMT, defined as a Bessel transform.
+        Uses internal spatial variables.
+        '''
+        return self._bessel_array('f3', _f3_integrandSym, self.cT1)
 
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -650,4 +692,18 @@ def _f3_integrand(k, b, cT1, sbar):
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(3, k*b/hbar)
     form = k**2/(8*mN**2)*(cT1(k)-sbar(k))
+    return common * unique * bessel * form
+
+def _f2_integrandSym(k, b, cT1, cT2):
+    common = k**2/(2*np.pi**2*hbar**3)
+    unique = 2*mN*k/hbar # aiming for GeV/fm**4
+    bessel = jn(1, k*b/hbar)
+    form = cT2(k)  - k**2/(20*mN**2)*(cT1(k))
+    return common * unique * bessel * form
+
+def _f3_integrandSym(k, b, cT1):
+    common = k**2/(2*np.pi**2*hbar**3)
+    unique = 2*mN*k/hbar # aiming for GeV/fm**4
+    bessel = jn(3, k*b/hbar)
+    form = k**2/(8*mN**2)*(cT1(k))
     return common * unique * bessel * form
