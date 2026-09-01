@@ -10,6 +10,7 @@ from .hz import nff_hz, nff_hz_quark, nff_hz_gluon
 from .mab import nff_mab
 from .mit import nff_mit, nff_mit_quark, nff_mit_gluon
 from .point import nff_point
+from .ba2 import nff_ba2,nff_ba_gluon,nff_ba_quark
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -20,6 +21,8 @@ def choose_nff(nff):
     elif(isinstance(nff, str)):
         if(nff=='ba'):
             _nff = nff_ba()
+        elif(nff=='ba2'):
+            _nff = nff_ba2()
         elif(nff=='hz'):
             _nff = nff_hz()
         elif(nff=='mab'):
@@ -37,6 +40,10 @@ def choose_nff(nff):
             _nff = nff_hz_quark()
         elif(nff=='hzg'):
             _nff = nff_hz_gluon()
+        elif(nff=='baq'):
+            _nff = nff_ba_quark()
+        elif(nff=='bag'):
+            _nff = nff_ba_gluon()
         else:
             raise ValueError("nff={} not recognized.".format(nff))
         return _nff
