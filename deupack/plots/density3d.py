@@ -78,6 +78,7 @@ def density3d(ax, x, y, z, values,
         normed_values = (values + vmax) / (2*vmax)
         # We also need to make sure alpha is based on magnnitude
         alphas = (clip(abs(values) / vmax)) ** decay
+        # alphas = (clip(abs(values) / abs(values.max()))) ** decay
     else:
         normed_values = values / vmax
         # Create alpha values for each data point based on its intensity and the specified decay factor

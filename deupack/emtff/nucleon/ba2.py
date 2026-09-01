@@ -17,8 +17,6 @@ from .nff import *
 '''
 
 
-
-# mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
 mN    = 0.970 # mass used for nucleon because of lattice pion mass difference from real mass (GeV)
 mf0    = 0.98 # see text above Eq. (51)
 
@@ -68,17 +66,6 @@ def ThetaP(mt,theta_p):
     den = (1-t/mf0**2) * (1-t/msigma**2)
     return num/den
 
-def newThetaP(mt,theta_p,c2theta):
-    ''' See Eq. (50) of Broniowski:2025ctl '''
-    # t = -k**2
-    t=-mt
-    num = mN*theta_p+ c2theta*t
-    den = (1-t/mf0**2) * (1-t/msigma**2)*(1-t/mf0p**2)
-    return num/den
-
-
-
-
 
 def cbar(mt,c_0):
     ''' See Eq. (50) of Broniowski:2025ctl '''
@@ -100,16 +87,6 @@ def DN1(mt,A_0,J_0,cA,cJ,c2):
     theta = ThetaP(mt,A_0)
     return -1./(3.*t)*( 4*mN**2*(theta/mN-A) -t*B)
 
-    # return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +ThetaP(mt,A_0) + (t/(4*mN))*(2.*JN1(mt,J_0,cJ,c2) -AN1(mt,A_0,cA,c2)))/(3*(t))
-
-
-
-def new_DN1(mt,A_0,J_0,cA,cJ,c2,c2theta):
-    # t = -k**2
-
-    t=-mt
-    c0=0.12 #doesn't matter what this is it cancels anyway here
-    return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +newThetaP(mt,A_0+4*c0,c2theta) -4*mN*cbar(mt,c0) + (t/(4*mN))*(2*JN1(mt,J_0,cJ,c2) -AN1(mt,A_0,cA,c2)))/(3*(t))
 
 
 # values found from BA previous fits to total form factors
@@ -122,24 +99,9 @@ cJ     = 0.87 # central value for set I, see Eq. (52)
 # cJ     = 1.12 # central value for set II, see Eq. (52)
 
 
-
-# fitting function
-
-
 # depends on scheme (already divided by mass)
 theta_q = 0.08
 theta_g= 0.92
-
-
-
-
-# A0q= 0.575   
-# cAq=    0.351   
-# c2q=    0.152 
-# J0q =   0.275
-# cJq=    0.440 
-# c2thetaq =   -1.24 
-# c2thetag =  -0.835 
 
 
 
@@ -222,7 +184,6 @@ class nff_ba2(nff_with_SN):
         return JN1(k**2,J0g,cJg,c2g)
 
     def DN_g(self, k):
-        # return new_DN1(k**2,A0g,J0g,cAg,cJg,c2g,c2thetag)
         return DN1(k**2,A0g,J0g,cAg,cJg,c2g)
 
     def cN_q(self, k):

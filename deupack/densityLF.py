@@ -48,7 +48,7 @@ class DensityLF:
         self.kmax = kmax
         self.P =Pplus
 
-        # spin density matrix
+        # spin vector for spin density matrix
         self.Spin = np.asarray(SpinV)
 
         self.I = np.array([
@@ -70,6 +70,7 @@ class DensityLF:
         [0, -1]
     ], dtype=complex)
 
+        # spin density matrix
         self.rho= 0.5*(self.I + self.sigma_x*self.Spin[0] +self.sigma_y*self.Spin[1]+self.sigma_z*self.Spin[2] )
         
 
@@ -306,7 +307,6 @@ class DensityLF:
         b = np.linspace(-self.bmax, self.bmax, self.nb)
         x, y = np.meshgrid(b, b, indexing='ij')
         self.b = np.sqrt(x**2 + y**2 )
-        # self.theta = np.arctan2(np.sqrt(x**2+y**2 + 1e-9), z)
         self.phi = np.arctan2(y, x)
         self.x = b # a 1D array to grab for making plots
         return
@@ -332,17 +332,6 @@ class DensityLF:
         return self.bessel_cache[name]
 
     
-
-    # def _bessel_array(self, name, integrand, *args):
-    #     ''' A method to retrieve a particular Hankel transform array,
-    #     or to create it if it doesn't exist.
-    #     '''
-    #     self.bessel_cache[name] = quad_vec(integrand, self.kmin, self.kmax,
-    #                                                args=(self.b, *args),
-    #                                                workers=8)[0]
-    #     return self.bessel_cache[name]
-
-
     def _cache_path(self):
         filename = "Nucleon_emtff_table_{}_{:d}_{:.2e}_{:.2e}".format(
          self.nff.name, self.nk, self.kmin, self.kmax
@@ -470,161 +459,3 @@ def _f2_integrand(k, b, P, c):
     bessel = jn(2, k*b/hbar)
     form = c(k)
     return common * unique * bessel * form
-
-class DensityLFSym:
-    ''' A class for the calculation of LF densities that are azimuthally symmetric (spin 1/2 for now).
-
-    This is implemented as a class so that lookup tables for mechanical form
-    factors can be cached, and so that the user can create different objects
-    with different EMT-FFs in their cache. Additionally, the density functions
-    can themselves be cached on a per-object basis to reduce computation time
-    when creating 2D density plots.
-    '''
-
-    def __init__(self,
-                 nff='ba',
-                 nk=4000,
-                 nb=101,
-                 bmax=2,    # fm
-                 kmin=1e-6, # GeV
-                 kmax=100    # GeV
-                 ,Pplus=mN/np.sqrt(2.) #rest frame Pplus
-                 ):
-        self.nff  = choose_nff(nff)
-        self.nk   = nk
-        self.nb   = nb
-        self.bmax = bmax
-        self.kmin = kmin
-        self.kmax = kmax
-        self.P =Pplus
-        # Internal initializations of spatial variables and Bessel caches
-        self._initialize_space1()
-        self._initialize_bessel()
-        # attempt to find a cached lookup table on disk
-        path = self._cache_path()
-        if(path.is_file()):
-            self._load_emtff_table(path)
-        else:
-            # if not found, make one
-            self._init_emtff_table(save_table=True)
-        return
-
-    # 2D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-    def radial_force(self, pol='U'):
-        ''' Radial force density, in GeV/fm**3. '''
-        if(pol=='U'):
-            return self._force_bessel_U()
-        else:
-            self._pol_error(pol)
-
-
-    # Hankel transforms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def _pressure_bessel_U(self):
-        ''' The quantity pU, defined as a Hankel transform.
-        Uses internal spatial variables.
-        '''
-        return self._bessel_array('pU', _pressureU_integrand, self.P, self.D, self.c)
-
-    def _shear_bessel_U(self):
-        ''' The quantity sU, defined as a Hankel transform.
-        Uses internal spatial variables.
-        '''
-        return self._bessel_array('sU', _shearU_integrand, self.P, self.D)
-
-    def _force_bessel_U(self):
-        ''' The quantity fU, defined as a Hankel transform.
-        Uses internal spatial variables.
-        '''
-        return self._bessel_array('fU', _fU_integrand, self.P, self.c)
-    # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   
-
-    def _initialize_space1(self):
-        ''' Initialize 1D grids of b variables. Useful for things that only depend on radial direction '''
-        x = np.linspace(0.0, self.bmax, self.nb)
-        self.b = x
-        return
-    def _initialize_bessel(self):
-        ''' Initialize a dict to contain cached Hankel transform arrays. '''
-        self.bessel_cache = {}
-        return
-
-    def _bessel_array(self, name, integrand, *args):
-        ''' A method to retrieve a particular Hankel transform array,
-        or to create it if it doesn't exist.
-        '''
-        if(name not in self.bessel_cache):
-            path = self._cache_path_bessel(name)
-            if(path.is_file()):
-                self.bessel_cache[name] = np.load(path)
-            else:
-                self.bessel_cache[name] = quad_vec(integrand, self.kmin, self.kmax,
-                                                   args=(self.b, *args),
-                                                   workers=8)[0]
-                np.save(path, self.bessel_cache[name])
-        return self.bessel_cache[name]
-
-    def _cache_path(self):
-        filename = "Nucleon_emtff_table_{}_{:d}_{:.2e}_{:.2e}".format(
-         self.nff.name, self.nk, self.kmin, self.kmax
-        )
-        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
-        return path
-
-    def _cache_path_bessel(self, name):
-        filename = "besselRegular1D_{}_table_{}_{:d}_{:.2e}".format(
-                name, self.nff.name, self.nb, self.bmax,
-                )
-        path = Path(__file__).parent / 'cache/{}.npy'.format(filename)
-        return path
-
-    def _init_emtff_table(self, save_table=False):
-        k    = np.geomspace(self.kmin, self.kmax, self.nk)
-
-        _nff = choose_nff(self.nff)
-        A   = _nff.AN(k)
-        D   = _nff.DN(k)
-        c   = _nff.cN(k)
-        J    = _nff.JN(k)
-        S    = _nff.SN(k)
-        if(save_table):
-            df = pd.DataFrame(data={
-                'k'    : k,
-                'A'   : A,
-                'D'   : D,
-                'J'   : J,
-                'c'  : c,
-                'S'  : S
-                })
-            path = self._cache_path()
-            df.to_csv(path, index=None)
-        self.A   = CubicSpline(k, A)
-        self.D   = CubicSpline(k, D)
-        self.c   = CubicSpline(k, c)
-        self.J    = CubicSpline(k, J)
-        self.S    = CubicSpline(k, S)
-        return
-
-    def _load_emtff_table(self, filename):
-        df   = pd.read_csv(filename)
-        k    = df['k'].to_numpy()
-        A   = df['A'].to_numpy()
-        D   = df['D'].to_numpy()
-        c   = df['c'].to_numpy()
-        J  = df['J'].to_numpy()
-        S  = df['S'].to_numpy()
-        self.A   = CubicSpline(k, A)
-        self.D   = CubicSpline(k, D)
-        self.c   = CubicSpline(k, c)
-        self.J    = CubicSpline(k, J)
-        self.S    = CubicSpline(k, S)
-        return
-
-    def _pol_error(self,pol):
-        raise ValueError(
-                "pol={} not recognized for Symmetric distributions; use 'U' ".format(pol)
-                )

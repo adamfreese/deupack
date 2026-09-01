@@ -1,7 +1,6 @@
 import pickle
 from pathlib import Path
 import re
-import matplotlib.pyplot as plt
 import lsqfit
 import numpy as np
 
@@ -17,8 +16,6 @@ with pickle_path.open("rb") as handle:
 
 import gvar as gv
 
-mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
-
 
 GFF = gv.gvar(my_dictionary["GFF_mean"],
               my_dictionary["GFF_cov"])
@@ -31,6 +28,7 @@ def extract_EMTff(prefix):
     """
     Pull out one form factor from the full data set.
     Returns the matching t and the corresponding form-factor values.
+    From Lattice Data provided by Dmitra Pefkou
     """
 
     matching_indices = []
@@ -85,8 +83,6 @@ Dq= Du+Dd+Ds
 '''
 
 
-
-# mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
 mN    = 0.970 # mass used for nucleon because of lattice pion mass difference from real mass (GeV)
 mf0    = 0.98 # see text above Eq. (51)
 
@@ -128,15 +124,14 @@ def JN1( mt,J_0,cJ,c2):
 
 def ThetaP(mt,theta_p):
     ''' See Eq. (50) of Broniowski:2025ctl '''
-    # t = -k**2
     t=-mt
     num = mN*theta_p
     den = (1-t/mf0**2) * (1-t/msigma**2)
     return num/den
 
+
+# new scalar form factor we do not use this for fits (only slightly improves fits)
 def newThetaP(mt,theta_p,c2theta):
-    ''' See Eq. (50) of Broniowski:2025ctl '''
-    # t = -k**2
     t=-mt
     num = mN*theta_p+ c2theta*t
     den = (1-t/mf0**2) * (1-t/msigma**2)*(1-t/mf0p**2)
@@ -148,7 +143,6 @@ def newThetaP(mt,theta_p,c2theta):
 
 def cbar(mt,c_0):
     ''' See Eq. (50) of Broniowski:2025ctl '''
-    # t = -k**2
     t=-mt
     num = c_0
     den = (1-t/mf0**2) * (1-t/msigma**2)
@@ -158,18 +152,14 @@ def cbar(mt,c_0):
 
 
 def DN1(mt,A_0,J_0,cA,cJ,c2):
-    # t = -k**2
-
     t=-mt
     A = AN1(mt,A_0,cA,c2)
     B = 2*JN1(mt,J_0,cJ,c2) -A
     theta = ThetaP(mt,A_0)
     return -1./(3.*t)*( 4*mN**2*(theta/mN-A) -t*B)
 
-
+# new D term based off of new scalar form factor (only slightly improves fits so we do not use it)
 def new_DN1(mt,A_0,J_0,cA,cJ,c2,c2theta):
-    # t = -k**2
-
     t=-mt
     c0=0.12 #doesn't matter what this is it cancels anyway here
     return -4*mN*( -mN*AN1(mt,A_0,cA,c2) +newThetaP(mt,A_0+4*c0,c2theta) -4*mN*cbar(mt,c0) + (t/(4*mN))*(2*JN1(mt,J_0,cJ,c2) -AN1(mt,A_0,cA,c2)))/(3*(t))
@@ -196,25 +186,43 @@ theta_g= 0.92
 
 
 
+# priors for fitting to quark and gluon separated form factors with constraints from original BA fit
+# this is so that when added together we get same as original BA fits
 prior = gv.BufferDict()
 
 prior["A0q"] = gv.gvar(0.2,0.50)
 prior["cAq"] = gv.gvar(0,5)
 prior["c2q"] = gv.gvar(0,5)
 
-# prior["cAg"] = gv.gvar(0,5)
-# prior["c2g"] = gv.gvar(0,5)
 
 prior["J0q"] = gv.gvar(0.25,0.50)
 prior["cJq"] = gv.gvar(0,5)
+
+
+
+# priors for fitting separately to quark and gluon separated form factors
+prior2 = gv.BufferDict()
+
+prior2["A0q"] = gv.gvar(0.2,0.50)
+prior2["cAq"] = gv.gvar(0,5)
+prior2["c2q"] = gv.gvar(0,5)
+
+prior2["cAg"] = gv.gvar(0,5)
+prior2["c2g"] = gv.gvar(0,5)
+
+prior2["J0q"] = gv.gvar(0.25,0.50)
+prior2["cJq"] = gv.gvar(0,5)
+prior2["cJg"] = gv.gvar(0,5)
+
+
+
+# new parameters if doing fit with new scalar form factor and new D term
 # prior["c2thetaq"] = gv.gvar(-5,5)
 
 # prior["c2thetag"] = gv.gvar(-5,5)
 
 
-# prior["cJg"] = gv.gvar(0,5)
-
-
+# fit function for fitting quark and gluon parts with BA constraints
 def fcn(p):
 
 
@@ -304,6 +312,101 @@ def fcn(p):
 
     return model
 
+
+
+
+
+
+
+
+# fit function for fitting quark and gluon parts separately
+def fcn2(p):
+
+
+    #sum rules
+    A0g = 1.0 - p["A0q"]
+
+    J0g = 0.5 - p["J0q"]
+
+
+    #constraints from BA previous fit for total
+
+
+    model = {}
+
+    model["Aq"] = AN1(
+        np.array(tAu),
+        p["A0q"],
+        p["cAq"],
+        p["c2q"]
+    )
+
+    model["Ag"] = AN1(
+        np.array(tAg),
+        A0g,
+        p["cAg"],
+        p["c2g"]
+    )
+
+    model["Jq"] = JN1(
+        np.array(tJu),
+        p["J0q"],
+        p["cJq"],
+        p["c2q"]
+    )
+
+    model["Jg"] = JN1(
+        np.array(tJg),
+        J0g,
+        p["cJg"],
+        p["c2g"]
+    )
+    model["Dq"] = DN1(
+        np.array(tDu),
+        p["A0q"],
+        p["J0q"],
+        p["cAq"],
+        p["cJq"],
+        p["c2q"]
+    )
+
+    model["Dg"] = DN1(
+        np.array(tDg),
+        A0g,
+        J0g,
+        p["cAg"],
+        p["cJg"],
+        p["c2g"]
+    )
+
+    # model["Dq"] = new_DN1(
+    #     np.array(tDu),
+    #     p["A0q"],
+    #     p["J0q"],
+    #     p["cAq"],
+    #     p["cJq"],
+    #     p["c2q"],
+    #     p["c2thetaq"]
+    # )
+
+    # model["Dg"] = new_DN1(
+    #     np.array(tDg),
+    #     A0g,
+    #     J0g,
+    #     cAg,
+    #     cJg,
+    #     c2g,
+    #     p["c2thetag"]
+    # )
+
+    return model
+
+
+
+
+
+
+
 data = {
     "Aq": Aq,
     "Ag": Ag,
@@ -319,7 +422,33 @@ fit = lsqfit.nonlinear_fit(
     fcn=fcn
 )
 
+
+
+
+data2 = {
+    "Aq": Aq,
+    "Ag": Ag,
+    "Jq": Jq,
+    "Jg": Jg,
+    "Dq":Dq,
+    "Dg":Dg
+}
+
+
+fit2 = lsqfit.nonlinear_fit(
+    data=data2,
+    prior=prior2,
+    fcn=fcn2
+)
+
+
 print(fit)
+
+
+
+print(fit2)
+
+
 
 mt = np.linspace(1e-12,max(tAg),300)
 
@@ -369,6 +498,65 @@ Dg_fit = DN1(
     c2-fit.p["c2q"]
 )
 
+
+
+
+Aq_fit2 = AN1(
+    mt,
+    fit2.p["A0q"],
+    fit2.p["cAq"],
+    fit2.p["c2q"]
+)
+
+Ag_fit2 = AN1(
+    mt,
+    1-fit2.p["A0q"],
+    fit2.p["cAg"],
+    fit2.p["c2g"]
+)
+
+Jq_fit2 = JN1(
+    mt,
+    fit2.p["J0q"],
+    fit2.p["cJq"],
+    fit2.p["c2q"]
+)
+
+Jg_fit2 = JN1(
+    mt,
+    fit2.p["J0g"],
+    fit2.p["cJg"],
+    fit2.p["c2g"]
+)
+
+Dq_fit2 = DN1(
+    mt,
+    fit2.p["A0q"],
+    fit2.p["J0q"],
+    fit2.p["cAq"],
+    fit2.p["cJq"],
+    fit2.p["c2q"]
+)
+
+Dg_fit2 = DN1(
+    mt,
+    1-fit2.p["A0q"],
+    0.5-fit2.p["J0q"],
+    fit2.p["cAg"],
+    fit2.p["cJg"],
+    fit2.p["c2g"]
+)
+
+
+
+
+
+
+
+
+
+
+
 # Dq_fit = new_DN1(
 #     mt,
 #     fit.p["A0q"],
@@ -404,203 +592,25 @@ cg_fit = cbar(
 )
 
 
+#In D2 scheme
+c_0q2 = (theta_q -fit2.p["A0q"])/4.
+c_0g2 = -c_0q2
+
+
+cq_fit2 = cbar(
+    mt,c_0q2
+)
+
+
+cg_fit2 = cbar(
+    mt,c_0g2
+)
+
+
         
 
-# plt.figure()
 
-# plt.plot(mt,gv.mean(Aq_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(Aq_fit)-gv.sdev(Aq_fit),
-#     gv.mean(Aq_fit)+gv.sdev(Aq_fit),
-#     alpha=0.3
-# )
 
-
-# plt.errorbar(
-#     tAu,
-#     gv.mean(Aq),
-#     yerr=gv.sdev(Aq),
-#     fmt='o',ecolor='r',
-#     capsize=3
-# )
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$A_q$")
-
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/A_q_Set1.pdf")
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(Ag_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(Ag_fit)-gv.sdev(Ag_fit),
-#     gv.mean(Ag_fit)+gv.sdev(Ag_fit),
-#     alpha=0.3
-# )
-
-
-
-# plt.errorbar(
-#     tAg,
-#     gv.mean(Ag),
-#     yerr=gv.sdev(Ag),
-#     fmt='o',
-#     capsize=3
-# )
-
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$A_g$")
-
-
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/A_g_Set1.pdf")
-
-
-
-
-
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(Jq_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(Jq_fit)-gv.sdev(Jq_fit),
-#     gv.mean(Jq_fit)+gv.sdev(Jq_fit),
-#     alpha=0.3
-# )
-
-
-# plt.errorbar(
-#     tJu,
-#     gv.mean(Jq),
-#     yerr=gv.sdev(Jq),
-#     fmt='o',ecolor='r',
-#     capsize=3
-# )
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$J_q$")
-
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/J_q_Set1.pdf")
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(Jg_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(Jg_fit)-gv.sdev(Jg_fit),
-#     gv.mean(Jg_fit)+gv.sdev(Jg_fit),
-#     alpha=0.3
-# )
-
-
-
-# plt.errorbar(
-#     tJg,
-#     gv.mean(Jg),
-#     yerr=gv.sdev(Jg),
-#     fmt='o',
-#     capsize=3
-# )
-
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$J_g$")
-
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/J_g_Set1.pdf")
-
-
-
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(Dq_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(Dq_fit)-gv.sdev(Dq_fit),
-#     gv.mean(Dq_fit)+gv.sdev(Dq_fit),
-#     alpha=0.3
-# )
-
-
-# plt.errorbar(
-#     tDu,
-#     gv.mean(Dq),
-#     yerr=gv.sdev(Dq),
-#     fmt='o',ecolor='r',
-#     capsize=3
-# )
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$D_q$")
-
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/D_q_Set1.pdf")
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(Dg_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(Dg_fit)-gv.sdev(Dg_fit),
-#     gv.mean(Dg_fit)+gv.sdev(Dg_fit),
-#     alpha=0.3
-# )
-
-
-
-# plt.errorbar(
-#     tDg,
-#     gv.mean(Dg),
-#     yerr=gv.sdev(Dg),
-#     fmt='o',
-#     capsize=3
-# )
-
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$D_g$")
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/D_g_Set1.pdf")
-
-
-
-
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(cq_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(cq_fit)-gv.sdev(cq_fit),
-#     gv.mean(cq_fit)+gv.sdev(cq_fit),
-#     alpha=0.3
-# )
-
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$\bar{c}_q$")
-
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/c_q_Set1.pdf")
-
-
-
-# plt.figure()
-# plt.plot(mt,gv.mean(cg_fit))
-# plt.fill_between(
-#     mt,
-#     gv.mean(cg_fit)-gv.sdev(cg_fit),
-#     gv.mean(cg_fit)+gv.sdev(cg_fit),
-#     alpha=0.3
-# )
-
-
-
-
-# plt.xlabel(r"$-t$ (GeV$^2$)")
-# plt.ylabel(r"$\bar{c}_g$")
-# plt.savefig("../DeupackPlots/plots/fits/Set_1/c_g_Set1.pdf")
 
 
 # Least Squares Fit:
