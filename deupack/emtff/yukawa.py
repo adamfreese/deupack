@@ -116,6 +116,12 @@ def Phi(zeta, omega, delta):
     For very large X, np.exp(X) overflows. This messes up integrals containing Phi.
     To avoid numerical instability, I use an asymptotic form whenever X>=50.
     """
+    # TODO: large omega and small zeta at the same time might be tricky
+    # TODO: less stupid way to deal with scalar argumetns
+    if(np.isscalar(zeta)):
+        zeta = np.array([zeta])
+    if(np.isscalar(omega)):
+        omega = np.array([omega])
     # w = 0 result
     _split = 50
     Phi = np.zeros(zeta.shape)

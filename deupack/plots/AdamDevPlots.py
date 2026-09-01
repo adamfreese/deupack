@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import cmasher as cmr
 
 from scipy.special import exp1 # for E1 test
+from scipy.integrate import quad
 
 from .. import emtff
 from ..constants import hbar, alphaQED
@@ -426,5 +427,36 @@ def auxtest():
     #
     fig.patch.set_alpha(0)
     fig.savefig('auxtest.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _D0_intd(r, dwf):
+    intd = 1/5 - 1/45*dwf.mu*r/hbar
+    intd *= r * np.exp(-dwf.mu*r/hbar)
+    intd += - 2/3*(1-np.exp(-dwf.mu*r/hbar))/(dwf.mu/hbar)
+    intd *= dwf.u(r)**2
+    intd *= -2*dwf.mNfm * dwf.alpha
+    return intd
+
+def _c0_intd(r, dwf):
+    intd = dwf.u(r)**2*(1+dwf.mu*r/hbar) * np.exp(-dwf.mu*r/hbar) / r
+    intd *= dwf.alpha/3 / (2*dwf.mNfm)
+    return intd
+
+def forward_test(mu):
+    # TODO: work the forward limit into emtff.yukawa,
+    # since the latter is numerically unstable at small Delta
+    H = vwf_yukawa(mu=mu)
+    D0_numi = emtff.DU(1e-3, wf=H, nff='point', impulse=False, yukawa=True)
+    c0_numi = emtff.cU(0, wf=H, nff='point', impulse=False, yukawa=True)
+    D0_true = quad(_D0_intd, 0, np.inf, args=(H,))[0]
+    c0_true = quad(_c0_intd, 0, np.inf, args=(H,))[0]
+    #
+    D0_true += -2 * 2/3 * 2*H.mN / H.mu * H.alpha
+    print("D0 via EMTFF method", D0_numi)
+    print("D0 via analytic formula", D0_true)
+    print("c0 via EMTFF method", c0_numi)
+    print("c0 via analytic formula", c0_true)
     return
 
