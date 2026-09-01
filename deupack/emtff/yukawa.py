@@ -47,7 +47,7 @@ def _DU_integrand(r, k, dwf):
     z = kfm*r/2
     w = 4*dwf.mu**2/k**2
     intd_self = -2*dwf.mN*dwf.alpha/k*(
-            (1-w)*np.arcsin(1/np.sqrt(1+w)) + np.sqrt(w)
+            (1-w)*np.arctan(0.5*k/dwf.mu) + np.sqrt(w)
             ) * dwf.u(r)**2 * jn(0,z)
     intd_cross = -2*dwf.mNfm*dwf.alpha/kfm**2*(
             kfm*(1-w)*Phi(z,w,0)/2
