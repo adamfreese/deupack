@@ -79,6 +79,7 @@ def variational_test():
     ax2.plot(2, wf2.E, 'o', color='tab:blue')
     ax2.plot(4, wf4.E, 'o', color='tab:orange')
     ax2.plot(6, wf6.E, 'o', color='tab:green')
+    ax2.plot(8, wf6.E, 'o', color='tab:purple')
     # Labels etc
     ax1.set_ylabel(r'$u(r)$ (fm$^{-1/2}$)')
     ax1.set_xlabel(r'$r$ (fm)')
