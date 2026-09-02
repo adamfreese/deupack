@@ -21,9 +21,7 @@ wf_default = dwf_av18()
 
 # Import impulse approximation and interaction contributions
 from . import impulse as _impulse
-from . import coulomb as _coulomb
-from . import string as _string
-from . import yukawa as _yukawa
+from . import abelian as _abelian
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,15 +29,15 @@ def AU(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       coulomb = False,
-       string = False,
-       yukawa = False
+       **kwargs
        ):
     ''' The EMT form factor AU.
     ----------
-    Input:
+    Required input:
         - k : float or numpy.array
             float one-dimensional array of k values in GeV
+    ----------
+    Optional input:
         - wf : DWF or string
             Deuteron wave function to use
             See wf.chooser.choose_wf for available options
@@ -47,26 +45,24 @@ def AU(k,
             Nucleon EMT form factors to use
             Available: ba, mab, hz, point
             Default: ba
-        - impulse: boolean
+        - impulse : boolean
             True to include one-body currents, False to exclude
             Default: True
-        - coulomb: boolean
-            True to include Coulomb-like stress, False to exclude
-            This will fail unless the associated wf has an alpha member,
-            which signifies the effective Coulomb constant
-            (for one gluon exchange, alpha means alpha_s*CF)
-            Default: False
-        - string: boolean
-            True to include string stress, False to exclude
-            This will fail unless the associated wf has a sigma member,
-            which specifies the string tension
-            Default: False
-        - yukawa: boolean
-            True to include Yukawa-like stress, False to exclude
-            This will fail unless the associated wf has an alpha member,
-            which signifies coupling strength (alpha=g^2/(4*pi),
-            and a mu member, signifying the exponential decay rate
-            Default: False
+    ----------
+    Possible kwargs:
+        - field : dict
+            The dict should have the following keys:
+                - g1 ... charge of particle 1
+                - g2 ... charge of particle 2
+                - mf ... mass of field [GeV]
+                - s .... field spin (integer)
+            For now, the field is assumed to be Abelian.
+            Generalizations to allow non-Abelian fields will be implemented in
+            the future, and an 'abelian' key (boolean) will be used.
+        - fields : list of dicts
+            If more than one field is present, use this. Each dict in the list
+            needs the same keys described for the 'field' kwarg.
+    ----------
     Output:
         numpy.array with form factor values
     Notes:
@@ -93,7 +89,7 @@ def AT(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor AT. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -107,7 +103,7 @@ def DU(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor DU. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -115,19 +111,24 @@ def DU(k,
     result = k*0
     if(impulse):
         result += _impulse.DU(k, dwf=dwf, nff=_nff)
-    if(interactions.get('string', False)):
-        result += _string.DU(k, dwf=dwf)
-    if(interactions.get('coulomb', False)):
-        result += _coulomb.DU(k, dwf=dwf)
-    if(interactions.get('yukawa', False)):
-        result += _yukawa.DU(k, dwf=dwf)
+    if('field' in kwargs):
+        result += _abelian.DU(k, dwf=dwf, field=kwargs['field'])
+    if('fields' in kwargs):
+        for field in kwargs['fields']:
+            result += _abelian.DU(k, dwf=dwf, field=field)
+    #if(interactions.get('string', False)):
+    #    result += _string.DU(k, dwf=dwf)
+    #if(interactions.get('coulomb', False)):
+    #    result += _coulomb.DU(k, dwf=dwf)
+    #if(interactions.get('yukawa', False)):
+    #    result += _yukawa.DU(k, dwf=dwf)
     return result
 
 def DT1(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor DT1. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -141,7 +142,7 @@ def DT2(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor DT2. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -156,7 +157,7 @@ def cU(k,
        nff = 'ba',
        formula = 'fast',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor cU. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -169,12 +170,17 @@ def cU(k,
     result = k*0
     if(impulse):
         result += _impulse.cU(k, dwf=dwf, nff=_nff, rmin=rmin, formula=formula)
-    if(interactions.get('string', False)):
-        result += _string.cU(k, dwf=dwf)
-    if(interactions.get('coulomb', False)):
-        result += _coulomb.cU(k, dwf=dwf)
-    if(interactions.get('yukawa', False)):
-        result += _yukawa.cU(k, dwf=dwf)
+    if('field' in kwargs):
+        result += _abelian.cU(k, dwf=dwf, field=kwargs['field'])
+    if('fields' in kwargs):
+        for field in kwargs['fields']:
+            result += _abelian.cU(k, dwf=dwf, field=field)
+    ##if(interactions.get('string', False)):
+    ##    result += _string.cU(k, dwf=dwf)
+    ##if(interactions.get('coulomb', False)):
+    ##    result += _coulomb.cU(k, dwf=dwf)
+    ##if(interactions.get('yukawa', False)):
+    ##    result += _yukawa.cU(k, dwf=dwf)
     return result
 
 def cT1(k,
@@ -182,7 +188,7 @@ def cT1(k,
        nff = 'ba',
        formula = 'fast',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor cT1. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -197,7 +203,7 @@ def cT2(k,
        nff = 'ba',
        formula = 'fast',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor cT2. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -216,7 +222,7 @@ def J(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor J. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -230,7 +236,7 @@ def S(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor S. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
@@ -244,7 +250,7 @@ def sbar(k,
        wf = wf_default,
        nff = 'ba',
        impulse = True,
-       **interactions
+       **kwargs
        ):
     ''' The EMT form factor S. See docstring of AU for more info. '''
     dwf = choose_wf(wf)
