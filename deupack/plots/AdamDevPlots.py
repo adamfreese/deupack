@@ -54,32 +54,38 @@ def cbar_check():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Test variational ground state solver
 
-def variational_test():
-    r = np.linspace(0, 4, 666)
+def variational_test(
+        Nmax = 3,
+        rmax = 4,
+        alpha = 0.5
+        ):
+    r = np.linspace(0, rmax, 666)
     # Wave functions
-    wf2 = vwf_yukawa(N=2)
-    wf4 = vwf_yukawa(N=4)
-    wf6 = vwf_yukawa(N=6)
-    wf8 = vwf_yukawa(N=8)
-    u2 = wf2.u(r)
-    u4 = wf4.u(r)
-    u6 = wf6.u(r)
-    u8 = wf8.u(r)
+    wf = []
+    u = []
+    E = []
+    a = []
+    for n in range(Nmax):
+        wf += [ vwf_yukawa(N=n+1, alpha=alpha) ]
+        E  += [ wf[n].E ]
+        a  += [ wf[n].a ]
+        u  += [ wf[n].u(r) ]
+    # Print out data for table
+    for n in range(Nmax):
+        print("*"*80)
+        print("N={:d}".format(n+1))
+        print("Energy:", E[n])
+        print("Coefficients:", a[n])
     # Plots
     nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
     ax1 = plt.subplot(nrows,ncols,1)
     ax2 = plt.subplot(nrows,ncols,2)
-    # Plot wave functions
-    ax1.plot(r, u2, ':',  color='tab:blue',   linewidth=2.6, label=r'$N=2$')
-    ax1.plot(r, u4, '-.', color='tab:orange', linewidth=2.6, label=r'$N=4$')
-    ax1.plot(r, u6, '--', color='tab:green',  linewidth=2.6, label=r'$N=6$')
-    ax1.plot(r, u8, '-',  color='tab:purple', linewidth=2.6, label=r'$N=8$')
-    # Plot energy estimates
-    ax2.plot(2, wf2.E, 'o', color='tab:blue')
-    ax2.plot(4, wf4.E, 'o', color='tab:orange')
-    ax2.plot(6, wf6.E, 'o', color='tab:green')
-    ax2.plot(8, wf6.E, 'o', color='tab:purple')
+    # Plot wave functions and energy estimates
+    for n in range(Nmax):
+        ax1.plot(r, u[n], linewidth=2.6, alpha=0.8,
+                 label=r'$N='+"{:d}".format(n+1) + r'$')
+        ax2.plot(n+1, E[n], 'o')
     # Labels etc
     ax1.set_ylabel(r'$u(r)$ (fm$^{-1/2}$)')
     ax1.set_xlabel(r'$r$ (fm)')
@@ -89,7 +95,6 @@ def variational_test():
     l.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('variational_test.pdf')
-    fig.savefig('variational_test.png')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,12 +151,12 @@ def yukawa_check():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Check that "hydrogen" (muonium) wave function behaves reasonably
+# EMT-FFs for muonium
 
-def hydrogen_check():
+def muonium_emtff(n=1, l=0, ml=0):
     dl2 = np.geomspace(1e-12, 0.1, 666)
     dl = np.sqrt(dl2)
-    H = dwf_hydrogen()
+    H = dwf_hydrogen(n=n, l=l, ml=ml)
     # One-body form factors
     Aq = emtff.AU(dl, wf=H, nff='point', impulse=True)
     Dq = emtff.DU(dl, wf=H, nff='point', impulse=True)
@@ -198,7 +203,7 @@ def hydrogen_check():
         ax.set_xscale('log')
     l = ax1.legend(prop = { 'size' : 27 }, loc=1)
     fig.patch.set_alpha(0)
-    fig.savefig('hydrogen_emtff.pdf')
+    fig.savefig('emtff_muonium.pdf')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,22 +217,22 @@ def auxtest():
     zeta_1 = np.linspace(1e-6, zetamax_1, 666)
     delta_1 = 0
     omega_1 = 0
-    anl_1 = emtff.yukawa.Phi_analytic(zeta_1, omega_1, delta_1)
-    num_1 = emtff.yukawa.Phi_numeric( zeta_1, omega_1, delta_1)
+    anl_1 = emtff.abelian.Phi_analytic(zeta_1, omega_1, delta_1)
+    num_1 = emtff.abelian.Phi_numeric( zeta_1, omega_1, delta_1)
     #
     zetamax_2 = 4
     zeta_2 = np.linspace(1e-6, zetamax_2, 666)
     delta_2 = 0.2
     omega_2 = 5
-    anl_2 = emtff.yukawa.Phi_analytic(zeta_2, omega_2, delta_2)
-    num_2 = emtff.yukawa.Phi_numeric( zeta_2, omega_2, delta_2)
+    anl_2 = emtff.abelian.Phi_analytic(zeta_2, omega_2, delta_2)
+    num_2 = emtff.abelian.Phi_numeric( zeta_2, omega_2, delta_2)
     #
     zetamax_3 = 10
     zeta_3 = np.linspace(1e-6, zetamax_3, 666)
     delta_3 = 0.7
     omega_3 = 0.1
-    anl_3 = emtff.yukawa.Phi_analytic(zeta_3, omega_3, delta_3)
-    num_3 = emtff.yukawa.Phi_numeric( zeta_3, omega_3, delta_3)
+    anl_3 = emtff.abelian.Phi_analytic(zeta_3, omega_3, delta_3)
+    num_3 = emtff.abelian.Phi_numeric( zeta_3, omega_3, delta_3)
     #
     nrows, ncols = 1, 3
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -275,6 +280,20 @@ def auxtest():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Normalization test
+
+def _norm_test_intd(r, dwf):
+    return dwf.u(r)**2
+
+def muonium_norm_test(n=1, l=0, ml=0):
+    H = dwf_hydrogen(n=n, l=l, ml=ml)
+    norm = quad(_norm_test_intd, 0, H.rmax, args=(H,))[0]
+    #norm_B = quad(_norm_test_intd, H.n**2/H.kappa, np.inf, args=(H,))[0]
+    #norm = norm_A + norm_B
+    print("Normalization: {:.3f}".format(norm))
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Forward limit check
 
 def _D0_intd(r, dwf):
@@ -291,11 +310,17 @@ def _c0_intd(r, dwf):
     return intd
 
 def forward_test(mu):
-    # TODO: work the forward limit into emtff.yukawa,
+    # TODO: work the forward limit into emtff.abelian,
     # since the latter is numerically unstable at small Delta
     H = vwf_yukawa(mu=mu)
-    D0_numi = emtff.DU(1e-3, wf=H, nff='point', impulse=False, yukawa=True)
-    c0_numi = emtff.cU(0, wf=H, nff='point', impulse=False, yukawa=True)
+    field = {
+            'g1' : np.sqrt(4*np.pi*H.alpha),
+            'g2' : np.sqrt(4*np.pi*H.alpha),
+            'mf' : H.mu,
+            's'  : 0
+            }
+    D0_numi = emtff.DU(1e-3, wf=H, nff='point', impulse=False, field=field)
+    c0_numi = emtff.cU(0,    wf=H, nff='point', impulse=False, field=field)
     D0_true = quad(_D0_intd, 0, np.inf, args=(H,))[0]
     c0_true = quad(_c0_intd, 0, np.inf, args=(H,))[0]
     #
