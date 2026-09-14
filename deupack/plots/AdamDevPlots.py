@@ -57,7 +57,7 @@ def cbar_check():
 def variational_test(
         Nmax = 3,
         rmax = 4,
-        alpha = 0.5
+        alpha = 1
         ):
     r = np.linspace(0, rmax, 666)
     # Wave functions
@@ -66,7 +66,7 @@ def variational_test(
     E = []
     a = []
     for n in range(Nmax):
-        wf += [ vwf_yukawa(N=n+1, alpha=alpha) ]
+        wf += [ vwf_yukawa(N=2*n+2, alpha=alpha) ]
         E  += [ wf[n].E ]
         a  += [ wf[n].a ]
         u  += [ wf[n].u(r) ]
