@@ -3,6 +3,7 @@ import numpy as np
 # Basicl physical constants
 hbar     = 0.197326968     # GeV-fm
 alphaQED = 0.0072973525643 # fine structure constant
+GN       = 6.70883e-39     # Newton's constant, GeV**-2
 
 # Masses
 mpi_p = 0.13957039    # charged pion mass (GeV)
