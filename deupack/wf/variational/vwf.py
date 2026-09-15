@@ -34,7 +34,7 @@ class _VARWF(DWF):
         self.mNfm = mN / hbar
         # Properties related to the ground state solver
         self.N = N
-        self.bounds = [ (-7, 7) for _ in range(self.N) ]
+        self.bounds = [ (-1, 1) for _ in range(self.N) ]
         self.mredfm = mN / hbar / 2
         # Call the ground state solver in the derived class!
         #self.solve()

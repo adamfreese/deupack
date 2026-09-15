@@ -54,28 +54,36 @@ def cbar_check():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Test variational ground state solver
 
-def variational_test(
-        Nmax = 3,
-        rmax = 4,
-        alpha = 1
-        ):
+def variational_test():
+    rmax = 4
+    Nmax = 4
+    alpha = 1
     r = np.linspace(0, rmax, 666)
+    # Lines
+    lines = [':', '-.', '--', '-']
+    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:purple']
     # Wave functions
     wf = []
     u = []
     E = []
     a = []
+    k = []
+    R = []
     for n in range(Nmax):
-        wf += [ vwf_yukawa(N=2*n+2, alpha=alpha) ]
+        wf += [ vwf_yukawa(N=n+1, alpha=alpha) ]
         E  += [ wf[n].E ]
         a  += [ wf[n].a ]
+        k  += [ wf[n].kfm*hbar ]
         u  += [ wf[n].u(r) ]
+        R  += [ np.sqrt(-E[n])/k[n] ]
     # Print out data for table
     for n in range(Nmax):
         print("*"*80)
         print("N={:d}".format(n+1))
         print("Energy:", E[n])
         print("Coefficients:", a[n])
+        print("Decay:", k[n])
+        print("Ratio:", R[n])
     # Plots
     nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -83,9 +91,11 @@ def variational_test(
     ax2 = plt.subplot(nrows,ncols,2)
     # Plot wave functions and energy estimates
     for n in range(Nmax):
-        ax1.plot(r, u[n], linewidth=2.6, alpha=0.8,
+        ax1.plot(r, u[n], lines[n], linewidth=2.6, #alpha=0.67,
+                 zorder = Nmax-n,
+                 color = colors[n],
                  label=r'$N='+"{:d}".format(n+1) + r'$')
-        ax2.plot(n+1, E[n], 'o')
+        ax2.plot(n+1, E[n], 'o', color=colors[n])
     # Labels etc
     ax1.set_ylabel(r'$u(r)$ (fm$^{-1/2}$)')
     ax1.set_xlabel(r'$r$ (fm)')
