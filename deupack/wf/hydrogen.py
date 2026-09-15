@@ -7,7 +7,7 @@ import numpy as np
 from scipy.special import assoc_laguerre, gamma
 
 from .dwf import DWF
-from ..constants import hbar, alphaQED
+from ..constants import hbar, alphaQED, m_mu
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -22,7 +22,7 @@ class dwf_hydrogen(DWF):
                  n = 1,
                  l = 0,
                  ml = 0,
-                 mN = 0.106,   # muon mass (GeV)
+                 mN = m_mu,
                  alpha = alphaQED
                  ):
         if(l >= n):

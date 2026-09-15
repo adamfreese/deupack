@@ -7,7 +7,7 @@ from scipy.special import exp1 # for E1 test
 from scipy.integrate import quad
 
 from .. import emtff
-from ..constants import hbar, alphaQED
+from ..constants import hbar, alphaQED, GN, m_kep
 from ..wf.airy import dwf_airy
 from ..wf.hydrogen import dwf_hydrogen
 from ..wf.variational import vwf_cornell, vwf_yukawa
@@ -161,7 +161,7 @@ def yukawa_check():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# EMT-FFs for muonium
+# EMT-FFs for muonium and keplerium
 
 def muonium_emtff(n=1, l=0, ml=0):
     dl2 = np.geomspace(1e-12, 0.1, 666)
@@ -171,7 +171,7 @@ def muonium_emtff(n=1, l=0, ml=0):
     Aq = emtff.AU(dl, wf=H, nff='point', impulse=True)
     Dq = emtff.DU(dl, wf=H, nff='point', impulse=True)
     cq = emtff.cU(dl, wf=H, nff='point', impulse=True)
-    # Coulomb form factors
+    # Field form factors
     field = {
             'g1' : -np.sqrt(4*np.pi*H.alpha),
             'g2' : np.sqrt(4*np.pi*H.alpha),
@@ -195,15 +195,15 @@ def muonium_emtff(n=1, l=0, ml=0):
     #
     ax1.plot(cf*dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
     ax1.plot(cf*dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax1.plot(cf*dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Coulomb')
+    ax1.plot(cf*dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
     #
     ax2.plot(cf*dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
     ax2.plot(cf*dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax2.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Coulomb')
+    ax2.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
     #
     ax3.plot(cf*dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
     ax3.plot(cf*dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax3.plot(cf*dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Coulomb')
+    ax3.plot(cf*dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
     #
     ax1.set_ylabel(r'$A(\varDelta^2)$')
     ax2.set_ylabel(r'$D(\varDelta^2)$')
@@ -214,6 +214,59 @@ def muonium_emtff(n=1, l=0, ml=0):
     l = ax1.legend(prop = { 'size' : 27 }, loc=1)
     fig.patch.set_alpha(0)
     fig.savefig('emtff_muonium.pdf')
+    return
+
+def keplerium_emtff(n=1, l=0, ml=0):
+    dl2 = np.geomspace(1e-12, 0.1, 666)
+    dl = np.sqrt(dl2)
+    H = dwf_hydrogen(n=n, l=l, ml=ml, mN=m_kep, alpha=GN*m_kep**2)
+    # One-body form factors
+    Aq = emtff.AU(dl, wf=H, nff='point', impulse=True)
+    Dq = emtff.DU(dl, wf=H, nff='point', impulse=True)
+    cq = emtff.cU(dl, wf=H, nff='point', impulse=True)
+    # Field form factors
+    field = {
+            'g1' : np.sqrt(4*np.pi*GN)*m_kep,
+            'g2' : np.sqrt(4*np.pi*GN)*m_kep,
+            'mf' : 0,
+            's'  : 2
+            }
+    Ag = emtff.AU(dl, wf=H, nff='point', impulse=False, field=field)
+    Dg = emtff.DU(dl, wf=H, nff='point', impulse=False, field=field)
+    cg = emtff.cU(dl, wf=H, nff='point', impulse=False, field=field)
+    A = Aq + Ag
+    D = Dq + Dg
+    c = cq + cg
+    # Plot
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax1 = plt.subplot(nrows,ncols,1)
+    ax2 = plt.subplot(nrows,ncols,2)
+    ax3 = plt.subplot(nrows,ncols,3)
+    #
+    cf = 1e6
+    #
+    ax1.plot(cf*dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax1.plot(cf*dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax1.plot(cf*dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
+    #
+    ax2.plot(cf*dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax2.plot(cf*dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax2.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
+    #
+    ax3.plot(cf*dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
+    ax3.plot(cf*dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
+    ax3.plot(cf*dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
+    #
+    ax1.set_ylabel(r'$A(\varDelta^2)$')
+    ax2.set_ylabel(r'$D(\varDelta^2)$')
+    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
+    for ax in [ax1,ax2,ax3]:
+        ax.set_xlabel(r'$\varDelta^2$ (MeV$^2$)')
+        ax.set_xscale('log')
+    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+    fig.patch.set_alpha(0)
+    fig.savefig('emtff_keplerium.pdf')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

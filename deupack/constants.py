@@ -15,6 +15,7 @@ me    = 0.00051099895 # electron mass (GeV)
 mN    = 0.93891875569 # averaged nucleon mass [arithmetic mean] (GeV)
 mr    = 0.46945915515 # reduced proton-nuetron mass [half harmonic mean] (GeV)
 Md    = 1.87561294200 # deuteron mass (GeV)
+m_mu  = 0.1056583745  # muon mass (GeV)
 
 # In fm
 mNfm  = mN / hbar
@@ -28,3 +29,6 @@ mu_d  =  0.8574382335  # deuteron magnetic moment (nuclear magnetons)
 Ed    = mp + mn - Md                 # deuteron binding energy (GeV)
 kappa = np.sqrt((2*mN-Md)*mN) / hbar # asymptotic decay length (fm**-1)
 a0    = hbar / (me*alphaQED)         # Bohr radius (fm)
+
+m_kep = (alphaQED*m_mu/GN)**(1/3) # Gravitationally bound particle with this mass
+                                  # will have the same wave function as muonium
