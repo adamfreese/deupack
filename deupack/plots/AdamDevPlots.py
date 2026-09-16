@@ -55,14 +55,17 @@ def cbar_check():
 # Test variational ground state solver
 
 def variational_test():
-    rmax = 4
-    Nmax = 4
+    # Fixed parameters
+    N = 1
+    mu = 0.1
     alpha = 1
-    r = np.linspace(0, rmax, 666)
-    # Lines
+    Nmax = 4
+    # Separation variable
+    r = np.linspace(0, 4, 666)
+    # Lines and colors
     lines = [':', '-.', '--', '-']
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:purple']
-    # Wave functions
+    # Wave function lists
     wf = []
     u = []
     E = []
@@ -70,7 +73,7 @@ def variational_test():
     k = []
     R = []
     for n in range(Nmax):
-        wf += [ vwf_yukawa(N=n+1, alpha=alpha) ]
+        wf += [ vwf_yukawa(N=n+1, alpha=alpha, mN=m, mu=mu) ]
         E  += [ wf[n].E ]
         a  += [ wf[n].a ]
         k  += [ wf[n].kfm*hbar ]
@@ -81,9 +84,9 @@ def variational_test():
         print("*"*80)
         print("N={:d}".format(n+1))
         print("Energy:", E[n])
-        print("Coefficients:", a[n])
         print("Decay:", k[n])
         print("Ratio:", R[n])
+        print("Coefficients:", a[n])
     # Plots
     nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
@@ -91,7 +94,7 @@ def variational_test():
     ax2 = plt.subplot(nrows,ncols,2)
     # Plot wave functions and energy estimates
     for n in range(Nmax):
-        ax1.plot(r, u[n], lines[n], linewidth=2.6, #alpha=0.67,
+        ax1.plot(r, u[n], lines[n], linewidth=2.6,
                  zorder = Nmax-n,
                  color = colors[n],
                  label=r'$N='+"{:d}".format(n+1) + r'$')
@@ -108,165 +111,115 @@ def variational_test():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Check that wave function with Yukawa potential behaves reasonably
+# Some specific three-panel plots
 
-def yukawa_check():
-    dl2 = np.geomspace(1e-5, 100, 666)
-    dl = np.sqrt(dl2)
-    H = vwf_yukawa()
-    # One-body form factors
-    Aq = emtff.AU(dl, wf=H, nff='point', impulse=True)
-    Dq = emtff.DU(dl, wf=H, nff='point', impulse=True)
-    cq = emtff.cU(dl, wf=H, nff='point', impulse=True)
-    # Field form factors
-    field = {
-            'g1' : np.sqrt(4*np.pi*H.alpha),
-            'g2' : np.sqrt(4*np.pi*H.alpha),
-            'mf' : H.mu,
-            's'  : 0
-            }
-    Ag = emtff.AU(dl, wf=H, nff='point', impulse=False, field=field)
-    Dg = emtff.DU(dl, wf=H, nff='point', impulse=False, field=field)
-    cg = emtff.cU(dl, wf=H, nff='point', impulse=False, field=field)
-    A = Aq + Ag
-    D = Dq + Dg
-    c = cq + cg
-    nrows,ncols=1,3
-    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
-    ax1 = plt.subplot(nrows,ncols,1)
-    ax2 = plt.subplot(nrows,ncols,2)
-    ax3 = plt.subplot(nrows,ncols,3)
-    #
-    ax1.plot(dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax1.plot(dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax1.plot(dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax2.plot(dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax2.plot(dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax2.plot(dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax3.plot(dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax3.plot(dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax3.plot(dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax1.set_ylabel(r'$A(\varDelta^2)$')
-    ax2.set_ylabel(r'$D(\varDelta^2)$')
-    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
-    for ax in [ax1,ax2,ax3]:
-        ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
-        ax.set_xscale('log')
-    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
-    fig.patch.set_alpha(0)
-    fig.savefig('yukawa_emtff.pdf')
-    return
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# EMT-FFs for muonium and keplerium
-
-def muonium_emtff(n=1, l=0, ml=0):
+def mff_muonium():
     dl2 = np.geomspace(1e-12, 0.1, 666)
-    dl = np.sqrt(dl2)
-    H = dwf_hydrogen(n=n, l=l, ml=ml)
-    # One-body form factors
-    Aq = emtff.AU(dl, wf=H, nff='point', impulse=True)
-    Dq = emtff.DU(dl, wf=H, nff='point', impulse=True)
-    cq = emtff.cU(dl, wf=H, nff='point', impulse=True)
-    # Field form factors
+    wf = dwf_hydrogen(n=1, l=0, ml=0)
     field = {
-            'g1' : -np.sqrt(4*np.pi*H.alpha),
-            'g2' : np.sqrt(4*np.pi*H.alpha),
+            'g1' : -np.sqrt(4*np.pi*alphaQED),
+            'g2' :  np.sqrt(4*np.pi*alphaQED),
             'mf' : 0,
             's'  : 1
             }
-    Ag = emtff.AU(dl, wf=H, nff='point', impulse=False, field=field)
-    Dg = emtff.DU(dl, wf=H, nff='point', impulse=False, field=field)
-    cg = emtff.cU(dl, wf=H, nff='point', impulse=False, field=field)
-    A = Aq + Ag
-    D = Dq + Dg
-    c = cq + cg
-    # Plot
-    nrows,ncols=1,3
-    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
-    ax1 = plt.subplot(nrows,ncols,1)
-    ax2 = plt.subplot(nrows,ncols,2)
-    ax3 = plt.subplot(nrows,ncols,3)
-    #
-    cf = 1e6
-    #
-    ax1.plot(cf*dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax1.plot(cf*dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax1.plot(cf*dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax2.plot(cf*dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax2.plot(cf*dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax2.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax3.plot(cf*dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax3.plot(cf*dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax3.plot(cf*dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax1.set_ylabel(r'$A(\varDelta^2)$')
-    ax2.set_ylabel(r'$D(\varDelta^2)$')
-    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
-    for ax in [ax1,ax2,ax3]:
-        ax.set_xlabel(r'$\varDelta^2$ (MeV$^2$)')
-        ax.set_xscale('log')
-    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
-    fig.patch.set_alpha(0)
-    fig.savefig('emtff_muonium.pdf')
+    fig = _mff_3panel(wf, field, dl2, units='MeV')
+    fig.savefig('mff_muonium.pdf')
     return
 
-def keplerium_emtff(n=1, l=0, ml=0):
+def mff_keplerium():
     dl2 = np.geomspace(1e-12, 0.1, 666)
-    dl = np.sqrt(dl2)
-    H = dwf_hydrogen(n=n, l=l, ml=ml, mN=m_kep, alpha=GN*m_kep**2)
-    # One-body form factors
-    Aq = emtff.AU(dl, wf=H, nff='point', impulse=True)
-    Dq = emtff.DU(dl, wf=H, nff='point', impulse=True)
-    cq = emtff.cU(dl, wf=H, nff='point', impulse=True)
-    # Field form factors
+    wf = dwf_hydrogen(n=1, l=0, ml=0, mN=m_kep, alpha=GN*m_kep**2)
     field = {
             'g1' : np.sqrt(4*np.pi*GN)*m_kep,
             'g2' : np.sqrt(4*np.pi*GN)*m_kep,
             'mf' : 0,
             's'  : 2
             }
-    Ag = emtff.AU(dl, wf=H, nff='point', impulse=False, field=field)
-    Dg = emtff.DU(dl, wf=H, nff='point', impulse=False, field=field)
-    cg = emtff.cU(dl, wf=H, nff='point', impulse=False, field=field)
-    A = Aq + Ag
-    D = Dq + Dg
-    c = cq + cg
-    # Plot
-    nrows,ncols=1,3
+    fig = _mff_3panel(wf, field, dl2, units='MeV')
+    fig.savefig('mff_keplerium.pdf')
+    return
+
+def mff_yukawa_zero():
+    dl2 = np.geomspace(1e-4, 1000, 666)
+    wf = vwf_yukawa(N=3, mu=0.1, alpha=1, mN=1)
+    field = {
+            'g1' : np.sqrt(4*np.pi),
+            'g2' : np.sqrt(4*np.pi),
+            'mf' : 0.1,
+            's'  : 0
+            }
+    fig = _mff_3panel(wf, field, dl2, units='GeV')
+    fig.savefig('mff_yukawa_zero.pdf')
+    return
+
+#  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Yukawa two-panel D comparison
+
+def mff_yukawa_D():
+    # Field mass values
+    N_mu = 4
+    muse = [0.01, 0.04, 0.07, 0.1]
+    # Lines and colors
+    lines = [':', '-.', '--', '-']
+    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:purple']
+    # Fixed parameters
+    m = 1
+    alpha = 1
+    g = np.sqrt(4*np.pi*alpha)
+    # Momentum transfer array
+    dl2 = np.geomspace(1e-4, 1000, 666)
+    dl = np.sqrt(dl2)
+    # Arrays of D form factors
+    D0 = []
+    D1 = []
+    # Create the fields, wave functions and D-terms
+    for n in range(N_mu): 
+        wf = vwf_yukawa(N=3, alpha=alpha, mN=m, mu=muse[n])
+        D0 += [
+                emtff.DU(dl, wf=wf, nff='point', impulse=True,
+                         field={ 'g1': g, 'g2': g, 'mf': muse[n], 's': 0}
+                         )
+                ]
+        D1 += [
+                emtff.DU(dl, wf=wf, nff='point', impulse=True,
+                         field={ 'g1': g, 'g2': -g, 'mf': muse[n], 's': 1}
+                         )
+                ]
+    # Set up canvas
+    nrows,ncols=1,2
     fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
-    ax1 = plt.subplot(nrows,ncols,1)
-    ax2 = plt.subplot(nrows,ncols,2)
-    ax3 = plt.subplot(nrows,ncols,3)
-    #
-    cf = 1e6
-    #
-    ax1.plot(cf*dl2, A,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax1.plot(cf*dl2, Aq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax1.plot(cf*dl2, Ag, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax2.plot(cf*dl2, D,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax2.plot(cf*dl2, Dq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax2.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax3.plot(cf*dl2, c,  '-',  linewidth=2.6, color='black',      label=r'Total')
-    ax3.plot(cf*dl2, cq, '--', linewidth=2.6, color='tab:blue',   label=r'Particle')
-    ax3.plot(cf*dl2, cg, ':',  linewidth=2.6, color='tab:orange', label=r'Field')
-    #
-    ax1.set_ylabel(r'$A(\varDelta^2)$')
-    ax2.set_ylabel(r'$D(\varDelta^2)$')
-    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
-    for ax in [ax1,ax2,ax3]:
-        ax.set_xlabel(r'$\varDelta^2$ (MeV$^2$)')
+    ax0 = plt.subplot(nrows,ncols,1)
+    ax1 = plt.subplot(nrows,ncols,2)
+    # Plot D form factors
+    for n in range(N_mu):
+        ax0.plot(dl2, D0[n], lines[n], linewidth=2.6,
+                 color = colors[n],
+                 zorder = N_mu-n,
+                 label = r'$\mu = '+'{:d}'.format(int(1000*muse[n]))+r'$~MeV'
+                 )
+        ax1.plot(dl2, D1[n], lines[n], linewidth=2.6,
+                 color = colors[n],
+                 zorder = N_mu-n,
+                 label = r'$\mu = '+'{:d}'.format(int(1000*muse[n]))+r'$~MeV'
+                 )
+    # Finish up plot
+    for ax in [ax0,ax1]:
+        ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
         ax.set_xscale('log')
-    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+        ax.set_ylabel(r'$D(\varDelta^2)$')
+    l = ax0.legend(prop = { 'size' : 27 }, loc=4)
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='darkgray', boxstyle='round,pad=0.2')
+    ax0.annotate(
+            r'\textbf{Spin-zero}', xy=(0.04,0.067), xycoords='axes fraction',
+            bbox=bbox
+            )
+    ax1.annotate(
+            r'\textbf{Spin-one}', xy=(0.04,0.067), xycoords='axes fraction',
+            bbox=bbox
+            )
+    l.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
-    fig.savefig('emtff_keplerium.pdf')
+    fig.savefig('mff_yukawa_D.pdf')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -324,7 +277,7 @@ def auxtest():
     ax1.set_ylabel(r'$\zeta \, \Phi(\zeta,\omega,\delta)$')
     legend = ax1.legend(prop = { 'size' : 26 }, loc=1)
     legend.get_frame().set_facecolor('#f8f8f8')
-    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.2')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='darkgray', boxstyle='round,pad=0.2')
     ax1.annotate(
             r'$\omega=0$, $\delta=0$', xy=(0.65,0.07), xycoords='axes fraction',
             bbox=bbox
@@ -343,17 +296,53 @@ def auxtest():
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Normalization test
+# Under the hood stuff for three-panel MFF plots
 
-def _norm_test_intd(r, dwf):
-    return dwf.u(r)**2
+def _mff_3panel(wf, field,
+                dl2,
+                units = 'GeV',
+                ):
+    # Deal with unit conversions if needed
+    cf = 1
+    if(units=='MeV'):
+        cf = 1e6
+    # Form factors
+    dl = np.sqrt(dl2)
+    Aq = emtff.AU(dl, wf=wf, nff='point', impulse=True)
+    Dq = emtff.DU(dl, wf=wf, nff='point', impulse=True)
+    cq = emtff.cU(dl, wf=wf, nff='point', impulse=True)
+    Ag = emtff.AU(dl, wf=wf, nff='point', impulse=False, field=field)
+    Dg = emtff.DU(dl, wf=wf, nff='point', impulse=False, field=field)
+    cg = emtff.cU(dl, wf=wf, nff='point', impulse=False, field=field)
+    A = Aq + Ag
+    D = Dq + Dg
+    c = cq + cg
+    # Set up canvas
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax1 = plt.subplot(nrows,ncols,1)
+    ax2 = plt.subplot(nrows,ncols,2)
+    ax3 = plt.subplot(nrows,ncols,3)
+    # Plot the form factors
+    _mff_single_panel(ax1, cf*dl2, A, Aq, Ag)
+    _mff_single_panel(ax2, cf*dl2, D, Dq, Dg)
+    _mff_single_panel(ax3, cf*dl2, c, cq, cg)
+    # Finish up plot
+    ax1.set_ylabel(r'$A(\varDelta^2)$')
+    ax2.set_ylabel(r'$D(\varDelta^2)$')
+    ax3.set_ylabel(r'$\bar{c}(\varDelta^2)$')
+    for ax in [ax1,ax2,ax3]:
+        ax.set_xlabel(r'$\varDelta^2$ ('+units+r'$^2$)')
+        ax.set_xscale('log')
+    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+    l.get_frame().set_facecolor('#f8f8f8')
+    fig.patch.set_alpha(0)
+    return fig
 
-def muonium_norm_test(n=1, l=0, ml=0):
-    H = dwf_hydrogen(n=n, l=l, ml=ml)
-    norm = quad(_norm_test_intd, 0, H.rmax, args=(H,))[0]
-    #norm_B = quad(_norm_test_intd, H.n**2/H.kappa, np.inf, args=(H,))[0]
-    #norm = norm_A + norm_B
-    print("Normalization: {:.3f}".format(norm))
+def _mff_single_panel(ax, dl2, F, Fq, Fg):
+    ax.plot(dl2, F,  '-',  linewidth=2.6, color='black',     zorder=1, label=r'Total')
+    ax.plot(dl2, Fq, '--', linewidth=2.6, color='tab:blue',  zorder=2, label=r'Particle')
+    ax.plot(dl2, Fg, '-.', linewidth=2.6, color='tab:orange',zorder=3, label=r'Field')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
