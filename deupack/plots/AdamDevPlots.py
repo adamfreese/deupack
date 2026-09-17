@@ -120,7 +120,7 @@ def mff_muonium():
     field = {
             'g1' : -np.sqrt(4*np.pi*alphaQED),
             'g2' :  np.sqrt(4*np.pi*alphaQED),
-            'mf' : 0,
+            'mu' : 0,
             's'  : 1
             }
     fig = _mff_3panel(wf, field, dl2, units='MeV')
@@ -133,7 +133,7 @@ def mff_keplerium():
     field = {
             'g1' : np.sqrt(4*np.pi*GN)*m_kep,
             'g2' : np.sqrt(4*np.pi*GN)*m_kep,
-            'mf' : 0,
+            'mu' : 0,
             's'  : 2
             }
     fig = _mff_3panel(wf, field, dl2, units='MeV')
@@ -146,7 +146,7 @@ def mff_yukawa_zero():
     field = {
             'g1' : np.sqrt(4*np.pi),
             'g2' : np.sqrt(4*np.pi),
-            'mf' : 0.1,
+            'mu' : 0.1,
             's'  : 0
             }
     fig = _mff_3panel(wf, field, dl2, units='GeV')
@@ -178,12 +178,12 @@ def mff_yukawa_D():
         wf = vwf_yukawa(N=3, alpha=alpha, mN=m, mu=muse[n])
         D0 += [
                 emtff.DU(dl, wf=wf, nff='point', impulse=True,
-                         field={ 'g1': g, 'g2': g, 'mf': muse[n], 's': 0}
+                         field={ 'g1': g, 'g2': g, 'mu': muse[n], 's': 0}
                          )
                 ]
         D1 += [
                 emtff.DU(dl, wf=wf, nff='point', impulse=True,
-                         field={ 'g1': g, 'g2': -g, 'mf': muse[n], 's': 1}
+                         field={ 'g1': g, 'g2': -g, 'mu': muse[n], 's': 1}
                          )
                 ]
     # Set up canvas
@@ -266,19 +266,19 @@ def _multi_D_panel(
     field_yk = {
             'g1' : np.sqrt(4*np.pi),
             'g2' : np.sqrt(4*np.pi),
-            'mf' : mu,
+            'mu' : mu,
             's'  : 0
             }
     field_em = {
             'g1' : np.sqrt(4*np.pi*alphaQED),
             'g2' : np.sqrt(4*np.pi*alphaQED),
-            'mf' : 0,
+            'mu' : 0,
             's'  : 1
             }
     field_gr = {
             'g1' : np.sqrt(4*np.pi*GN)*m,
             'g2' : np.sqrt(4*np.pi*GN)*m,
-            'mf' : 0,
+            'mu' : 0,
             's'  : 2
             }
     # Calculate the form factors
@@ -450,7 +450,7 @@ def forward_test(mu):
     field = {
             'g1' : np.sqrt(4*np.pi*H.alpha),
             'g2' : np.sqrt(4*np.pi*H.alpha),
-            'mf' : H.mu,
+            'mu' : H.mu,
             's'  : 0
             }
     D0_numi = emtff.DU(1e-3, wf=H, nff='point', impulse=False, field=field)

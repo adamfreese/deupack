@@ -23,7 +23,7 @@ from .impulse import regulate_zero # maybe put in a common utils.py file
 # Assume electrostatic attraction by default
 _g1_default = -np.sqrt(4*np.pi*alphaQED)
 _g2_default =  np.sqrt(4*np.pi*alphaQED)
-_mf_default = 0
+_mu_default = 0
 _s_default  = 1
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,56 +36,104 @@ def DU(k, dwf, field):
     # Get field interaction parameters
     g1 = field.get('g1', _g1_default)
     g2 = field.get('g2', _g2_default)
-    mf = field.get('mf', _mf_default)
+    mu = field.get('mu', _mu_default)
     s  = field.get('s',  _s_default)
-    integral = quad_vec(_DU_integrand, 0, np.inf,
-                        args=(k, dwf, g1, g2, mf),
-                        workers=8
-                        )[0]
-    return integral * (-1)**s
+    # Break into small- and large-k regions to deal with instability in former
+    if(np.isscalar(k)):
+        k = np.array([k])
+    k0 = 2*dwf.mN*abs(g1*g2)/16 * 1e-4 # determined by trial and error
+    k_smol = k[k < k0]
+    k_beeg = k[k >= k0]
+    D = np.zeros(k.shape)
+    if(mu==0):
+        D[k < k0] = _DU_massless_smolk(k_smol, dwf, g1, g2, s)
+    else:
+        D[k < k0] = _DU_massive_zero(dwf, g1, g2, mu, s)
+    D[k >= k0] = _DU_exact(k_beeg, dwf, g1, g2, mu, s)
+    return D
 
 def cU(k, dwf, field):
     k = regulate_zero(k) # avoid division by zero
     g1 = field.get('g1', _g1_default)
     g2 = field.get('g2', _g2_default)
-    mf = field.get('mf', _mf_default)
+    mu = field.get('mu', _mu_default)
     s  = field.get('s',  _s_default)
     integral = quad_vec(_cU_integrand, 0, np.inf,
-                        args=(k, dwf, g1, g2, mf),
+                        args=(k, dwf, g1, g2, mu),
                         workers=8
                         )[0]
     return integral * (-1)**s
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Under-the-hood implementation details for the EMTFFs: Integrands
+# Under-the-hood details for the EMT-FFs: special cases and foward limits
+
+def _DU_exact(k, dwf, g1, g2, mu, s):
+    integral = quad_vec(_DU_integrand, 0, np.inf,
+                        args=(k, dwf, g1, g2, mu),
+                        workers=8
+                        )[0]
+    return integral * (-1)**s
+
+def _DU_massless_smolk(k, dwf, g1, g2, s):
+    common = (-1)**(s+1) * 2*dwf.mN
+    coef = (g1+g2)**2/16
+    integral = quad_vec(_DU0_integrand_massless, 0, np.inf,
+                        args=(dwf,),
+                        workers=8
+                        )[0]
+    finite = -g1*g2*7/(60*np.pi) * integral / hbar
+    return common*(coef/k + finite)
+
+def _DU_massive_zero(dwf, g1, g2, mu, s):
+    common = (-1)**(s+1) * 2*dwf.mN / (4*np.pi)
+    coef = (g1+g2)**2 / 3
+    integral = quad_vec(_DU0_integrand_massive, 0, np.inf,
+                        args=(dwf,mu),
+                        workers=8
+                        )[0]
+    finite = g1*g2*integral / hbar
+    return common*(coef/mu + finite)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Under-the-hood implementation details for the EMTFFs: integrands
 # Parallelization of the integration requires the integrands to be defined
 # as top-level (rather than nested) functions.
 
-def _DU_integrand(r, k, dwf, g1, g2, mf):
+def _DU_integrand(r, k, dwf, g1, g2, mu):
     kfm = k/hbar
     z = kfm*r/2
-    w = 4*mf**2/k**2
+    w = 4*mu**2/k**2
     intd_self = -dwf.mN*(g1**2 + g2**2)/(4*np.pi*k)*(
-            (1-w)*np.arctan2(0.5*k,mf) + np.sqrt(w)
+            (1-w)*np.arctan2(0.5*k,mu) + np.sqrt(w)
             ) * dwf.u(r)**2 * jn(0,z)
     intd_cross = -2*dwf.mNfm*g1*g2/(4*np.pi*kfm**2)*(
             kfm*(1-w)*Phi(z,w,0)/2
             +
             2*(
-                6*(1+mf*r/hbar)*jn(1,kfm*r/2)/(kfm*r)
+                6*(1+mu*r/hbar)*jn(1,kfm*r/2)/(kfm*r)
                 -
                 jn(0,kfm*r/2)
-                ) * np.exp(-mf*r/hbar) / r
+                ) * np.exp(-mu*r/hbar) / r
             ) * dwf.u(r)**2
     intd = intd_self + intd_cross
     return intd
 
-def _cU_integrand(r, k, dwf, g1, g2, mf):
+def _cU_integrand(r, k, dwf, g1, g2, mu):
     kfm = k/hbar
     intd = g1*g2/(4*np.pi*dwf.mNfm*kfm)* dwf.u(r)**2 * (
-            (1+mf*r/hbar)*np.exp(-mf*r/hbar)/r**2 * jn(1,kfm*r/2)
+            (1+mu*r/hbar)*np.exp(-mu*r/hbar)/r**2 * jn(1,kfm*r/2)
             )
     return intd
+
+# Forward limit integrands ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _DU0_integrand_massless(r, dwf):
+    return r * dwf.u(r)**2
+
+def _DU0_integrand_massive(r, dwf, mu):
+    term1 = r/5 * np.exp(-mu*r/hbar) * (1 - mu*r/hbar/9)
+    term2 = -2/(3*mu/hbar) * (1 - np.exp(-mu*r/hbar))
+    return dwf.u(r)**2 * (term1 + term2)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Auxiliary function
