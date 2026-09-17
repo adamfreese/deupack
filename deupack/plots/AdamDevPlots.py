@@ -10,7 +10,7 @@ from .. import emtff
 from ..constants import hbar, alphaQED, GN, m_kep
 from ..wf.airy import dwf_airy
 from ..wf.hydrogen import dwf_hydrogen
-from ..wf.variational import vwf_cornell, vwf_yukawa
+from ..wf.variational import vwf_cornell, vwf_yukawa, vwf_multifield
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')
 mpl.rc('text',usetex=True)
@@ -57,6 +57,7 @@ def cbar_check():
 def variational_test():
     # Fixed parameters
     N = 1
+    m = 1
     mu = 0.1
     alpha = 1
     Nmax = 4
@@ -73,7 +74,7 @@ def variational_test():
     k = []
     R = []
     for n in range(Nmax):
-        wf += [ vwf_yukawa(N=n+1, alpha=alpha, mN=m, mu=mu) ]
+        wf += [ vwf_multifield(N=n+1, alpha=alpha, mN=m, mu=mu) ]
         E  += [ wf[n].E ]
         a  += [ wf[n].a ]
         k  += [ wf[n].kfm*hbar ]
@@ -152,7 +153,7 @@ def mff_yukawa_zero():
     fig.savefig('mff_yukawa_zero.pdf')
     return
 
-#  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Yukawa two-panel D comparison
 
 def mff_yukawa_D():
@@ -173,7 +174,7 @@ def mff_yukawa_D():
     D0 = []
     D1 = []
     # Create the fields, wave functions and D-terms
-    for n in range(N_mu): 
+    for n in range(N_mu):
         wf = vwf_yukawa(N=3, alpha=alpha, mN=m, mu=muse[n])
         D0 += [
                 emtff.DU(dl, wf=wf, nff='point', impulse=True,
@@ -220,6 +221,87 @@ def mff_yukawa_D():
     l.get_frame().set_facecolor('#f8f8f8')
     fig.patch.set_alpha(0)
     fig.savefig('mff_yukawa_D.pdf')
+    return
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Multifield D-term plot
+
+def multifield_D():
+    # TODO:
+    # - Fix numerical instability at small Delta
+    # - Figure out when gravity actually becomes relevant
+    # Fixed parameters
+    alpha = 1
+    mu = 0.1
+    m = 1
+    # Set up wave function and fields
+    wf = vwf_multifield(N=3, mu=mu, alpha=alpha, mN=m, sign=1)
+    # Get form factors
+    dl2_a = np.geomspace(1e-4, 1000, 666)
+    dl2_b = np.geomspace(1e-11, 1e-4, 666)
+    dl2_c = np.geomspace(1e-69, 1e-61, 666)
+    # Prepare canvas
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax1 = plt.subplot(nrows,ncols,1)
+    ax2 = plt.subplot(nrows,ncols,2)
+    ax3 = plt.subplot(nrows,ncols,3)
+    # Plot the three panels
+    _multi_D_panel(dl2_a, wf, ax1, m=m, mu=mu, units='GeV')
+    _multi_D_panel(dl2_b, wf, ax2, m=m, mu=mu, units='MeV')
+    _multi_D_panel(dl2_c, wf, ax3, m=m, mu=mu, units='MeV')
+    # Finish up
+    l = ax1.legend(prop = { 'size' : 27 }, loc=1)
+    l.get_frame().set_facecolor('#f8f8f8')
+    fig.patch.set_alpha(0)
+    fig.savefig('mff_multifield.pdf')
+    return
+
+def _multi_D_panel(
+        dl2, wf, ax,
+        m = 1, mu = 0.1,
+        units='GeV'
+        ):
+    # Set up fields
+    field_yk = {
+            'g1' : np.sqrt(4*np.pi),
+            'g2' : np.sqrt(4*np.pi),
+            'mf' : mu,
+            's'  : 0
+            }
+    field_em = {
+            'g1' : np.sqrt(4*np.pi*alphaQED),
+            'g2' : np.sqrt(4*np.pi*alphaQED),
+            'mf' : 0,
+            's'  : 1
+            }
+    field_gr = {
+            'g1' : np.sqrt(4*np.pi*GN)*m,
+            'g2' : np.sqrt(4*np.pi*GN)*m,
+            'mf' : 0,
+            's'  : 2
+            }
+    # Calculate the form factors
+    dl = np.sqrt(dl2)
+    Dn = emtff.DU(dl, wf=wf, nff='point', impulse=True)
+    Dy = 0*dl2#emtff.DU(dl, wf=wf, nff='point', impulse=False, field=field_yk)
+    Dc = 0*dl2#emtff.DU(dl, wf=wf, nff='point', impulse=False, field=field_em)
+    Dg = emtff.DU(dl, wf=wf, nff='point', impulse=False, field=field_gr)
+    D = Dn + Dy + Dc + Dg
+    # Potential conversion
+    cf = 1
+    if(units=='MeV'):
+        cf = 1e6
+    # Plot the form factors
+    ax.plot(cf*dl2, D,  '-',  linewidth=2.6, color='black',      zorder=1, label=r'Total')
+    ax.plot(cf*dl2, Dn, '-',  linewidth=2.6, color='tab:blue',   zorder=2, label=r'Particle')
+    ax.plot(cf*dl2, Dy, '--', linewidth=2.6, color='tab:orange', zorder=3, label=r'Yukawa')
+    ax.plot(cf*dl2, Dc, '-.', linewidth=2.6, color='tab:green',  zorder=4, label=r'Coulomb')
+    ax.plot(cf*dl2, Dg, ':',  linewidth=2.6, color='tab:purple', zorder=5, label=r'Gravity')
+    # Labels
+    ax.set_ylabel(r'$D(\varDelta^2)$')
+    ax.set_xlabel(r'$\varDelta^2$ ('+units+r'$^2$)')
+    ax.set_xscale('log')
     return
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
