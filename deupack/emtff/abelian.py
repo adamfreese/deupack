@@ -38,10 +38,15 @@ def DU(k, dwf, field):
     g2 = field.get('g2', _g2_default)
     mu = field.get('mu', _mu_default)
     s  = field.get('s',  _s_default)
+    # Allow user to provide a breakpoint k0 below which the small-k form shoud
+    # be used. Where the numerics of the exact form break down seems to vary
+    # a lot, and I can only figure it out by trial-and-error on a case-by-case
+    # basis. So It's best to make it a user parameter. But if the user doesn't
+    # provide a breakpoint, set k0=0 and use the exact form everywhere.
+    k0 = field.get('k0', 0)
     # Break into small- and large-k regions to deal with instability in former
     if(np.isscalar(k)):
         k = np.array([k])
-    k0 = 2*dwf.mN*abs(g1*g2)/16 * 1e-4 # determined by trial and error
     k_smol = k[k < k0]
     k_beeg = k[k >= k0]
     D = np.zeros(k.shape)
