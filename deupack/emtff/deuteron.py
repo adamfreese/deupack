@@ -116,12 +116,6 @@ def DU(k,
     if('fields' in kwargs):
         for field in kwargs['fields']:
             result += _abelian.DU(k, dwf=dwf, field=field)
-    #if(interactions.get('string', False)):
-    #    result += _string.DU(k, dwf=dwf)
-    #if(interactions.get('coulomb', False)):
-    #    result += _coulomb.DU(k, dwf=dwf)
-    #if(interactions.get('yukawa', False)):
-    #    result += _yukawa.DU(k, dwf=dwf)
     return result
 
 def DT1(k,
@@ -175,12 +169,6 @@ def cU(k,
     if('fields' in kwargs):
         for field in kwargs['fields']:
             result += _abelian.cU(k, dwf=dwf, field=field)
-    ##if(interactions.get('string', False)):
-    ##    result += _string.cU(k, dwf=dwf)
-    ##if(interactions.get('coulomb', False)):
-    ##    result += _coulomb.cU(k, dwf=dwf)
-    ##if(interactions.get('yukawa', False)):
-    ##    result += _yukawa.cU(k, dwf=dwf)
     return result
 
 def cT1(k,
