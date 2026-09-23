@@ -288,6 +288,7 @@ class Density:
         else:
             self._pol_error(pol)
         return force
+
     def radial_forceSym(self, pol='U'):
         ''' Radial force density, in GeV/fm**4. '''
         if(pol=='U'):
