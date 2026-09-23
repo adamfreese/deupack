@@ -1,5 +1,6 @@
-# density.py
+# density3d.py
 # Created 2025.11.18 by Adam Freese
+# Moved 2026.09.11 to a density folder
 #
 # This file computes mechanical densities for the deuteron.
 
@@ -12,10 +13,10 @@ from scipy.interpolate import CubicSpline
 
 from pathlib import Path
 
-from .constants import mN, hbar
-from .wf.chooser import choose_wf
-from .emtff.nucleon.chooser import choose_nff
-from . import emtff
+from ..constants import hbar
+from ..wf.chooser import choose_wf
+from ..emtff.nucleon.chooser import choose_nff
+from .. import emtff
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density class
@@ -37,15 +38,18 @@ class Density:
                  nb=101,
                  bmax=2,    # fm
                  kmin=1e-6, # GeV
-                 kmax=20    # GeV
+                 kmax=20,   # GeV
+                 **kwargs
                  ):
-        self.wf   = choose_wf(wf)
-        self.nff  = choose_nff(nff)
-        self.nk   = nk
-        self.nb   = nb
-        self.bmax = bmax
-        self.kmin = kmin
-        self.kmax = kmax
+        self.wf     = choose_wf(wf)
+        self.nff    = choose_nff(nff)
+        self.mN     = self.wf.mN
+        self.nk     = nk
+        self.nb     = nb
+        self.bmax   = bmax
+        self.kmin   = kmin
+        self.kmax   = kmax
+        self.kwargs = kwargs
         # Internal initializations of spatial variables and Bessel caches
         self._initialize_space()
         self._initialize_bessel()
@@ -354,13 +358,13 @@ class Density:
         ''' Unpolarized part of mass density; b dependence.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('aU', _massU_integrand, self.AU)
+        return self._bessel_array('aU', _massU_integrand, self.AU, self.mN)
 
     def _mass_bessel_T(self):
         ''' Tensor-polarized part of mass density; b dependence.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('aT', _massT_integrand, self.AT)
+        return self._bessel_array('aT', _massT_integrand, self.AT, self.mN)
 
     def _momentum_bessel(self):
         ''' Momentum density (sans sxb factor).
@@ -378,26 +382,26 @@ class Density:
         ''' The quantity pU, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('pU', _pressureU_integrand, self.DU, self.cU)
+        return self._bessel_array('pU', _pressureU_integrand, self.DU, self.cU, self.mN)
 
     def _pressure_bessel_T1(self):
         ''' The quantity pT1-tilde, defined as a Bessel transform.
         This is from the alternate breakdown that avoids numerical derivatives.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('pT1', _pressureT1_integrand_direct, self.DT1, self.cT1)
+        return self._bessel_array('pT1', _pressureT1_integrand_direct, self.DT1, self.cT1, self.mN)
 
     def _pressure_bessel_T2(self):
         ''' The quantity pT2, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('pT2', _pressureT2_integrand, self.DT2, self.cT2)
+        return self._bessel_array('pT2', _pressureT2_integrand, self.DT2, self.cT2, self.mN)
 
     def _shear_bessel_U(self):
         ''' The quantity sU, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('sU', _shearU_integrand, self.DU)
+        return self._bessel_array('sU', _shearU_integrand, self.DU, self.mN)
 
     def _shear_bessel_T1(self, norder):
         ''' The quantity sT1-tilde, defined as a Bessel transform.
@@ -408,48 +412,48 @@ class Density:
         if(norder!=0 and norder!=2 and norder!=4):
             raise ValueError("norder={:d} not recognized; should be 0, 2 or 4.".format(norder))
         name = 'sT1{:d}'.format(norder)
-        return self._bessel_array(name, _shearT1_integrand_direct, self.DT1, norder)
+        return self._bessel_array(name, _shearT1_integrand_direct, self.DT1, self.mN, norder)
 
     def _shear_bessel_T2(self):
         ''' The quantity sT2, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('sT2', _shearT2_integrand, self.DT2)
+        return self._bessel_array('sT2', _shearT2_integrand, self.DT2, self.mN)
 
     def _shear_bessel_A(self):
         ''' The quantity sA, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('sA', _shearA_integrand, self.sbar)
+        return self._bessel_array('sA', _shearA_integrand, self.sbar, self.mN)
 
     def _force_bessel_0(self):
         ''' The quantity f0, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('f0', _f0_integrand, self.cU)
+        return self._bessel_array('f0', _f0_integrand, self.cU, self.mN)
 
     def _force_bessel_2(self):
         ''' The quantity f2, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('f2', _f2_integrand, self.cT1, self.cT2, self.sbar)
+        return self._bessel_array('f2', _f2_integrand, self.cT1, self.cT2, self.sbar, self.mN)
 
     def _force_bessel_3(self):
         ''' The quantity f3, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('f3', _f3_integrand, self.cT1, self.sbar)
+        return self._bessel_array('f3', _f3_integrand, self.cT1, self.sbar, self.mN)
     def _force_bessel_2sym(self):
         ''' The quantity f2 with only symmetric contributions of EMT, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('f2', _f2_integrandSym, self.cT1, self.cT2)
+        return self._bessel_array('f2', _f2_integrandSym, self.cT1, self.cT2, self.mN)
 
     def _force_bessel_3sym(self):
         ''' The quantity f3 with only symmetric contributions of EMT, defined as a Bessel transform.
         Uses internal spatial variables.
         '''
-        return self._bessel_array('f3', _f3_integrandSym, self.cT1)
+        return self._bessel_array('f3', _f3_integrandSym, self.cT1, self.mN)
 
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -487,29 +491,29 @@ class Density:
         filename = "emtff_table_{}_{}_{:d}_{:.2e}_{:.2e}".format(
                 self.wf.name, self.nff.name, self.nk, self.kmin, self.kmax
                 )
-        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+        path = Path(__file__).parent.parent / 'cache/{}.csv'.format(filename)
         return path
 
     def _cache_path_bessel(self, name):
         filename = "bessel_{}_table_{}_{}_{:d}_{:.2e}".format(
                 name, self.wf.name, self.nff.name, self.nb, self.bmax,
                 )
-        path = Path(__file__).parent / 'cache/{}.npy'.format(filename)
+        path = Path(__file__).parent.parent / 'cache/{}.npy'.format(filename)
         return path
 
     def _init_emtff_table(self, save_table=False):
         k    = np.geomspace(self.kmin, self.kmax, self.nk)
-        AU   = emtff.AU(  k, wf=self.wf, nff=self.nff)
-        AT   = emtff.AT(  k, wf=self.wf, nff=self.nff)
-        DU   = emtff.DU(  k, wf=self.wf, nff=self.nff)
-        DT1  = emtff.DT1( k, wf=self.wf, nff=self.nff)
-        DT2  = emtff.DT2( k, wf=self.wf, nff=self.nff)
-        cU   = emtff.cU(  k, wf=self.wf, nff=self.nff)
-        cT1  = emtff.cT1( k, wf=self.wf, nff=self.nff)
-        cT2  = emtff.cT2( k, wf=self.wf, nff=self.nff)
-        J    = emtff.J(   k, wf=self.wf, nff=self.nff)
-        S    = emtff.S(   k, wf=self.wf, nff=self.nff)
-        sbar = emtff.sbar(k, wf=self.wf, nff=self.nff)
+        AU   = emtff.AU(  k, wf=self.wf, nff=self.nff, **self.kwargs)
+        AT   = emtff.AT(  k, wf=self.wf, nff=self.nff, **self.kwargs)
+        DU   = emtff.DU(  k, wf=self.wf, nff=self.nff, **self.kwargs)
+        DT1  = emtff.DT1( k, wf=self.wf, nff=self.nff, **self.kwargs)
+        DT2  = emtff.DT2( k, wf=self.wf, nff=self.nff, **self.kwargs)
+        cU   = emtff.cU(  k, wf=self.wf, nff=self.nff, **self.kwargs)
+        cT1  = emtff.cT1( k, wf=self.wf, nff=self.nff, **self.kwargs)
+        cT2  = emtff.cT2( k, wf=self.wf, nff=self.nff, **self.kwargs)
+        J    = emtff.J(   k, wf=self.wf, nff=self.nff, **self.kwargs)
+        S    = emtff.S(   k, wf=self.wf, nff=self.nff, **self.kwargs)
+        sbar = emtff.sbar(k, wf=self.wf, nff=self.nff, **self.kwargs)
         if(save_table):
             df = pd.DataFrame(data={
                 'k'    : k,
@@ -576,14 +580,14 @@ class Density:
 # Integrand functions
 # Need to make these separate functions to use quad_vec with workers
 
-def _massU_integrand(k, b, AU):
+def _massU_integrand(k, b, AU, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN
     bessel = jn(0, k*b/hbar)
     form = AU(k)
     return common * unique * bessel * form
 
-def _massT_integrand(k, b, AT):
+def _massT_integrand(k, b, AT, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = k**2/(2*mN)
     bessel = jn(2, k*b/hbar)
@@ -604,14 +608,14 @@ def _flux_integrand(k, b, J, S):
     form = J(k) + S(k)
     return common * unique * bessel * form
 
-def _pressureU_integrand(k, b, DU, cU):
+def _pressureU_integrand(k, b, DU, cU, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
     form = k**2/(12*mN)*DU(k) + 2*mN*cU(k)
     return common * unique * bessel * form
 
-def _pressureT1_integrand(k, b, DT1, cT1):
+def _pressureT1_integrand(k, b, DT1, cT1, mN):
     # NOTE: this is the Polyakov-Sun density, which must be differentiated
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
@@ -619,21 +623,21 @@ def _pressureT1_integrand(k, b, DT1, cT1):
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
 
-def _pressureT2_integrand(k, b, DT2, cT2):
+def _pressureT2_integrand(k, b, DT2, cT2, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(0, k*b/hbar)
     form = k**2/(12*mN)*DT2(k) + 2*mN*cT2(k)
     return common * unique * bessel * form
 
-def _shearU_integrand(k, b, DU):
+def _shearU_integrand(k, b, DU, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
     form = k**2/(8*mN)*DU(k)
     return common * unique * bessel * form
 
-def _shearT1_integrand(k, b, DT1):
+def _shearT1_integrand(k, b, DT1, mN):
     # NOTE: this is the Polyakov-Sun density, which must be differentiated
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
@@ -641,14 +645,14 @@ def _shearT1_integrand(k, b, DT1):
     form = k**2/(8*mN)*DT1(k)
     return common * unique * bessel * form
 
-def _shearT2_integrand(k, b, DT2):
+def _shearT2_integrand(k, b, DT2, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
     form = k**2/(8*mN)*DT2(k)
     return common * unique * bessel * form
 
-def _shearA_integrand(k, b, sbar):
+def _shearA_integrand(k, b, sbar, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -1
     bessel = jn(2, k*b/hbar)
@@ -657,14 +661,14 @@ def _shearA_integrand(k, b, sbar):
 
 # T1 stress integrals for direct use (no differentiation) ~~~~~~~~~~~~~~~~~~~~~~
 
-def _pressureT1_integrand_direct(k, b, DT1, cT1):
+def _pressureT1_integrand_direct(k, b, DT1, cT1, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = -k**2/(8*mN**2)
     bessel = jn(2, k*b/hbar)
     form = k**2/(12*mN)*DT1(k) + 2*mN*cT1(k)
     return common * unique * bessel * form
 
-def _shearT1_integrand_direct(k, b, DT1, norder):
+def _shearT1_integrand_direct(k, b, DT1, mN, norder):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = (-1)**(norder//2) * k**2/(8*mN**2)
     bessel = jn(norder, k*b/hbar)
@@ -673,35 +677,35 @@ def _shearT1_integrand_direct(k, b, DT1, norder):
 
 # Integrands for force distributions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _f0_integrand(k, b, cU):
+def _f0_integrand(k, b, cU, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(1, k*b/hbar)
     form = cU(k)
     return common * unique * bessel * form
 
-def _f2_integrand(k, b, cT1, cT2, sbar):
+def _f2_integrand(k, b, cT1, cT2, sbar, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(1, k*b/hbar)
     form = cT2(k) - k**2/(8*mN**2)*sbar(k) - k**2/(20*mN**2)*(cT1(k)-sbar(k))
     return common * unique * bessel * form
 
-def _f3_integrand(k, b, cT1, sbar):
+def _f3_integrand(k, b, cT1, sbar, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(3, k*b/hbar)
     form = k**2/(8*mN**2)*(cT1(k)-sbar(k))
     return common * unique * bessel * form
 
-def _f2_integrandSym(k, b, cT1, cT2):
+def _f2_integrandSym(k, b, cT1, cT2, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(1, k*b/hbar)
     form = cT2(k)  - k**2/(20*mN**2)*(cT1(k))
     return common * unique * bessel * form
 
-def _f3_integrandSym(k, b, cT1):
+def _f3_integrandSym(k, b, cT1, mN):
     common = k**2/(2*np.pi**2*hbar**3)
     unique = 2*mN*k/hbar # aiming for GeV/fm**4
     bessel = jn(3, k*b/hbar)

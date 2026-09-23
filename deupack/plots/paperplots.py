@@ -11,7 +11,7 @@ import matplotlib.patheffects as pe
 import cmasher as cmr
 
 from .. import emtff
-from ..density import Density
+from ..density.density3d import Density
 from .density3d import multidensity3d
 
 mpl.rc('font',size=30,family='cmr10',weight='normal')

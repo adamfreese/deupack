@@ -12,10 +12,10 @@ from scipy.interpolate import CubicSpline
 
 from pathlib import Path
 
-from .constants import mN, hbar
-from .wf.chooser import choose_wf
-from .emtff.nucleon.chooser import choose_nff
-from . import emtff
+from ..constants import mN, hbar
+from ..wf.chooser import choose_wf
+from ..emtff.nucleon.chooser import choose_nff
+from .. import emtff
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Density class
@@ -72,7 +72,7 @@ class DensityLF:
 
         # spin density matrix
         self.rho= 0.5*(self.I + self.sigma_x*self.Spin[0] +self.sigma_y*self.Spin[1]+self.sigma_z*self.Spin[2] )
-        
+
 
         # Internal initializations of spatial variables and Bessel caches
         self._initialize_space()
@@ -88,21 +88,21 @@ class DensityLF:
 
 
     # 2D density methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
 
     def radial_force(self):
-        ''' Radial force density, in GeV/fm**3. ''' 
+        ''' Radial force density, in GeV/fm**3. '''
         U =np.trace(self.rho).real
         sX =np.trace(np.matmul(self.rho,self.sigma_x)).real
         sY =np.trace(np.matmul(self.rho,self.sigma_y)).real #tracing density matrices with pauli matrices (no sigma_z depedence in force density)
         fU = U*self._force_bessel_U()
         fV0 =self._force_bessel_V0()
         fV2= self._force_bessel_V2()
-        spin_thetaDepend = sX*np.sin(self.phi)-sY*np.cos(self.phi) 
+        spin_thetaDepend = sX*np.sin(self.phi)-sY*np.cos(self.phi)
         f = fU + spin_thetaDepend*(fV0+0.5*fV2)
 
-        return f 
-        
+        return f
+
 
 
     def azimuthal_force(self):
@@ -114,8 +114,8 @@ class DensityLF:
         spin_thetaDepend = sY*np.sin(self.phi)+sX*np.cos(self.phi)
         f = spin_thetaDepend*(fV0-0.5*fV2)
 
-        return f 
-         
+        return f
+
 
     def isoradial_pressure(self):
         ''' Principal stress closest to the radial direction, in GeV/fm**2. '''
@@ -135,7 +135,7 @@ class DensityLF:
     # Principal axes of the symmetric stress tensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def e_plus(self):
-        ''' Returns two 2D numpy arrays, with the Cartesian x, y 
+        ''' Returns two 2D numpy arrays, with the Cartesian x, y
         components of the isoradial principal axis.
         '''
         pr = self.radial_pressure()
@@ -157,7 +157,7 @@ class DensityLF:
         return X1, Y1
 
     def e_minus(self):
-        ''' Returns two 2D numpy arrays, with the Cartesian x, y 
+        ''' Returns two 2D numpy arrays, with the Cartesian x, y
         components of the isoazimuthal principal axis.
         '''
         pr = self.radial_pressure()
@@ -169,13 +169,13 @@ class DensityLF:
         small_s = np.abs(s) < tol
         sgn = np.where(small_s, 1.0, np.sign(s))
 
-        
+
         R  = np.sqrt( 0.5*(1 - (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         Th = np.sqrt( 0.5*(1 + (pr-pt) / np.sqrt((pr-pt)**2 + 4*s**2)) )
         X = (R*np.cos(self.phi) + sgn*Th*np.sin(self.phi))
         Y = (R*np.sin(self.phi) - sgn*Th*np.cos(self.phi))
 
-        
+
         # this makes sure when spin along z that we have principal stresses along right directions
         X1 = np.where(small_s, np.sin(self.phi), X)
         Y1 = np.where(small_s, -np.cos(self.phi), Y)
@@ -187,17 +187,17 @@ class DensityLF:
 
 
     #2D density methods
-    # 
+    #
     def radial_pressure(self):
         ''' Radial pressure in GeV/fm**2. '''
         U =np.trace(self.rho).real
         sX =np.trace(np.matmul(self.rho,self.sigma_x)).real
         sY =np.trace(np.matmul(self.rho,self.sigma_y)).real #tracing density matrices with pauli matrices (no sigma_z depedence in pressure density)
-        
+
         pV =self._pressure_bessel_V()
         sV= self._shear_bessel_V()
         sV3= self._shear_bessel_V3()
-        spin_thetaDepend = sX*np.sin(self.phi)-sY*np.cos(self.phi) 
+        spin_thetaDepend = sX*np.sin(self.phi)-sY*np.cos(self.phi)
         pU =U*(self._pressure_bessel_U() + 1/2*self._shear_bessel_U())
 
         pVec = 0.25*(4*pV+8*sV+sV3)*spin_thetaDepend
@@ -211,10 +211,10 @@ class DensityLF:
         U =np.trace(self.rho).real
         sX =np.trace(np.matmul(self.rho,self.sigma_x)).real
         sY =np.trace(np.matmul(self.rho,self.sigma_y)).real #tracing density matrices with pauli matrices (no sigma_z depedence in pressure density)
-        
+
         pV =self._pressure_bessel_V()
         sV3= self._shear_bessel_V3()
-        spin_thetaDepend = sX*np.sin(self.phi)-sY*np.cos(self.phi) 
+        spin_thetaDepend = sX*np.sin(self.phi)-sY*np.cos(self.phi)
         pU =U*(self._pressure_bessel_U() - 1/2*self._shear_bessel_U())
 
         pVec = 0.25*(4*pV-sV3)*spin_thetaDepend
@@ -222,23 +222,23 @@ class DensityLF:
 
         p=pU+pVec
         return p
-    
+
     def symmetric_shear(self):
         ''' Lateral pressure in GeV/fm**2. '''
         sX =np.trace(np.matmul(self.rho,self.sigma_x)).real
         sY =np.trace(np.matmul(self.rho,self.sigma_y)).real #tracing density matrices with pauli matrices (no sigma_z depedence in pressure density)
-        
+
         sV= self._shear_bessel_V()
         sV3= self._shear_bessel_V3()
-        spin_thetaDepend = sX*np.cos(self.phi)+sY*np.sin(self.phi) 
+        spin_thetaDepend = sX*np.cos(self.phi)+sY*np.sin(self.phi)
 
         pVec = 0.25*(4*sV-sV3)*spin_thetaDepend
 
 
         p=pVec
         return p
- 
- 
+
+
 
 
     # Hankel transforms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -255,7 +255,7 @@ class DensityLF:
         '''
         return self._bessel_array('sU', _shearU_integrand, self.P, self.D)
 
-    
+
     def _pressure_bessel_V(self):
         ''' The quantity pV, defined as a Hankel transform.
         Uses internal spatial variables.
@@ -267,13 +267,13 @@ class DensityLF:
         Uses internal spatial variables.
         '''
         return self._bessel_array('sU', _shearU_integrand, self.P, self.D)
-    
+
     def _shear_bessel_V(self):
         ''' The quantity sV, defined as a Hankel transform.
         Uses internal spatial variables.
         '''
         return self._bessel_array('sV', _shearV_integrand, self.P, self.D)
-    
+
     def _shear_bessel_V3(self):
         ''' The quantity sV3, defined as a Hankel transform.
         Uses internal spatial variables.
@@ -285,21 +285,21 @@ class DensityLF:
         Uses internal spatial variables.
         '''
         return self._bessel_array('fU', _fU_integrand, self.P, self.c)
-    
+
     def _force_bessel_V0(self):
         ''' The quantity f_V0, defined as a Hankel transform.
         Uses internal spatial variables.
         '''
         return self._bessel_array('fV0', _f0_integrand, self.P, self.c)
 
-    
+
     def _force_bessel_V2(self):
         ''' The quantity f_V2, defined as a Hankel transform.
         Uses internal spatial variables.
         '''
         return self._bessel_array('fV2', _f2_integrand, self.P, self.c)
 
-    
+
     # Internal methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _initialize_space(self):
@@ -310,7 +310,7 @@ class DensityLF:
         self.phi = np.arctan2(y, x)
         self.x = b # a 1D array to grab for making plots
         return
- 
+
     def _initialize_bessel(self):
         ''' Initialize a dict to contain cached Hankel transform arrays. '''
         self.bessel_cache = {}
@@ -331,19 +331,19 @@ class DensityLF:
                 np.save(path, self.bessel_cache[name])
         return self.bessel_cache[name]
 
-    
+
     def _cache_path(self):
         filename = "Nucleon_emtff_table_{}_{:d}_{:.2e}_{:.2e}".format(
          self.nff.name, self.nk, self.kmin, self.kmax
         )
-        path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
+        path = Path(__file__).parent.parent / 'cache/{}.csv'.format(filename)
         return path
 
     def _cache_path_bessel(self, name):
         filename = "besselRegular_{}_table_{}_{:d}_{:.2e}".format(
                 name, self.nff.name, self.nb, self.bmax
                 )
-        path = Path(__file__).parent / 'cache/{}.npy'.format(filename)
+        path = Path(__file__).parent.parent / 'cache/{}.npy'.format(filename)
         return path
 
     def _init_emtff_table(self, save_table=False):
