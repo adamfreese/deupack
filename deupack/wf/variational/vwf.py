@@ -25,7 +25,7 @@ class _VARWF(DWF):
     def __init__(self,
                  mN   = 1, # constituent mass (GeV)
                  N    = 4, # number of parameters to use (integer, >0)
-                 name = ''
+                 name = 'variational'
                  ):
         super().__init__()
         # Internal parameters

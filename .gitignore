@@ -14,7 +14,6 @@ dist/
 setuptools
 _skbuild/
 **/nucleonGFFs.pickle
-.vscode
 
 # Numpy output
 *.npy

@@ -20,10 +20,9 @@ class _VARWF_EXP(_VARWF):
 
     def __init__(self,
                  mN = 1, # constituent mass (GeV)
-                 N  = 4, # number of terms in the variational approximation
-                 name = ''
+                 N  = 4  # number of terms in the variational approximation
                  ):
-        super().__init__(mN=mN, N=N, name=name)
+        super().__init__(mN=mN, N=N)
         self.bounds[-1] = (1e-4, 11) # do not allow negative decay rate
         # Call the ground state solver in a derived class!
         #self.solve()
@@ -93,12 +92,11 @@ class _VARWF_EXP(_VARWF):
 class _VARWF_EXP_FIXED(_VARWF):
 
     def __init__(self,
-                 mN = 1,   # constituent mass (GeV)
-                 N  = 4,   # number of terms in the variational approximation
-                 k  = 0.1, # exponential decay rate (GeV)
-                 name = ''
+                 mN = 1, # constituent mass (GeV)
+                 N  = 4, # number of terms in the variational approximation
+                 k  = 0.1 # exponential decay rate (GeV)
                  ):
-        super().__init__(mN=mN, N=N, name=name)
+        super().__init__(mN=mN, N=N)
         self.kfm = k / hbar
         # Call the ground state solver in a derived class!
         #self.solve()
@@ -173,12 +171,11 @@ class _dummy_yukawa(_VARWF_EXP):
                  mN    = 1,   # constituent mass (GeV)
                  N     = 4,   # number of terms in the variational approximation
                  mu    = 0.1, # screening parameters
-                 alpha = 1,   # interaction strength
-                 name  = ''
+                 alpha = 1    # interaction strength
                  ):
         self.mu = mu
         self.alpha = alpha
-        super().__init__(mN=mN, N=N, name=name)
+        super().__init__(mN=mN, N=N)
         self.solve()
         return
 
@@ -198,13 +195,12 @@ class vwf_yukawa(_VARWF_EXP_FIXED):
                  mN    = 1,   # constituent mass (GeV)
                  N     = 4,   # number of terms in the variational approximation
                  mu    = 0.1, # screening parameters
-                 alpha = 1,   # interaction strength
-                 name  = ''
+                 alpha = 1    # interaction strength
                  ):
         self.mu = mu
         self.alpha = alpha
         # First, allow decay parameter to float. Get the ground state energy.
-        _dummy = _dummy_yukawa(mN=mN, N=N+1, mu=mu, alpha=alpha, name=name)
+        _dummy = _dummy_yukawa(mN=mN, N=N+1, mu=mu, alpha=alpha)
         k = np.sqrt(-mN*_dummy.E)
         # Set up a fixed-decay form
         super().__init__(mN=mN, N=N, k=k)

@@ -1,3 +1,3 @@
-from . import tests as tests
+from . import AdamDevPlots as adp2
 
 from .paperplots import *
