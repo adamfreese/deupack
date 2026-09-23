@@ -23,10 +23,11 @@ class _VARWF_ASY(_VARWF):
     def __init__(self,
                  mN    = 1.4, # constituent mass (GeV)
                  N     = 4,   # number of terms in the variational approximation
-                 rbig  = 1e5  # estimate of when r is big enough for asymptotic
+                 rbig  = 1e5, # estimate of when r is big enough for asymptotic
                               # form to take over
+                 name  = ''
                  ):
-        super().__init__(mN=mN, N=N)
+        super().__init__(mN=mN, N=N, name=name)
         # Internal parameters
         self.n_asy = (
                 np.log( self._Vfun(rbig*2)
@@ -116,12 +117,13 @@ class vwf_cornell(_VARWF_ASY):
                  N     = 4,   # number of terms in the variational approximation
                  sigma = 0.136, # QCD string tension (GeV**2)
                  alpha = 0.472, # 4/3 * alphaQCD at dressed charm mass
+                 name  = ''
                  ):
         # Internal parameters
         self.sigma = sigma
         self.alpha = alpha
         # Base class initialization
-        super().__init__(mN=mN, N=N)
+        super().__init__(mN=mN, N=N, name=name)
         # Override _VARWF_ASY parameters with exact values
         self.n_asy = 1
         self.Vnfm = sigma / hbar**2

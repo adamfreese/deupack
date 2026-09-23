@@ -21,12 +21,13 @@ class _dummy_multifield(_VARWF_EXP):
                  N     = 4,   # number of terms in the variational approximation
                  mu    = 0.1, # screening parameter
                  alpha = 1,   # Yukawa interaction strength
-                 sign  = 1    # relative sign of charges
+                 sign  = 1,   # relative sign of charges
+                 name  = ''
                  ):
         self.mu = mu
         self.alpha = alpha
         self.sign = sign
-        super().__init__(mN=mN, N=N)
+        super().__init__(mN=mN, N=N, name=name)
         self.solve()
         return
 
@@ -50,13 +51,14 @@ class vwf_multifield(_VARWF_EXP_FIXED):
                  N     = 4,   # number of terms in the variational approximation
                  mu    = 0.1, # screening parameter
                  alpha = 1,   # Yukawa interaction strength
-                 sign  = 1    # relative sign of charges
+                 sign  = 1,   # relative sign of charges
+                 name  = ''
                  ):
         self.mu = mu
         self.alpha = alpha
         self.sign = sign
         # First, allow decay parameter to float. Get the ground state energy.
-        _dummy = _dummy_multifield(mN=mN, N=N+1, mu=mu, alpha=alpha, sign=sign)
+        _dummy = _dummy_multifield(mN=mN, N=N+1, mu=mu, alpha=alpha, sign=sign, name=name)
         k = np.sqrt(-mN*_dummy.E)
         # Set up a fixed-decay form
         super().__init__(mN=mN, N=N, k=k)
