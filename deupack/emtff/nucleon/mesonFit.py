@@ -130,8 +130,8 @@ def ThetaP(mt,theta_p):
     return num/den
 
 
-# new scalar form factor we do not use this for fits (only slightly improves fits)
 def newThetaP(mt,theta_p,c2theta):
+    '''new scalar form factor we do not use this for fits (only slightly improves fits)'''
     t=-mt
     num = mN*theta_p+ c2theta*t
     den = (1-t/mf0**2) * (1-t/msigma**2)*(1-t/mf0p**2)
@@ -142,7 +142,6 @@ def newThetaP(mt,theta_p,c2theta):
 
 
 def cbar(mt,c_0):
-    ''' See Eq. (50) of Broniowski:2025ctl '''
     t=-mt
     num = c_0
     den = (1-t/mf0**2) * (1-t/msigma**2)

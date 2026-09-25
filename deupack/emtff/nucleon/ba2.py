@@ -13,7 +13,7 @@ from .nff import *
         Masjuan:2012sk
     Editted to have separation between quarks and gluons
     quark gluon separated functions by Adam Freese
-    For cbar form factor using the D2 scheme
+    For cbar form factor using different D schemes
 '''
 
 
@@ -99,10 +99,6 @@ cJ     = 0.87 # central value for set I, see Eq. (52)
 # cJ     = 1.12 # central value for set II, see Eq. (52)
 
 
-# depends on scheme (already divided by mass)
-theta_q = 0.08
-theta_g= 0.92
-
 
 
 
@@ -128,11 +124,24 @@ c2g = c2 -c2q
 cAg = cA -cAq
 cJg= cJ - cJq
 
+# D1 scheme (already divided by mass)
+theta_qD1 = 0.08
+theta_gD1= 0.92
 
+
+
+# D2 scheme (already divided by mass)
+theta_qD2 = 0.08
+theta_gD2= 0.92
+
+
+#In D1 scheme
+c_0qD1 = (theta_qD1 -A0q)/4.
+c_0gD1 = -c_0qD1
 
 #In D2 scheme
-c_0q = (theta_q -A0q)/4.
-c_0g = -c_0q
+c_0qD2 = (theta_qD2 -A0q)/4.
+c_0gD2 = -c_0qD2
 
 
 class nff_ba2(nff_with_SN):
@@ -161,7 +170,6 @@ class nff_ba2(nff_with_SN):
 
     def cN(self, k):
         ''' Form factor cN. Assumes k is in GeV.
-        Found using D2 scheme
         '''
         return self.cN_q(k) + self.cN_g(k)
 
@@ -187,20 +195,20 @@ class nff_ba2(nff_with_SN):
         return DN1(k**2,A0g,J0g,cAg,cJg,c2g)
 
     def cN_q(self, k):
-        return cbar(k**2,c_0q)
+        return cbar(k**2,c_0qD2)
 
     def cN_g(self, k):
-        return cbar(k**2,c_0g)
+        return cbar(k**2,c_0gD2)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class nff_ba_quark(nff_ba2):
-    ''' A quark-only variation on nff_ba2. '''
+class nff_ba_quarkD2(nff_ba2):
+    ''' A quark-variation on nff_ba2 using MSbar and D2 scheme at a scale mu=2 GeV^2'''
 
     def __init__(self):
         super().__init__()
-        self.name = "baq"
+        self.name = "baqD2"
         return
 
     # Overrides to eliminate gluons ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -219,12 +227,12 @@ class nff_ba_quark(nff_ba2):
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class nff_ba_gluon(nff_ba2):
-    ''' A gluon-variation on nff_ba2. '''
+class nff_ba_gluonD2(nff_ba2):
+    ''' A gluon-variation on nff_ba2 using MSbar and D2 scheme at a scale mu=2 GeV^2'''
 
     def __init__(self):
         super().__init__()
-        self.name = "bag"
+        self.name = "bagD2"
         return
 
     # Overrides to eliminate quarks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -244,4 +252,52 @@ class nff_ba_gluon(nff_ba2):
     def SN(self, k):
         # Note that gluons cannot contribute to SN
         return k*0
+class nff_ba_quarkD1(nff_ba2):
+    ''' A quark-variation on nff_ba2 using MSbar and D1 scheme at a scale mu=2 GeV^2'''
 
+    def __init__(self):
+        super().__init__()
+        self.name = "baqD1"
+        return
+
+    # Overrides to eliminate gluons ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_g(self, k):
+        return k*0
+
+    def JN_g(self, k):
+        return k*0
+
+    def DN_g(self, k):
+        return k*0
+
+    def cN_g(self, k):
+        return k*0
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class nff_ba_gluonD1(nff_ba2):
+    ''' A gluon-variation on nff_ba2 using MSbar and D1 scheme at a scale mu=2 GeV^2'''
+
+    def __init__(self):
+        super().__init__()
+        self.name = "bagD1"
+        return
+
+    # Overrides to eliminate quarks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_q(self, k):
+        return k*0
+
+    def JN_q(self, k):
+        return k*0
+
+    def DN_q(self, k):
+        return k*0
+
+    def cN_q(self, k):
+        return k*0
+
+    def SN(self, k):
+        # Note that gluons cannot contribute to SN
+        return k*0
