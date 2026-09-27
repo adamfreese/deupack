@@ -48,8 +48,8 @@ class _VARWF(DWF):
             popsize = 32,
             workers = 8,
             updating = 'deferred',
-            tol = 1e-5,
-            maxiter = 5000
+            tol = 1e-9,
+            maxiter = 10000
             )
         self.a = stuff['x']
         N2 = quad(_usq_integrand, 0, np.inf,
