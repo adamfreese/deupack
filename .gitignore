@@ -15,6 +15,10 @@ setuptools
 _skbuild/
 **/nucleonGFFs.pickle
 
+# Other local environment parameters
+/.vscode
+*.json
+
 # Numpy output
 *.npy
 
