@@ -1,3 +1,2 @@
-from . import tests
-
-from .paperplots import *
+from . import Cosyn2026gyy
+from . import Freese2026hjy

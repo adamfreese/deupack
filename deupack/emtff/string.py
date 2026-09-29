@@ -40,13 +40,13 @@ def cU(k, dwf):
 def _DU_integrand(r, k, dwf):
     kfm = k/hbar
     Si, _ = sici(kfm*r/2)
-    intd = 8*dwf.mNfm*dwf.sigma/kfm**3*(
+    intd = 8*dwf.mN*dwf.sigma/k**3*(
             Si - 3*jn(1,kfm*r/2)
             ) * dwf.u(r)**2
     return intd
 
 def _cU_integrand(r, k, dwf):
     kfm = k/hbar
-    intd = dwf.sigma / (dwf.mNfm*kfm) * jn(1,kfm*r/2) * dwf.u(r)**2
+    intd = dwf.sigma / (dwf.mN*k) * jn(1,kfm*r/2) * dwf.u(r)**2
     return intd
 

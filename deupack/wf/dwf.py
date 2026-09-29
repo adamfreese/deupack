@@ -22,6 +22,8 @@ class DWF:
         self.name = "" # every dwf class should have a name
         self.mN = 0.93891875569 # GeV ... allows per-target override
         self.mNfm = self.mN / hbar
+        self.rmax = np.inf
+        self.rmin = 0
         return
 
     # The following functions are expected to exist ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
