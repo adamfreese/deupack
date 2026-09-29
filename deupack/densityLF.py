@@ -333,15 +333,15 @@ class DensityLF:
 
     
     def _cache_path(self):
-        filename = "Nucleon_emtff_table_{}_{:d}_{:.2e}_{:.2e}".format(
-         self.nff.name, self.nk, self.kmin, self.kmax
+        filename = "Nucleon_emtff_table_{}__{}_{:d}_{:.2e}_{:.2e}".format(
+         self.nff.name,self.nff.scheme, self.nk, self.kmin, self.kmax
         )
         path = Path(__file__).parent / 'cache/{}.csv'.format(filename)
         return path
 
     def _cache_path_bessel(self, name):
-        filename = "besselRegular_{}_table_{}_{:d}_{:.2e}".format(
-                name, self.nff.name, self.nb, self.bmax
+        filename = "besselRegular_{}_table_{}_{}_{:d}_{:d}_{:.2e}".format(
+                name, self.nff.name,self.nff.scheme, self.nb,self.P, self.bmax
                 )
         path = Path(__file__).parent / 'cache/{}.npy'.format(filename)
         return path

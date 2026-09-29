@@ -14,6 +14,7 @@ class NFF:
 
     def __init__(self):
         self.name = "" # every nff class should have a name
+        self.scheme = ''#some nff classes have schemes for quark/gluon separated nffs
         return
 
     # The expected form factors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

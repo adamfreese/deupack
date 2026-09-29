@@ -11,6 +11,7 @@ import matplotlib.patheffects as pe
 import cmasher as cmr
 
 from deupack import emtff
+from ..emtff.nucleon.chooser import choose_nff
 from deupack.density import Density
 from deupack.densityLF import DensityLF
 from deupack.plots.density3d import multidensity3d
@@ -33,6 +34,7 @@ def make_dev_plots():
     principal_axesLF()
     forces()           
     forcesLF()
+    Nucleon_Conserved_sym_EMTFFs()
     return
 
 
@@ -42,7 +44,7 @@ def make_dev_plots():
 
 def pressure():
     # Fixed parameters for the visualization
-    nff='bag'; wf='av18'; nb=101; bmax=2
+    nff='bagD2'; wf='av18'; nb=101; bmax=2
     # Get the pressures
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
     pr0 = D.isoradial_pressure(pol=0)
@@ -79,7 +81,7 @@ def pressure():
 
 def principal_axes():
     # Parameters for this visualization (fixed)
-    bmax = 1.6; nff='bag'; wf='av18'; nbq = 21; nbh = 101
+    bmax = 1.6; nff='bagD2'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
     Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
     Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
@@ -125,7 +127,7 @@ def principal_axes():
 
 def principal_axesLF():
     # Parameters for this visualization (fixed)
-    bmax = 0.7; nff='bag'; nbq=21 ;nbh = 101
+    bmax = 0.7; nff='bagD2'; nbq=21 ;nbh = 101
 
 
     SpinZ = (0.,0.,1.)
@@ -190,7 +192,7 @@ def principal_axesLF():
 
 def forces():
     # Fixed parameters
-    nff = 'bag'; wf = 'av18'; bmax = 1.4; nb = 101
+    nff = 'bagD2'; wf = 'av18'; bmax = 1.4; nb = 101
     D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
     # Get vmax
     vmax = np.max([
@@ -223,7 +225,7 @@ def forces():
 
 def forcesLF():
     # Fixed parameters
-    nff = 'bag'; bmax = 1.5; nb = 101
+    nff = 'bagD2'; bmax = 1.5; nb = 101
     SpinZ = (0.,0.,1.)
     D = DensityLF(nff=nff, bmax=bmax, nb=nb,SpinV=SpinZ)
     SpinY = (0.,1.,0.)
@@ -263,6 +265,76 @@ def forcesLF():
     fig.patch.set_alpha(0)
     fig.savefig('forcesProtonGluons.pdf', bbox_inches="tight")
     return
+def Nucleon_Conserved_sym_EMTFFs():
+    ''' Creates 3-panel figure for all the EMTFFs corresponding to symmetric EMT that are conserved
+    A,D,J
+    '''
+    nrows,ncols=1,3
+    fig = plt.figure(figsize=(ncols*8,nrows*6), layout='constrained')
+    ax_A  = plt.subplot(nrows,ncols,1)
+    ax_D = plt.subplot(nrows,ncols,2)
+    ax_J = plt.subplot(nrows,ncols,3)
+
+    FF_param= "ba2"
+    
+    _1curve_panel(ax_A,FF_param , 'A')
+    _1curve_panel(ax_D, FF_param,'D')
+    _1curve_panel(ax_J,FF_param , 'J')
+
+    
+    fig.patch.set_alpha(0)
+    fig.savefig('conservedNucleonSymFFs.pdf')
+    return
+
+
+# Plot tool functions
+
+
+_namelabel = {
+        'A'  : r'$A(\varDelta^2)$',
+        'J'   : r'$J(\varDelta^2)$',
+        'D'  : r'$D(\varDelta^2)$',
+        'c'  : r'$\bar{c}(\varDelta^2)$',
+        'S'   : r'$S(\varDelta^2)$'
+        }
+
+
+def _select_nff(name, dl2, param='ba',_scheme='none'):
+
+    _nff  = choose_nff(param,_scheme)
+    if(name=='A'):
+        F = _nff.AN(  np.sqrt(dl2))
+    elif(name=='D'):
+        F = _nff.DN(  np.sqrt(dl2))
+    elif(name=='J'):
+        F = _nff.JN(  np.sqrt(dl2))
+    elif(name=='c'):
+        F = _nff.cN(  np.sqrt(dl2))
+    elif(name=='S'):
+        F = _nff.SN(  np.sqrt(dl2))
+    else:
+        F = dl2 * 0
+    return F
+def _1curve_panel(ax, param, name,scheme='none'):
+    dl2 = np.geomspace(1e-6, 5e1, 1000)
+    ff= _select_nff(name=name,dl2=dl2,param="ba",_scheme=scheme)
+    ax.plot(dl2,ff , '-',  linewidth=2.6, color='tab:blue',   label="ba")
+    ff1= _select_nff(name=name,dl2=dl2,param="ba2",_scheme=scheme)
+    ax.plot(dl2,ff1 , '--',  linewidth=2.6, color='tab:red',   label="ba2")
+    # Line at zero to help guide the eye
+    ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
+    ax.set_xlabel(r'$\varDelta^2$ (GeV$^2$)')
+    bbox = dict(facecolor='#f8f8f8', alpha=0.76, edgecolor='gray', boxstyle='round,pad=0.5')
+    textxy = (0.05,0.09)
+    ax.annotate(
+            _namelabel[name], xy=textxy, xycoords='axes fraction',
+            bbox=bbox
+            )
+    ax.set_xscale('log')
+    ax.set_xlim((1e-6,50))
+    return
+
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
