@@ -2,7 +2,7 @@
 #
 # Created 2025.12.02
 #
-# Routines for the plots included in our first deuteron stress paper.
+# Routines for the plots included in Cosyn:2026gyy
 
 import numpy as np
 import matplotlib as mpl

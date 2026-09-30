@@ -1,3 +1,8 @@
+# Freese2026hry.py
+# Created by Adam Freese on 2026.09.29
+#
+# Routines for the plots included in Freese:2026hjy
+
 # Modules used ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import numpy as np
 import matplotlib as mpl
@@ -6,10 +11,10 @@ import cmasher as cmr
 from hankel import HankelTransform
 
 # Stuff from deupack ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from deupack import emtff
-from deupack.constants import hbar, alphaQED, GN, m_kep
-from deupack.wf.hydrogen import dwf_hydrogen
-from deupack.wf.variational import vwf_cornell, vwf_yukawa, vwf_multifield
+from .. import emtff
+from ..constants import hbar, alphaQED, GN, m_kep
+from ..wf.hydrogen import dwf_hydrogen
+from ..wf.variational import vwf_cornell, vwf_yukawa, vwf_multifield
 
 # Set up matplotlib parameters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 mpl.rc('font',size=30,family='cmr10',weight='normal')
