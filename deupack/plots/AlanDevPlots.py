@@ -1,8 +1,8 @@
 # AlanDevPlots.py
 #
-# Created 2025.12.02
+# Created 2026.07.15
 #
-# Routines for the plots included in our first deuteron stress paper.
+# Routines for the Alan's developer plots
 
 import numpy as np
 import matplotlib as mpl
@@ -44,7 +44,7 @@ def make_dev_plots():
 
 def pressure():
     # Fixed parameters for the visualization
-    nff='ba2g_D2'; wf='av18'; nb=101; bmax=2
+    nff='ba2g_D3'; wf='av18'; nb=101; bmax=2
     # Get the pressures
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
     pr0 = D.isoradial_pressure(pol=0)
@@ -127,7 +127,7 @@ def principal_axes():
 
 def principal_axesLF():
     # Parameters for this visualization (fixed)
-    bmax = 0.7; nff='ba2g_D3'; nbq=21 ;nbh = 101
+    bmax = 0.7; nff='ba2q_D3'; nbq=21 ;nbh = 101
 
     
 
@@ -175,7 +175,7 @@ def principal_axesLF():
             )
     cbar.set_label(r'Pressure (GeV/fm$^2$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('principal_axesProtonGluonsD3.pdf', bbox_inches="tight")
+    fig.savefig('principal_axesProtonQuarksD3.pdf', bbox_inches="tight")
     return
 
 
@@ -216,7 +216,7 @@ def forces():
 
 def forcesLF():
     # Fixed parameters
-    nff = 'ba2g_D3'; bmax = 1.5; nb = 101
+    nff = 'ba2q_D2'; bmax = 1.5; nb = 101
     SpinZ = (0.,0.,1.)
     D = DensityLF(nff=nff, bmax=bmax, nb=nb,SpinV=SpinZ)
     SpinX = (1.,0.,0.)
@@ -247,7 +247,7 @@ def forcesLF():
             )
     cbar.set_label(r'Force density (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('forcesProtonGluonsD3.pdf', bbox_inches="tight")
+    fig.savefig('forcesProtonQuarksD3.pdf', bbox_inches="tight")
     return
 def Nucleon_Conserved_sym_EMTFFs():
     ''' Creates 3-panel figure for all the EMTFFs corresponding to symmetric EMT that are conserved

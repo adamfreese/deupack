@@ -30,8 +30,10 @@ mf2    = 1.275 # from set I, see Eq. (51)
 mf2p   = 1.517 # from set I, see Eq. (51)
 mf2pp  = 1.565 # from set I, see Eq. (51)
 mf2ppp = 1.936 # from set I, see Eq. (51)
-msigma = 0.64 # central value for set I, see Eq. (52)
+# msigma = 0.64 # central value for set I, see Eq. (52)
 
+
+msigma = 0.579 #from my fit!
 
 
 
@@ -80,21 +82,17 @@ def DN1(k,A_0,J_0,cA,cJ,c2):
 
 
 
-# values found from BA previous fits to total form factors
-cA     = 0.62 # central value for set I, see Eq. (52)
-c2     = 0.15 # central value for set I, see Eq. (52)
-cJ     = 0.87 # central value for set I, see Eq. (52)
 
 
-
-
-
-
-A0q= 0.570
-cAq=    0.334
-c2q=    0.161
-J0q =   0.277
+A0q= 0.571
+cAq=    0.237
+c2q=    0.206
+cAg = 0.232
+c2g = 0.015
+J0q =   0.276
 cJq=    0.422 
+cJg= 0.396
+
 
 
 
@@ -107,10 +105,6 @@ J0g = 0.5 - J0q
 
     #constraints from BA previous fit for total
 
-
-c2g = c2 -c2q
-cAg = cA -cAq
-cJg= cJ - cJq
 
 
 
@@ -186,16 +180,6 @@ class nff_ba2(nff_with_SN):
     
         return cbar(k,c_0g)
 
-    def mass_radius_squared(self):
-        ''' See Eq. (49) of Broniowski:2025ctl '''
-        cA     = 0.62 # central value for set I, see Eq. (52)
-        c2     = 0.15 # central value for set I, see Eq. (52)
-        mf2    = 1.275 # from set I, see Eq. (51)
-        mf2p   = 1.517 # from set I, see Eq. (51)
-        mf2pp  = 1.565 # from set I, see Eq. (51)
-        mf2ppp = 1.936 # from set I, see Eq. (51)
-        dAdt = 1/mf2**2 + 1/mf2p**2 + 1/mf2pp**2 + 1/mf2ppp**2 - cA
-        return 6*dAdt*hbar**2
     
     # Auxiliary functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
