@@ -10,11 +10,11 @@ from .hz import nff_hz, nff_hz_quark, nff_hz_gluon
 from .mab import nff_mab
 from .mit import nff_mit, nff_mit_quark, nff_mit_gluon
 from .point import nff_point
-from .ba2 import nff_ba2,nff_ba2_gluon, nff_ba2_quark
+from .ba2 import nff_ba2,nff_ba2_gluonD2, nff_ba2_quarkD2,nff_ba2_gluonD3, nff_ba2_quarkD3
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def choose_nff(nff,scheme='none'):
+def choose_nff(nff):
     ''' Return a an NFF object based on a user choice (usually a string). '''
     if(isinstance(nff, NFF)):
         return nff
@@ -33,17 +33,21 @@ def choose_nff(nff,scheme='none'):
             _nff = nff_point()
         # Quark-only and gluon-only choices
         elif(nff=='mitq'):
-            _nff = nff_mit_quark(scheme)
+            _nff = nff_mit_quark()
         elif(nff=='mitg'):
-            _nff = nff_mit_gluon(scheme)
+            _nff = nff_mit_gluon()
         elif(nff=='hzq'):
-            _nff = nff_hz_quark(scheme)
+            _nff = nff_hz_quark()
         elif(nff=='hzg'):
-            _nff = nff_hz_gluon(scheme)
-        elif(nff=='ba2q'):
-            _nff = nff_ba2_quark(scheme)
-        elif(nff=='ba2g'):
-            _nff = nff_ba2_gluon(scheme)
+            _nff = nff_hz_gluon()
+        elif(nff=='ba2q_D2'):
+            _nff = nff_ba2_quarkD2()
+        elif(nff=='ba2g_D2'):
+            _nff = nff_ba2_gluonD2()
+        elif(nff=='ba2q_D3'):
+            _nff = nff_ba2_quarkD3()
+        elif(nff=='ba2g_D3'):
+            _nff = nff_ba2_gluonD3()
         else:
             raise ValueError("nff={} not recognized.".format(nff))
         return _nff

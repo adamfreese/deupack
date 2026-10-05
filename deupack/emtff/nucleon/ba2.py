@@ -114,6 +114,8 @@ cJg= cJ - cJq
 
 
 
+
+
 class nff_ba2(nff_with_SN):
     ''' 
     BA parametrization of EMT-FFs that were fit to lattice data
@@ -143,35 +145,9 @@ class nff_ba2(nff_with_SN):
         ''' Form factor cN. Assumes k is in GeV.
         '''
 
-        c_0q = 0.0
-        c_0g = 0.0
-
-        # D1 scheme (already divided by mass)
-        if(self.scheme=='D1'):
-            theta_q = 0.08  #need to change, need to figure out values for \gamma_m and \beta function
-            c_0q = (theta_q -A0q)/4.
-            c_0g = -c_0q
 
 
-
-        # D2 scheme (already divided by mass)
-        elif(self.scheme=='D2'):
-            theta_q = 0.08
-
-            c_0q = (theta_q -A0q)/4.
-            c_0g = -c_0q
-
-        # D3 scheme (already divided by mass)
-        elif(self.scheme=='D3'):
-            theta_q = 1.0
-            c_0q = (theta_q -A0q)/4.
-            c_0g = -c_0q
-        else:
-            print("scheme not incorporated! Choices: D1,D2,D3. Default=total form factor")
-
-
-
-        return self.cN_q(k,c_0q) + self.cN_g(k,c_0g)
+        return self.cN_q(k) + self.cN_g(k)
 
 
     def AN_q(self, k):
@@ -192,10 +168,22 @@ class nff_ba2(nff_with_SN):
     def DN_g(self, k):
         return DN1(k,A0g,J0g,cAg,cJg,c2g)
 
-    def cN_q(self, k,c_0q):    
+    def cN_q(self, k):
+
+        theta_q = 0.08
+
+        c_0q = (theta_q -A0q)/4.
+        # c_0g = -c_0q
+
         return cbar(k,c_0q)
 
-    def cN_g(self, k,c_0g):
+    def cN_g(self, k):
+    
+        theta_q = 0.08
+    
+        c_0q = (theta_q -A0q)/4.
+        c_0g = -c_0q
+    
         return cbar(k,c_0g)
 
     def mass_radius_squared(self):
@@ -223,12 +211,12 @@ class nff_ba2(nff_with_SN):
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class nff_ba2_quark(nff_ba2):
-    ''' A quark-variation on nff_ba2 using MSbar and D2 scheme at a scale mu=2 GeV^2'''
+class nff_ba2_quarkD2(nff_ba2):
+    ''' A quark-variation on nff_ba2 using D2 scheme at a scale mu=2 GeV^2'''
 
     def __init__(self):
         super().__init__()
-        self.name = "ba2q"
+        self.name = "ba2q_D2"
         return
 
     # Overrides to eliminate gluons ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -245,14 +233,23 @@ class nff_ba2_quark(nff_ba2):
     def cN_g(self, k):
         return k*0
 
+        
+    def cN_q(self, k):
+
+        theta_q = 0.08
+
+        c_0q = (theta_q -A0q)/4.
+        # c_0g = -c_0q
+
+        return cbar(k,c_0q)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class nff_ba2_gluon(nff_ba2):
-    ''' A gluon-variation on nff_ba2 using MSbar and D2 scheme at a scale mu=2 GeV^2'''
+class nff_ba2_gluonD2(nff_ba2):
+    ''' A gluon-variation on nff_ba2 using D2 scheme at a scale mu=2 GeV^2'''
 
     def __init__(self):
         super().__init__()
-        self.name = "ba2g"
+        self.name = "ba2g_D2"
         return
 
     # Overrides to eliminate quarks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -269,6 +266,88 @@ class nff_ba2_gluon(nff_ba2):
     def cN_q(self, k):
         return k*0
 
+        
+    def cN_g(self, k):
+
+        theta_q = 0.08
+
+        c_0q = (theta_q -A0q)/4.
+        c_0g = -c_0q
+
+        return cbar(k,c_0g)
+
     def SN(self, k):
         # Note that gluons cannot contribute to SN
         return k*0
+
+
+
+class nff_ba2_quarkD3(nff_ba2):
+    ''' A quark-variation on nff_ba2 using D3 scheme at a scale mu=2 GeV^2'''
+
+    def __init__(self):
+        super().__init__()
+        self.name = "ba2q_D3"
+        return
+
+    # Overrides to eliminate gluons and change quark contribution ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_g(self, k):
+        return k*0
+
+    def JN_g(self, k):
+        return k*0
+
+    def DN_g(self, k):
+        return k*0
+
+    def cN_g(self, k):
+        return k*0
+
+        
+    def cN_q(self, k):
+
+        theta_q = 1.0
+        c_0q = (theta_q -A0q)/4.
+        # c_0g = -c_0q
+
+
+        return cbar(k,c_0q)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class nff_ba2_gluonD3(nff_ba2):
+    ''' A gluon-variation on nff_ba2 using D3 scheme at a scale mu=2 GeV^2'''
+
+    def __init__(self):
+        super().__init__()
+        self.name = "ba2g_D3"
+        return
+
+    # Overrides to eliminate quarks and change gluon contribution ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def AN_q(self, k):
+        return k*0
+
+    def JN_q(self, k):
+        return k*0
+
+    def DN_q(self, k):
+        return k*0
+
+    def cN_q(self, k):
+        return k*0
+
+        
+    def cN_g(self, k):
+
+        theta_q = 1.0
+        c_0q = (theta_q -A0q)/4.
+        c_0g = -c_0q
+
+        return cbar(k,c_0g)
+
+    def SN(self, k):
+        # Note that gluons cannot contribute to SN
+        return k*0
+
+

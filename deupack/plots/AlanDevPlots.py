@@ -44,7 +44,7 @@ def make_dev_plots():
 
 def pressure():
     # Fixed parameters for the visualization
-    nff='bagD2'; wf='av18'; nb=101; bmax=2
+    nff='ba2g_D2'; wf='av18'; nb=101; bmax=2
     # Get the pressures
     D = Density(nff=nff, wf=wf, nb=nb, bmax=bmax)
     pr0 = D.isoradial_pressure(pol=0)
@@ -81,7 +81,7 @@ def pressure():
 
 def principal_axes():
     # Parameters for this visualization (fixed)
-    bmax = 1.6; nff='bagD2'; wf='av18'; nbq = 21; nbh = 101
+    bmax = 1.6; nff='ba2g_D2'; wf='av18'; nbq = 21; nbh = 101
     # Density objects for quiver (small) and heat map (large)
     Dq = Density(nff=nff, wf=wf, bmax=bmax, nb=nbq)
     Dh = Density(nff=nff, wf=wf, bmax=bmax, nb=nbh)
@@ -127,64 +127,55 @@ def principal_axes():
 
 def principal_axesLF():
     # Parameters for this visualization (fixed)
-    bmax = 0.7; nff='bagD2'; nbq=21 ;nbh = 101
+    bmax = 0.7; nff='ba2g_D3'; nbq=21 ;nbh = 101
 
+    
 
     SpinZ = (0.,0.,1.)
-    SpinY = (0.,1.,0.)
-    SpinX = (1.,0.,0.)
+    SpinX = (1.,0.0,0.)
 
-
+    
 
     # Density objects for quiver (small) and heat map (large)
     DqZ = DensityLF(nff=nff,  bmax=bmax, nb=nbq,SpinV=SpinZ)
-    DhZ = DensityLF(nff=nff,  bmax=bmax, nb=nbh,SpinV=SpinZ)
-    DqY = DensityLF(nff=nff,  bmax=bmax, nb=nbq,SpinV=SpinY)
-    DhY = DensityLF(nff=nff,  bmax=bmax, nb=nbh,SpinV=SpinY)
+    DhZ = DensityLF(nff=nff ,bmax=bmax, nb=nbh,SpinV=SpinZ)
     DqX = DensityLF(nff=nff,  bmax=bmax, nb=nbq,SpinV=SpinX)
     DhX = DensityLF(nff=nff,  bmax=bmax, nb=nbh,SpinV=SpinX)
     # Prepare figure
-    nrows,ncols=2,3
+    nrows,ncols=2,2
     fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
     axZp = axes[0,0]
     axZm = axes[1,0]
-    axYp = axes[0,1]
-    axYm = axes[1,1]
-    axXp = axes[0,2]
-    axXm = axes[1,2]
-    for ax in [axZp, axZm, axYp, axYm, axXp, axXm]:
+    axXp = axes[0,1]
+    axXm = axes[1,1]
+    for ax in [axZp, axZm, axXp, axXm]:
         ax.set_aspect('equal')
     vmax = np.max([
         abs(DhZ.isoradial_pressure()).max(),
         abs(DhX.isoradial_pressure()).max(),
-        abs(DhY.isoradial_pressure()).max(),
         abs(DhZ.isoazimuthal_pressure()).max(),
-        abs(DhY.isoazimuthal_pressure()).max(),
         abs(DhX.isoazimuthal_pressure()).max(),
         ])
     # Call the panel code four times
     _ = _eigenvector_panel_LF(axZp, DqZ, DhZ, '+', vmax, r'Isoradial,  z')
     _ = _eigenvector_panel_LF(axZm, DqZ, DhZ, '-', vmax, r'Isoazimuthal, z')
-    _ = _eigenvector_panel_LF(axYp, DqY, DhY, '+', vmax, r'Isoradial,  y')
-    _ = _eigenvector_panel_LF(axYm, DqY, DhY, '-', vmax, r'Isoazimuthal, y')
     _ = _eigenvector_panel_LF(axXp, DqX, DhX, '+', vmax, r'Isoradial,  x')
     _ = _eigenvector_panel_LF(axXm, DqX, DhX, '-', vmax, r'Isoazimuthal, x')
-    # Remove x axes from top three panels for economic use of space
-    for ax in [axZp, axYp,axXp]:
+    for ax in [axZp, axXp]:
         ax.get_xaxis().set_visible(False)
     # Remove y axes from middle and right panels for the same reason
-    for ax in [axXp, axXm,axYp, axYm]:
+    for ax in [axXp, axXm]:
         ax.get_yaxis().set_visible(False)
     # Make the colorbar
     norm = mpl.colors.Normalize(vmin=-vmax, vmax=vmax)
     cbar = fig.colorbar(
             mpl.cm.ScalarMappable(norm=norm, cmap=cmr.fusion_r),
-            ax = axes[:, 2],
+            ax = axes[:, 1],
             orientation='vertical',
             )
     cbar.set_label(r'Pressure (GeV/fm$^2$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('principal_axesProtonGluons.pdf', bbox_inches="tight")
+    fig.savefig('principal_axesProtonGluonsD3.pdf', bbox_inches="tight")
     return
 
 
@@ -192,7 +183,7 @@ def principal_axesLF():
 
 def forces():
     # Fixed parameters
-    nff = 'bagD2'; wf = 'av18'; bmax = 1.4; nb = 101
+    nff = 'ba2g_D2'; wf = 'av18'; bmax = 1.4; nb = 101
     D = Density(nff=nff, wf=wf, bmax=bmax, nb=nb)
     # Get vmax
     vmax = np.max([
@@ -225,45 +216,38 @@ def forces():
 
 def forcesLF():
     # Fixed parameters
-    nff = 'bagD2'; bmax = 1.5; nb = 101
+    nff = 'ba2g_D3'; bmax = 1.5; nb = 101
     SpinZ = (0.,0.,1.)
     D = DensityLF(nff=nff, bmax=bmax, nb=nb,SpinV=SpinZ)
-    SpinY = (0.,1.,0.)
-    D1 = DensityLF(nff=nff, bmax=bmax, nb=nb,SpinV=SpinY)
     SpinX = (1.,0.,0.)
     D2 = DensityLF(nff=nff, bmax=bmax, nb=nb,SpinV=SpinX)
     # Get vmax
     vmax = np.max([
         abs(D.radial_force()).max(),
-        abs(D1.radial_force()).max(),
         abs(D2.radial_force()).max(),
         abs(D.azimuthal_force()).max(),
-        abs(D1.azimuthal_force()).max(),
         abs(D2.azimuthal_force()).max()
         ])
     # Prepare figure
-    nrows,ncols=1,3
+    nrows,ncols=1,2
     fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*8.4,nrows*7.11), layout='constrained')
     ax0 = axes[0]
     ax1 = axes[1]
-    ax2 = axes[2]
     norm = mpl.colors.LogNorm(vmin=1e-3*vmax, vmax=vmax)
     # norm = mpl.colors.Normalize(vmin=1e-3*vmax, vmax=vmax)
     _ = _force_panel_streamLF(ax0, D, norm=norm, label=r'z')
-    _ = _force_panel_streamLF(ax1, D1, norm=norm, label=r'y')
-    _ = _force_panel_streamLF(ax2, D2, norm=norm, label=r'x')
+    _ = _force_panel_streamLF(ax1, D2, norm=norm, label=r'x')
     # Remove y axes from right panel to save space
     ax1.get_yaxis().set_visible(False)
-    ax2.get_yaxis().set_visible(False)
     # Make the colorbar
     cbar = fig.colorbar(
             mpl.cm.ScalarMappable(norm=norm, cmap=cmr.voltage_r),
-            ax = axes[2],
+            ax = axes[1],
             orientation='vertical',
             )
     cbar.set_label(r'Force density (GeV/fm$^3$)', size=36)
     fig.patch.set_alpha(0)
-    fig.savefig('forcesProtonGluons.pdf', bbox_inches="tight")
+    fig.savefig('forcesProtonGluonsD3.pdf', bbox_inches="tight")
     return
 def Nucleon_Conserved_sym_EMTFFs():
     ''' Creates 3-panel figure for all the EMTFFs corresponding to symmetric EMT that are conserved
@@ -299,9 +283,9 @@ _namelabel = {
         }
 
 
-def _select_nff(name, dl2, param='ba',_scheme='none'):
+def _select_nff(name, dl2, param='ba'):
 
-    _nff  = choose_nff(param,_scheme)
+    _nff  = choose_nff(param)
     if(name=='A'):
         F = _nff.AN(  np.sqrt(dl2))
     elif(name=='D'):
@@ -315,11 +299,11 @@ def _select_nff(name, dl2, param='ba',_scheme='none'):
     else:
         F = dl2 * 0
     return F
-def _1curve_panel(ax, param, name,scheme='none'):
+def _1curve_panel(ax, param, name):
     dl2 = np.geomspace(1e-6, 5e1, 1000)
-    ff= _select_nff(name=name,dl2=dl2,param="ba",_scheme=scheme)
+    ff= _select_nff(name=name,dl2=dl2,param="ba")
     ax.plot(dl2,ff , '-',  linewidth=2.6, color='tab:blue',   label="ba")
-    ff1= _select_nff(name=name,dl2=dl2,param="ba2",_scheme=scheme)
+    ff1= _select_nff(name=name,dl2=dl2,param="ba2")
     ax.plot(dl2,ff1 , '--',  linewidth=2.6, color='tab:red',   label="ba2")
     # Line at zero to help guide the eye
     ax.plot(dl2, dl2*0, linewidth=1, color='tab:gray')
